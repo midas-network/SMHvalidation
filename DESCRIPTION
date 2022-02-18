@@ -1,0 +1,31 @@
+Package: covid19SMHvalidation
+TType: Package
+Title: COVID-19 Scenario Modeling Hub Validations & Visualizations
+Version: 0.1.0
+Authors@R: 
+     c(person(given = "Lucie", 
+            family = "Contamin", 
+            role = c("aut", "cre"), 
+            email = "contamin@pitt.edu", 
+            comment = c(ORCID = "0000-0001-5797-1279")),
+     person(given = "Shaun", 
+            family = "Truelove", 
+            role = c("aut"), 
+            email = "", 
+            comment = ""),
+      person(given = "COVID19 Scenario Modeling Hub Coordination Team",
+             role = "aut"))
+Description: The COVID-19 Scenario Modeling Hub Validations package contains functions for validation and visualization scenario modeling hub submissions.
+License: MIT + file LICENSE
+Encoding: UTF-8
+LazyData: true
+RoxygenNote: 7.1.1
+Imports: arrow, 
+         covidcast, 
+         data.table,
+         dplyr, 
+         gh, 
+         lubridate, 
+         purrr, 
+         stringr, 
+         tidyr

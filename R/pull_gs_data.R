@@ -1,0 +1,227 @@
+#' Calculate Weekly Incidence
+#'
+#' Calculate data from Daily to Weekly Incidence (Epiweek from CDC) by States,
+#' by summing the value for the day of the week (remove any NA value).
+#'
+#' @param df data frame containing value, geo_value, year and week columns
+#'
+#' @noRd
+#' @importFrom data.table setDT :=
+#' @importFrom dplyr as_tibble %>%
+gs_week_process <- function(df) {
+  df <- setDT(df)
+  df[, value:=sum(value, na.rm=T), by =.(geo_value, year, week)] %>% as_tibble()
+}
+
+#'Add Locayion Name column
+#'
+#' Create a column "geo_value_fullname" with the full name of each state.
+#'
+#' @param df data frame containing geo_value column
+#' @param loc_dictionary_name named vector containing the FIPS as name and the
+#'  corresponding location name as value (example: name: "01", value: "Alabama")
+#'
+#'@noRd
+location_full <- function(df, loc_dictionary_name) {
+  df$geo_value_fullname <- loc_dictionary_name[df$geo_value]
+  df
+}
+
+#' Calculate US level by adding all the states
+#'
+#' Summarize the information by adding all the states value by time.
+#'
+#' @param df data frame containing geo_value column
+#'
+#' @noRd
+#' @importFrom dplyr group_by summarise mutate %>%
+#' @importFrom lubridate epiweek epiyear
+gs_sum <- function(df) {
+  df <- dplyr::group_by(df, time_value) %>%
+    dplyr::summarise(value = sum(value, na.rm = TRUE), .groups = "drop") %>%
+    dplyr::mutate(week = lubridate::epiweek(time_value),
+                  year = lubridate::epiyear(time_value))
+}
+
+#' Recalculate date
+#'
+#' Recalculate date to have the non-cumulative data by week with time-value is
+#' the maximum of the week
+#'
+#' @param df data frame containing geo_value column
+#'
+#' @noRd
+#' @importFrom dplyr group_by ungroup mutate %>%
+#' @importFrom lubridate epiweek epiyear
+week_date <- function(df) {
+  if (any(grepl("geo_value", names(df)))) {
+    df <- dplyr::group_by(df, geo_value, week, year)
+  } else {
+    df <- dplyr::group_by(df, week, year)
+  }
+  df %>%
+    dplyr::mutate(time_value = max(time_value)) %>%
+    dplyr::ungroup()
+  class(df) <- c("covidcast_signal", "data.frame")
+  df
+}
+
+#' Calculate Saturday
+#'
+#' From a year and week number returns last Saturday of the epiweek
+#'
+#' @param year_number numeric
+#' @param week_number numeric
+#'
+#' @noRd
+#' @importFrom lubridate ymd weeks
+last_sat <- function(year_number, week_number) {
+  lubridate::ymd("2021-01-02") + (lubridate::weeks(week_number + 52 * (year_number-2021)))
+}
+
+#' Select last day / epiweek
+#'
+#' Select the last day of the epi week
+#'
+#' @param df a data frame containing value, geo_value, year and week columns
+#' @param date_sel a vector of a date to select from
+#' @param sel character, the period to select from "week" (weekly) or "max"
+#' (max value)
+#'
+#' @noRd
+#' @importFrom dplyr group_by mutate ungroup filter
+sel_last_day_week <- function(df, date_sel, sel = "week") {
+  if (any(grepl("geo_value_fullname", names(df)))) {
+    df <- dplyr::group_by(df, geo_value_fullname, week, year)
+  } else {
+    df <- dplyr::group_by(df, week, year)
+  }
+  if (sel == "week") {
+    df <- dplyr::mutate(df, sel = ifelse(time_value %in% date_sel,1, 0))
+  } else if (sel == "max") {
+    df <- dplyr::mutate(df, sel = ifelse(time_value == max(time_value),1, 0))
+  }
+  df %>%
+    dplyr::ungroup() %>%
+    dplyr::filter(sel == 1)
+}
+
+
+#' Pull Truth data from COVIDCast
+#'
+#' Download and returns data from COVIDcast package in a Scenario Modeling
+#' Hub format, with the incidence and cumulative data for each state and
+#' US national level by epiweek.
+#' Source data:
+# For case/death data, use: https://cmu-delphi.github.io/delphi-epidata/api/covidcast-signals/jhu-csse.html
+# For hospitalization: https://cmu-delphi.github.io/delphi-epidata/api/covidcast-signals/hhs.html
+#'
+#'
+#' @return a list of dataframe, each dataframe named with the corresponding
+#' covidcast signal except "hospitalization" instead of "confirmed_admissions_covid_1d"
+#'
+#' @export
+#' @importFrom dplyr mutate select %>%
+#' @importFrom lubridate epiweek epiyear
+#' @importFrom stats setNames
+#' @importFrom covidcast covidcast_signal
+#'
+#' @examples
+#' pull_gs_data
+pull_gs_data <- function() {
+  # date prerequisite
+  # Date limit for Gold Standard data (to have data until the last full epiweek):
+  eweek = lubridate::epiweek(Sys.Date())
+  eyear = lubridate::epiyear(Sys.Date())
+
+  limit_date <- last_sat(eyear, eweek)
+  if (limit_date > Sys.Date()) limit_date <- limit_date-1
+
+  vect_week_date <- as.Date("2020-01-04")
+  while (max(vect_week_date) < limit_date) {
+    j <- max(vect_week_date) + 7
+    vect_week_date <- c(vect_week_date, j)
+  }
+  rm(j)
+  # location prerequisite
+  # Pull population data and prepare location hash vector
+  pop_path <- "https://raw.githubusercontent.com/midas-network/covid19-scenario-modeling-hub/master/data-locations/locations.csv"
+  pop <- read_files(pop_path)
+  loc_dictionary_name <- setNames(c(rep(pop$location_name, 2), "US",
+                                    rep(grep("US$", pop$location_name,
+                                             value = TRUE, invert = TRUE), 2),
+                                    rep(pop$location_name, 2),
+                                    "New York"),
+                                  c(pop$location,
+                                    tolower(pop$abbreviation), "US",
+                                    na.omit(as.numeric(pop$location)),
+                                    as.character(na.omit(
+                                      as.numeric(pop$location))),
+                                    tolower(pop$location_name),
+                                    toupper(pop$location_name),
+                                    "new york state"))
+  location2number <- setNames(pop$location, pop$location_name)
+
+  # signals
+  signals <- c("deaths_cumulative_num", "confirmed_cumulative_num",
+               "confirmed_incidence_num", "deaths_incidence_num",
+               "confirmed_admissions_covid_1d")
+  lst_df <- lapply(signals, function(x) {
+
+    if (x == "confirmed_admissions_covid_1d") {
+      source <- "hhs"
+    } else {
+      source <- "jhu-csse"
+    }
+
+    # Call API to generate gold standard data from COVIDCast
+   df <- covidcast_signal(data_source = source, signal = x,
+                               geo_type = "state", end_day = limit_date,
+                               as_of = Sys.Date())
+
+    # Processed data:
+    #   - Transform Daily incidence in Weekly incidence
+    #   - Add a column for the full name of the states
+    #   - Generate a notional level data frame (sum by state)
+    df$week <- lubridate::epiweek(df$time_value)
+    df$year <- lubridate::epiyear(df$time_value)
+    if (!(grepl("cumulative", x))) {
+
+      ## See fast version of gs_week_process
+      df <- gs_week_process(df) %>%
+        week_date()
+
+      df_state <- distinct(df) %>%
+        location_full(loc_dictionary_name = loc_dictionary_name) %>%
+        sel_last_day_week(vect_week_date)
+      df_us <- gs_sum(df_state) %>%
+        week_date() %>%
+        distinct() %>%
+        sel_last_day_week(vect_week_date) %>%
+        mutate(geo_value_fullname = "US",
+               geo_value = "us")
+      df_tot <- bind_rows(df_state, df_us)
+    } else {
+      df_state <- location_full(df, loc_dictionary_name = loc_dictionary_name)
+      df_state <- sel_last_day_week(df_state, vect_week_date)
+      df_us <- gs_sum(df_state ) %>%
+        sel_last_day_week(vect_week_date) %>%
+        mutate(geo_value_fullname = "US",
+               geo_value = "us")
+      df_tot <- bind_rows(df_state, df_us)
+    }
+    # Add geographical information for the mapping
+    if (!(any(grepl("geo_value_fullname", names(df_tot))))){
+      df_tot <- location_full(df_tot, loc_dictionary_name = loc_dictionary_name)
+    }
+    df_tot <- mutate(df_tot, fips = location2number[geo_value_fullname]) %>%
+      select(time_value, geo_value_fullname, fips, value)
+  }) %>%
+  setNames(c("deaths_cumulative_num", "confirmed_cumulative_num",
+             "confirmed_incidence_num", "deaths_incidence_num",
+              "hospitalization"))
+  return(lst_df)
+}
+
+
+
