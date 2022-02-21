@@ -191,4 +191,4 @@ write.csv(base_df %>% filter(location == "US") %>% mutate(location = gsub("US", 
 write.csv(base_df %>% filter(location == "02") %>% mutate(location = gsub("02", "2", location)), "tests/testthat/training_data/2021-11-14_no0location.csv", row.names = FALSE)
 
 # fail to ID round information
-write.csv(base_df %>% filter(location == "US", is.na(quantile), target_end_date == "2022-01-15", scenario_id == "A-2022-01-09") %>% mutate(scenario_id = "noID"), "tests/testthat/training_data/noround.csv", row.names = FALSE)
+write.csv(base_df %>% filter(location == "US", is.na(quantile), target_end_date == "2022-01-15", scenario_id == "A-2022-01-09") %>% mutate(scenario_id = "noID"), "tests/testthat/training_data/2022-01-15_noround.csv", row.names = FALSE)

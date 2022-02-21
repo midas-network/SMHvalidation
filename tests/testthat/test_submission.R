@@ -5,11 +5,15 @@ test_that("Test validation process", {
 
   testthat::expect_equal(
     validate_submission(
-      "training_data/2022-01-09_no_error.csv", lst_gs, scen_info = scen_info),
+      "training_data/2022-01-09_no_error.csv", lst_gs),
     "End of validation check: all the validation checks were successfull")
 
   testthat::expect_error(validate_submission(
     "training_data/2022-01-09_colname.csv", lst_gs, scen_info = scen_info))
+  testthat::expect_error(validate_submission(
+    "training_data/2022-01-09_colname.csv", lst_gs, scen_info = "nofile.csv"))
+  testthat::expect_error(validate_submission(
+    "training_data/2022-01-09_colname.csv", lst_gs, scen_info = 2))
   testthat::expect_error(validate_submission(
     "training_data/2022-01-09_addcol.csv", lst_gs, scen_info = scen_info))
 
@@ -70,7 +74,7 @@ test_that("Test validation process", {
     "training_data/2021-11-14_no0location.csv", lst_gs, scen_info = scen_info))
 
   testthat::expect_error(validate_submission(
-    "training_data/2noround.csv", lst_gs, scen_info = scen_info))
+    "training_data/2022-01-15_noround.csv", lst_gs, scen_info = scen_info))
 
 
 

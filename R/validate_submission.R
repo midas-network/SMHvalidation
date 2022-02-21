@@ -139,7 +139,8 @@ validate_submission <- function(path,
   if (is.null(scen_info)) {
     scen_df <- scen_round_info()
   } else {
-    if (is.vector(scen_info)) {
+    if (is.vector(scen_info) & is.character(scen_info) &
+        length(scen_info) == 1) {
       scen_df <- read_files(scen_info)
     } else if (is.data.frame(scen_info)) {
       scen_df <- scen_info
