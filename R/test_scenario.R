@@ -35,9 +35,12 @@ test_scenario <- function(df, round, scenario_smname, scenario_sel) {
                     names(scenario_sel) == paste0("round", round))]]))) {
     scenname_test <- paste0(
       "\U000274c Error: At least 1 of the 'scenario_name' do(es) not ",
-      "correspond. Should be: '", paste(scenario_smname[scenario_sel[which(
-        names(scenario_sel) ==  paste0("round", round))]], collapse = ", "),
-      "', but is: '", paste(unique(df$scenario_name), collapse = ", "), "'.")
+      "correspond: '", unique(df$scenario_name[
+        !df$scenario_name %in% scenario_smname[scenario_sel[which(
+          names(scenario_sel) == paste0("round", round))]]]),
+      "'. The scenarios names for this round are: '", paste(scenario_smname[
+        scenario_sel[which(names(scenario_sel) ==  paste0("round", round))]],
+        collapse = ", "), "'. Please verify.")
   } else {
     scenname_test <-NA
   }
@@ -45,11 +48,13 @@ test_scenario <- function(df, round, scenario_smname, scenario_sel) {
   # values
   if (isFALSE(all(df$scenario_id %in%scenario_sel[which(
     names(scenario_sel) == paste0("round", round))]))) {
-    scenid_test <- paste0(
-      "\U000274c Error: At least 1 of the 'scenario_id' do(es) not correspond.",
-      "Should be: '", paste(unique( scenario_sel[which(names(
-        scenario_sel) == paste0("round", round))]), collapse = ", "),
-      "', but is: '", paste(unique(df$scenario_id), collapse = ", "), "'.")
+    scenid_test <-  paste0(
+      "\U000274c Error: At least 1 of the 'scenario_id' do(es) not ",
+      "correspond: '", unique(df$scenario_id[!df$scenario_id %in%scenario_sel[
+        which(names(scenario_sel) == paste0("round", round))]]),
+      "'. The scenarios ids for this round are: '", paste(unique(scenario_sel[
+        which(names(scenario_sel) == paste0("round", round))]),
+        collapse = ", "), "'. Please verify.")
   } else {
     scenid_test <- NA
   }
@@ -63,8 +68,9 @@ test_scenario <- function(df, round, scenario_smname, scenario_sel) {
           scenario_sel[which(names(scenario_sel) == paste0("round", round))])])
         ), "=", unique(scenario_smname[names(scenario_smname) %in% as.vector(
           scenario_sel[which(names(scenario_sel) == paste0("round", round))])]
-        ), collapse = "\n"), "', but is: \n'",
-      paste(distinct(df[, c("scenario_id", "scenario_name")]),collapse = "\n"),
+        ), collapse = "\n"), "',\n but is: \n\n'",
+      paste(distinct(df[, c("scenario_id", "scenario_name")]) %>%
+              tidyr::unite("name", sep = " = ") %>% unlist(), collapse = "\n"),
       "'.")
   } else {scencorres_test <- NA}
 
