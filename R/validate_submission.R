@@ -147,8 +147,8 @@ validate_submission <- function(path,
     } else {
       stop("`scen_info` paramater should either be: a path to a file containing ",
            "the round and scenario information, or a data frame, or NULL. If ",
-           "NULL, the information will be extracted from the Scenario Modeling",
-           " Hub GitHub repository, ")
+           "NULL, the information will be automatically extracted from the ",
+           "Scenario Modeling Hub GitHub repository, ")
     }
   }
 
