@@ -26,12 +26,11 @@
 #' Function called in the `validate_submission()` function.
 #'
 #'@importFrom stats na.omit
-#'@importFrom lubridate is.Date
 #'@importFrom stringr str_extract
 #'@export
 test_modelprojdate <- function(df, path, start_date) {
   # Test the format of the column: should be a date
-  if (isFALSE(lubridate::is.Date(as.Date(df$model_projection_date)))) {
+  if (any(is.na(as.Date(df$model_projection_date, "%Y-%m-%d")))) {
     mpddate_test <- paste0(
       "\U000274c Error: 'model_projection_date' should be a date, format ",
       "YYYY-MM-DD")

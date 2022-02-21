@@ -91,13 +91,26 @@ run_all_validation <- function(df, round, start_date, path, pop,
 #'  geographical entities by FIPS (in a column "location") and by location name.
 #'  By default, path to the locations file in the COVID19 Scenario Modeling Hub
 #'  GitHub repository
-#'
+#'@param scen_info NULL, character vector (path leading to a csv file) or data
+#'  frame, containing, the round and scenario information in the same output
+#'  format as the function `scen_round_info()`. Please see documentation for
+#'  more information. The default is NULL. If NULL, the information will be
+#'  directly and automatically extracted from the Scenario Modeling Hub GitHub
+#'  repository.
 #'
 #'@details For more information on all tests run on the submission, please refer
 #' to the documentation of each "test_*" function. A vignette with all the
 #' information might be created later on too.
+#' \cr\cr
+#' If the `scen_info` parameter is set to NULL, the information is extracted
+#' from the multiple README from the Scenario Modeling Hub GitHub repository by
+#' using the GitHub API. Just as a warning, the number of call is limited to
+#' 60 per hour. If you plan to use the `validate_submission()` function multiple
+#' times in a short time frame, we advise use to store the scenario information
+#' in a data frame by doing `df_scen_info <-  scen_round_info()` for example,
+#' and setting the `scen_info` parameter to `scen_info = df_scen_info`.
 #'
-#' @importFrom dplyr mutate select %>%
+#' @importFrom dplyr mutate select %>% mutate_if
 #' @importFrom stats setNames
 #'
 #'@examples
@@ -108,7 +121,8 @@ run_all_validation <- function(df, round, start_date, path, pop,
 #'@export
 validate_submission <- function(path,
                                 lst_gs,
-                                pop_path = "https://raw.githubusercontent.com/midas-network/covid19-scenario-modeling-hub/master/data-locations/locations.csv") {
+                                pop_path = "https://raw.githubusercontent.com/midas-network/covid19-scenario-modeling-hub/master/data-locations/locations.csv",
+                                scen_info = NULL) {
 
   # Prerequisite --------
   # Load gold stantard data
@@ -122,7 +136,23 @@ validate_submission <- function(path,
   pop <- read_files(pop_path)
   number2location <- setNames(pop$location_name, pop$location)
   # Pull Scenario data and prepare scenario hash vector
-  scen_df <- scen_round_info()
+  if (is.null(scen_info)) {
+    scen_df <- scen_round_info()
+  } else {
+    if (is.vector(scen_info) & is.character(scen_info) &
+        length(scen_info) == 1) {
+      scen_df <- read_files(scen_info)
+    } else if (is.data.frame(scen_info)) {
+      scen_df <- scen_info
+    } else {
+      stop("`scen_info` paramater should either be: a path to a file containing ",
+           "the round and scenario information, or a data frame, or NULL. If ",
+           "NULL, the information will be extracted from the Scenario Modeling",
+           " Hub GitHub repository, ")
+    }
+  }
+
+
   scenario_smname <- setNames(scen_df$scenario_name, scen_df$scenario_id)
   scenario_sel <- setNames(scen_df$scenario_id, scen_df$round)
 
@@ -131,7 +161,8 @@ validate_submission <- function(path,
 
   # Process file to test and associated information --------
   # Read file
-  df <- suppressMessages(read_files(path))
+  df <- suppressMessages(read_files(path)) %>%
+    dplyr::mutate_if(is.factor, as.character)
   # Extract round information
   round <- as.numeric(
     gsub("[^[:digit:]]", "", unique(scen_df[which(
