@@ -242,7 +242,7 @@
 #write.csv(base_df %>% filter(location == "US") %>% mutate(model_projection_date = as.Date("2922-01-09")), "tests/testthat/training_data/2922-01-09_mpdfile_error.csv", row.names = FALSE)
 ## quantiles
 #write.csv(base_df %>% filter(location == "US") %>% mutate(quantile = gsub(0.01, 0.02, quantile)), "tests/testthat/training_data/2022-01-09_badquant.csv", row.names = FALSE)
-#write.csv(base_df %>% filter(location == "US") %>% filter(!grepl(0.5, quantile)), "tests/testthat/training_data/2022-01-09_missquant.csv", row.names = FALSE)
+#write.csv(base_df %>% filter(location == "US") %>% filter(!grepl("0\\.5$", quantile)), "tests/testthat/training_data/2022-01-09_missquant.csv", row.names = FALSE)
 #write.csv(base_df %>% filter(location == "US") %>% filter(!grepl("^0$|^1$", quantile)), "tests/testthat/training_data/2022-01-09_missoptquant.csv", row.names = FALSE)
 #write.csv(base_df %>% filter(location == "US") %>% mutate(value = ifelse(scenario_id == "A-2022-01-09" & quantile == 1 & location == "US" & target == "1 wk ahead inc death", 0, value)), "tests/testthat/training_data/2022-01-09_valquant.csv", row.names = FALSE)
 ## value

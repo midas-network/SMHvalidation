@@ -54,8 +54,9 @@ test_quantiles <- function(df, round) {
         "\U0001f7e1 Warning: Expected number of 'quantile' is at least 23 + NA",
         " (+ 2 optional quantiles: 0, 1) unique values. The projection ",
         "contains: ", length(unique(df$quantile)), " unique values of ",
-        "`quantile`. The file will be accepted but might not be included in ",
-        "the Ensembles.")
+        "`quantile`. The file is missing the quantile(s): '",
+        paste(quantiles[!quantiles %in% df$quantile], collapse = ", "), "'. ",
+        "The file will be accepted but might not be included in the Ensembles.")
     } else {
       qnum_test <- NA
     }
