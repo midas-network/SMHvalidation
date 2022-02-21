@@ -20,27 +20,27 @@ Validate Scenario Modeling Hub submissions: test if the
 and value.
 }
 \details{
-This functions contains 7 tests:
+This function contains 7 tests:
 \itemize{
- \item{"Target name": }{The target should correspond to the target name as
+ \item{Target name: }{The target should correspond to the target name as
  expressed in the SMH Github: "inc death", "inc case", "cum death",
  "cum case", "inc hosp", "cum hosp".}
- \item{"Target number": }{The submission file contains projection for all the
+ \item{Target number: }{The submission file contains projection for all the
  targets. It is accepted to submit only a subset of target but a warning
  message will be return. }
- \item{"End of week": }{The date in the "target_end_date" column should always
+ \item{End of week: }{The date in the "target_end_date" column should always
  correspond to the end of the epiweek (Saturday).}
- \item{"Number of week projected": }{The submission file contains projections
+ \item{Number of week projected: }{The submission file contains projections
  for the expected number of weeks or more. If a team submits more week than
  expected, a warning message will be returned, but the submission will be
  accepted. However, an error message will be returned if the submission file
  contains less projection week than expected.}
- \item{"Week projected": }{The submission file contains projection for all
+ \item{Week projected: }{The submission file contains projection for all
  expected weeks for each target, location, scenario and quantiles
  combination.}
- \item{"Starting date": }{The 1 week ahead of the `target_end_date` starts on
+ \item{Starting date: }{The 1 week ahead of the `target_end_date` starts on
  the expected date (end of the epiweek of the starting projection date).}
- \item{"Correct date": }{Each target_end_date corresponds to the expected date
+ \item{Correct date: }{Each target_end_date corresponds to the expected date
   for example if 1 wk ahead = 2022-01-15, than 2 wk ahead = 2022-01-22.}
 }
 Function called in the `validate_submission()` function.

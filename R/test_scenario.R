@@ -14,14 +14,14 @@
 #' "roundX" format and the corresponding scenario ID as value (example:
 #'  name: "round1", value: "A-2020-12-22")
 #'
-#'@details  This functions contains 3 tests:
+#'@details  This function contains 3 tests:
 #'\itemize{
-#'  \item{"Scenario Name": }{The names of the scenarios are correctly spelled and
+#'  \item{Scenario Name: }{The names of the scenarios are correctly spelled and
 #'  correspond to the scenario name of the corresponding round.}
-#'  \item{"Scenario ID": }{The IDs of the scenarios are correctly spelled and
+#'  \item{Scenario ID: }{The IDs of the scenarios are correctly spelled and
 #'  correspond to the scenario IDs of the corresponding round.}
-#'  \item{"Correspondance": }{The names and ID of the scenarios are correctly
-#'  matching (scenario ID A = scenario name A)}
+#'  \item{Correspondance Name and ID: }{The names and ID of the scenarios are
+#'  correctly matching (scenario ID A = scenario name A)}
 #' }
 #' Function called in the `validate_submission()` function.
 #'

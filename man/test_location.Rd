@@ -17,7 +17,7 @@ Validate Scenario Modeling Hub submissions: test if the  `location` column
 contains the expected  value.
 }
 \details{
-This functions contains 1 test:
+This function contains 1 test:
 \itemize{
  \item{Location name: }{The submission should contains projection by location,
  the `location` column contains the location FIPS number as available in the

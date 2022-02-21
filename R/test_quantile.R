@@ -7,16 +7,16 @@
 #'@param df data frame to test
 #'@param round numeric corresponding to the current round number
 #'
-#'@details  This functions contains 3 tests:
+#'@details  This function contains 3 tests:
 #'\itemize{
-#'  \item{"Quantiles": }{The `quantile` column matches the expected quantiles:
+#'  \item{Quantiles: }{The `quantile` column matches the expected quantiles:
 #'  0, 0.01, 0.025, 0.05, 0.1, 0.15, 0.2, 0.25, 0.3, 0.35, 0.4, 0.45, 0.5, 0.55,
 #'   0.6, 0.65, 0.7, 0.75, 0.8, 0.85, 0.9, 0.95, 0.975, 0.99 and/or 1.}
-#'  \item{"Number": }{The projection should contain at least the 23 quantiles
+#'  \item{Number: }{The projection should contain at least the 23 quantiles
 #'   (0 and 1 are optional). It is accepted to submit less quantiles but the
 #'   function will return a warning and the submission will not be included
 #'   in the Ensembles.}
-#'  \item{"Value": }{The `model_projection_date`
+#'  \item{Value: }{The `model_projection_date`
 #'  column contains a unique date value matching the date in the name of the
 #'  submission file}
 #' }

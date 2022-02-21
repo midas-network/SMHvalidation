@@ -11,15 +11,15 @@
 #'@param start_date corresponds to the "1 wk ahead" target in the projection
 #'  file
 #'
-#'@details  This functions contains 4 tests:
+#'@details  This function contains 4 tests:
 #'\itemize{
-#'  \item{"Date value": }{The `model_projection_date` column contains date value}
-#'  \item{"Unique value": }{The `model_projection_date` column contains a unique
+#'  \item{Date value: }{The `model_projection_date` column contains date value}
+#'  \item{Unique value: }{The `model_projection_date` column contains a unique
 #'  value.}
-#'  \item{"Correspond to the name of the file": }{The `model_projection_date`
+#'  \item{Correspondance to the name of the file: }{The `model_projection_date`
 #'  column contains a unique date value matching the date in the name of the
 #'  submission file}
-#'   \item{"correspond to the projection starting date": }{The
+#'   \item{Correspondance to the projection starting date: }{The
 #'  `model_projection_date` column contains a unique date value matching the
 #'  projection starting date of the corresponding round}
 #' }

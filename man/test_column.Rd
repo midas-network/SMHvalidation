@@ -13,14 +13,14 @@ test_column(df)
 Validate Scenario Modeling Hub submissions: names and number of columns.
 }
 \details{
-This functions contains 2 tests:
+This function contains 2 tests:
 \itemize{
- \item{"Name": }{The names of the columns are corresponding to the expected
+ \item{Name: }{The names of the columns are corresponding to the expected
  names: "model_projection_date", "scenario_name", "scenario_id", "target",
  "target_end_date", "location", "type", "quantile", "value". If one column
  is misspelled or is missing, the validation will stop here with an error
  message and no other tests will be perform on the submission.}
- \item{"Number": }{The submission should contains 9 columns.}
+ \item{Number: }{The submission should contains 9 columns.}
 }
 Function called in the `validate_submission()` function.
 }

@@ -7,7 +7,7 @@
 #'@param number2location named vector containing the FIPS as name and the
 #'  corresponding location name as value (example: name: "01", value: "Alabama")
 #'
-#'@details  This functions contains 1 test:
+#'@details  This function contains 1 test:
 #'\itemize{
 #'  \item{Location name: }{The submission should contains projection by location,
 #'  the `location` column contains the location FIPS number as available in the
