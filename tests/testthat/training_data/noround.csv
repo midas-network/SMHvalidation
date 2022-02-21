@@ -1,0 +1,7 @@
+"location","quantile","scenario_id","model_projection_date","target","target_end_date","type","scenario_name","value"
+"US",NA,"noID",2022-01-09,"1 wk ahead inc death",2022-01-15,"point","optSev_highIE",12000
+"US",NA,"noID",2022-01-09,"1 wk ahead inc hosp",2022-01-15,"point","optSev_highIE",150000
+"US",NA,"noID",2022-01-09,"1 wk ahead inc case",2022-01-15,"point","optSev_highIE",5e+06
+"US",NA,"noID",2022-01-09,"1 wk ahead cum case",2022-01-15,"point","optSev_highIE",6.5e+07
+"US",NA,"noID",2022-01-09,"1 wk ahead cum hosp",2022-01-15,"point","optSev_highIE",1
+"US",NA,"noID",2022-01-09,"1 wk ahead cum death",2022-01-15,"point","optSev_highIE",850000
