@@ -141,7 +141,7 @@ test_val <- function(df, pop, last_lst_gs, number2location) {
     dplyr::filter(pop_test > 0)
   if (dim(test)[1] > 0) {
     pointpop_test <-  paste0(
-      "\U0001f7e1 Warning: Some value(s) are superior than the population size",
+      "\U0001f7e1 Warning: Some value(s) are greater than the population size",
       ". Please verify: ",
       dplyr::distinct(
         dplyr::select(test, target, location_name, scenario_id)) %>%
@@ -162,7 +162,7 @@ test_val <- function(df, pop, last_lst_gs, number2location) {
 
   if (dim(test)[1] > 0) {
     valcumcase_test <- paste0(
-      "\U000274c Error: Some values are inferior than the last oberved ",
+      "\U000274c Error: Some values are less than the last oberved ",
       "cumulative cases count. Please check location(s): ", dplyr::distinct(
         dplyr::select(test, location)))
   } else {
@@ -179,7 +179,7 @@ test_val <- function(df, pop, last_lst_gs, number2location) {
 
   if (dim(test)[1] > 0) {
     valcumdeath_test <- paste0(
-      "\U000274c Error: Some values are inferior than the last oberved ",
+      "\U000274c Error: Some values are less than the last oberved ",
       "cumulative deaths count. Please check location(s): ",
       dplyr::distinct(dplyr::select(test, location)))
   } else {
