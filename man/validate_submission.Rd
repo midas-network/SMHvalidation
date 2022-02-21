@@ -8,7 +8,8 @@ validate_submission(
   path,
   lst_gs,
  
-    pop_path = "https://raw.githubusercontent.com/midas-network/covid19-scenario-modeling-hub/master/data-locations/locations.csv"
+    pop_path = "https://raw.githubusercontent.com/midas-network/covid19-scenario-modeling-hub/master/data-locations/locations.csv",
+  scen_info = NULL
 )
 }
 \arguments{
@@ -24,6 +25,13 @@ instead of "confirmed_admissions_covid_1d".}
 geographical entities by FIPS (in a column "location") and by location name.
 By default, path to the locations file in the COVID19 Scenario Modeling Hub
 GitHub repository}
+
+\item{scen_info}{NULL, character vector (path leading to a csv file) or data
+frame, containing, the round and scenario information in the same output
+format as the function `scen_round_info()`. Please see documentation for
+more information. The default is NULL. If NULL, the information will be
+directly and automatically extracted from the Scenario Modeling Hub GitHub
+repository.}
 }
 \description{
 Runs all the different validation checks functions (test_column,
@@ -36,6 +44,14 @@ error(s) or if all the tests were successful.
 For more information on all tests run on the submission, please refer
 to the documentation of each "test_*" function. A vignette with all the
 information might be created later on too.
+\cr\cr
+If the `scen_info` parameter is set to NULL, the information is extracted
+from the multiple README from the Scenario Modeling Hub GitHub repository by
+using the GitHub API. Just as a warning, the number of call is limited to
+60 per hour. If you plan to use the `validate_submission()` function multiple
+times in a short time frame, we advise use to store the scenario information
+in a data frame by doing `df_scen_info <-  scen_round_info()` for example,
+and setting the `scen_info` parameter to `scen_info = df_scen_info`.
 }
 \examples{
 \dontrun{
