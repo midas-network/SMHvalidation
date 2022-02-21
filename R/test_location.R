@@ -30,8 +30,8 @@ test_location <- function(df, number2location) {
     if (isFALSE(!any(is.na(number2location[unique(vect)])))) {
       location_test <- paste0(
         "\U000274c Error: Some locations codes are not corresponding to any ",
-        "location: '", paste(unique(df$location)[is.na(number2location[unique(
-          df$location)])], collapse = ", "), "'.")
+        "known location: '", paste(unique(df$location)[is.na(
+          number2location[unique(df$location)])], collapse = ", "), "'.")
     } else {
       # is missing the trailing 0
       location_test <- paste0(
