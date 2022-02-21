@@ -110,7 +110,7 @@ run_all_validation <- function(df, round, start_date, path, pop,
 #' in a data frame by doing `df_scen_info <-  scen_round_info()` for example,
 #' and setting the `scen_info` parameter to `scen_info = df_scen_info`.
 #'
-#' @importFrom dplyr mutate select %>%
+#' @importFrom dplyr mutate select %>% mutate_if
 #' @importFrom stats setNames
 #'
 #'@examples
@@ -161,7 +161,8 @@ validate_submission <- function(path,
 
   # Process file to test and associated information --------
   # Read file
-  df <- suppressMessages(read_files(path))
+  df <- suppressMessages(read_files(path)) %>%
+    dplyr::mutate_if(is.factor, as.character)
   # Extract round information
   round <- as.numeric(
     gsub("[^[:digit:]]", "", unique(scen_df[which(

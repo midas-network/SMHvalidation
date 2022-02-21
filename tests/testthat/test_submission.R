@@ -15,7 +15,7 @@ test_that("Test validation process", {
   testthat::expect_error(validate_submission(
     "training_data/2022-01-09_colname.csv", lst_gs, scen_info = 2))
   testthat::expect_error(validate_submission(
-    "training_data/2022-01-09_addcol.csv", lst_gs, scen_info = scen_info))
+    "training_data/2022-01-09_addcol.pqt", lst_gs, scen_info = scen_info))
 
   testthat::expect_error(validate_submission(
     "training_data/2022-01-09_badidscen.csv", lst_gs, scen_info = scen_info))
@@ -62,16 +62,19 @@ test_that("Test validation process", {
     "training_data/2022-01-09_uniquevalue.csv", lst_gs, scen_info = scen_info))
 
   testthat::expect_error(validate_submission(
-    "training_data/2022-01-09_badnametarget.csv", lst_gs, scen_info = scen_info))
+    "training_data/2022-01-09_badnametarget.csv", lst_gs,
+    scen_info = scen_info))
   testthat::expect_error(validate_submission(
     "training_data/2022-01-09_misswk.csv", lst_gs, scen_info = scen_info))
+  testthat::expect_warning(validate_submission(
+    "training_data/2021-08-15_morewk.gz", lst_gs, scen_info = scen_info))
   testthat::expect_error(validate_submission(
     "training_data/2022-01-09_badstartdate.csv", lst_gs, scen_info = scen_info))
 
   testthat::expect_error(validate_submission(
     "training_data/2022-01-09_badlocation.csv", lst_gs, scen_info = scen_info))
   testthat::expect_warning(validate_submission(
-    "training_data/2021-11-14_no0location.csv", lst_gs, scen_info = scen_info))
+    "training_data/2021-11-14_no0location.zip", lst_gs, scen_info = scen_info))
 
   testthat::expect_error(validate_submission(
     "training_data/2022-01-15_noround.csv", lst_gs, scen_info = scen_info))
