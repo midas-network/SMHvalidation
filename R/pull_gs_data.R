@@ -85,8 +85,6 @@ last_sat <- function(year_number, week_number) {
 #'
 #' @param df a data frame containing value, geo_value, year and week columns
 #' @param date_sel a vector of a date to select from
-#' @param sel character, the period to select from "week" (weekly) or "max"
-#' (max value)
 #'
 #' @noRd
 #' @importFrom dplyr group_by mutate ungroup filter
@@ -96,14 +94,10 @@ sel_last_day_week <- function(df, date_sel, sel = "week") {
   } else {
     df <- dplyr::group_by(df, week, year)
   }
-  if (sel == "week") {
-    df <- dplyr::mutate(df, sel = ifelse(time_value %in% date_sel,1, 0))
-  } else if (sel == "max") {
-    df <- dplyr::mutate(df, sel = ifelse(time_value == max(time_value),1, 0))
-  }
-  df %>%
+  df <- dplyr::mutate(df, sel = ifelse(time_value %in% date_sel,1, 0)) %>%
     dplyr::ungroup() %>%
     dplyr::filter(sel == 1)
+
 }
 
 
@@ -211,9 +205,6 @@ pull_gs_data <- function() {
       df_tot <- bind_rows(df_state, df_us)
     }
     # Add geographical information for the mapping
-    if (!(any(grepl("geo_value_fullname", names(df_tot))))){
-      df_tot <- location_full(df_tot, loc_dictionary_name = loc_dictionary_name)
-    }
     df_tot <- mutate(df_tot, fips = location2number[geo_value_fullname]) %>%
       select(time_value, geo_value_fullname, fips, value)
   }) %>%
