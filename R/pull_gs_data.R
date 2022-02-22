@@ -141,19 +141,14 @@ pull_gs_data <- function() {
   # Pull population data and prepare location hash vector
   pop_path <- "https://raw.githubusercontent.com/midas-network/covid19-scenario-modeling-hub/master/data-locations/locations.csv"
   pop <- read_files(pop_path)
-  loc_dictionary_name <- setNames(c(rep(pop$location_name, 2), "US",
-                                    rep(grep("US$", pop$location_name,
-                                             value = TRUE, invert = TRUE), 2),
-                                    rep(pop$location_name, 2),
-                                    "New York"),
-                                  c(pop$location,
-                                    tolower(pop$abbreviation), "US",
-                                    na.omit(as.numeric(pop$location)),
-                                    as.character(na.omit(
-                                      as.numeric(pop$location))),
-                                    tolower(pop$location_name),
-                                    toupper(pop$location_name),
-                                    "new york state"))
+  loc_dictionary_name <- setNames(
+    c(rep(pop$location_name, 2), "US",
+      rep(grep("US$", pop$location_name, value = TRUE, invert = TRUE), 2),
+      rep(pop$location_name, 2), "New York"),
+    c(pop$location, tolower(pop$abbreviation), "US",
+      suppressWarnings(na.omit(as.numeric(pop$location))), suppressWarnings(
+        as.character(na.omit(as.numeric(pop$location)))),
+      tolower(pop$location_name), toupper(pop$location_name), "new york state"))
   location2number <- setNames(pop$location, pop$location_name)
 
   # signals
