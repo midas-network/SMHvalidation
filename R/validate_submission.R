@@ -102,6 +102,8 @@ run_all_validation <- function(df, round, start_date, path, pop,
 #' to the documentation of each "test_*" function. A vignette with all the
 #' information might be created later on too.
 #' \cr\cr
+#' The function accepts submission in CSV, ZIP or GZ file formats.
+#' \cr\cr
 #' If the `scen_info` parameter is set to NULL, the information is extracted
 #' from the multiple README from the Scenario Modeling Hub GitHub repository by
 #' using the GitHub API. Just as a warning, the number of call is limited to
