@@ -15,8 +15,11 @@ the next steps:
 
 ```{r}
 install.packages("remotes")
-remotes::install_github("midas-network/covid19SMHvalidation")
+remotes::install_github("midas-network/covid19SMHvalidation", 
+                        ref = "main", auth_token = “<token>”) 
+# with <token> generated at https://github.com/settings/tokens
 ```
+
 or it can be manually installed by directly cloning/forking/downloading the 
 package from GitHub.
 
