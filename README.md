@@ -121,20 +121,22 @@ str(lst_gs)
 lst_gs
 ```
 
-## Visualization
-
-[In Progress]
-
-
-## Code license and reuse
+## Code license
 
 The overall project is available under an open-source MIT license.
-
-if you use the package, please cite as: `IN PROGRESS`
 
 ## Contributing
 
 Please feel free to open an issue if you identify any issue with the 
 package or would like to suggest an idea/improvment. We also welcome
 any pull-request. 
+
+## Funding
+
+Scenario modeling groups are supported through grants to the 
+contributing investigators.
+
+The Scenario Modeling Hub cite is supported by the 
+[MIDAS Coordination Center](https://midasnetwork.us/), 
+NIGMS Grant U24GM132013 to the University of Pittsburgh.
 
