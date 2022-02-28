@@ -26,9 +26,9 @@ This function contains 3 tests:
   (0 and 1 are optional). It is accepted to submit less quantiles but the
   function will return a warning and the submission will not be included
   in the Ensembles.}
- \item{Value: }{The `model_projection_date`
- column contains a unique date value matching the date in the name of the
- submission file}
+ \item{Value: }{The `value` associated with each `quantile` is increasing as
+ the quantile increased. For example, if quantile 0.01 = 5 than quantile
+ 0.5 should be equal or greater than 5.}
 }
 Function called in the `validate_submission()` function.
 }
