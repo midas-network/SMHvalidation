@@ -21,6 +21,7 @@ remotes::install_github("midas-network/covid19SMHvalidation",
                         ref = "main", auth_token = “<token>”) 
 # with <token> generated at https://github.com/settings/tokens
 ```
+
 or it can be manually installed by directly cloning/forking/downloading the 
 package from GitHub.
 
@@ -125,20 +126,22 @@ str(lst_gs)
 lst_gs
 ```
 
-## Visualization
-
-[In Progress]
-
-
-## Code license and reuse
+## Code license
 
 The overall project is available under an open-source MIT license.
-
-if you use the package, please cite as: `IN PROGRESS`
 
 ## Contributing
 
 Please feel free to open an issue if you identify any issue with the 
 package or would like to suggest an idea/improvment. We also welcome
 any pull-request. 
+
+## Funding
+
+Scenario modeling groups are supported through grants to the 
+contributing investigators.
+
+The Scenario Modeling Hub site is supported by the 
+[MIDAS Coordination Center](https://midasnetwork.us/), 
+NIGMS Grant U24GM132013 to the University of Pittsburgh.
 
