@@ -23,7 +23,10 @@
 #'  for the expected number of weeks or more. If a team submits more week than
 #'  expected, a warning message will be returned, but the submission will be
 #'  accepted. However, an error message will be returned if the submission file
-#'  contains less projection week than expected.}
+#'  contains less projection week than expected. Starting round 13, if the file
+#'   contains less projected weeks than expected, the submission will still be
+#'   accepted, but will return a warning message and might not be included
+#'   in the Ensembles}
 #'  \item{Week projected: }{The submission file contains projection for all
 #'  expected weeks for each target, location, scenario and quantiles
 #'  combination.}
@@ -79,8 +82,11 @@ test_target <- function(df, start_date, round) {
     if (round %in%  c(11, 12)) {
       n_target_week <- 12 # minimum number of projected week accepted
       max_week <- 12 # maximum number of projected week accepted
-    } else {
+    } else if (round == 10) {
       n_target_week <- 26 # minimum number of projected week accepted
+      max_week <- 52 # maximum number of projected week accepted
+    } else {
+      n_target_week <- 52 # minimum number of projected week accepted
       max_week <- 52 # maximum number of projected week accepted
     }
   } else {
@@ -88,10 +94,17 @@ test_target <- function(df, start_date, round) {
     max_week <- 26 # maximum number of projected week accepted
   }
   if (isFALSE(length(unique(df$target_end_date)) >= n_target_week)) {
-    targetweek_test <- paste0(
-      "\U000274c Error: The projections should contains at least ",
-      n_target_week, " weeks of projection. The data frame contains only: ",
-      length(unique(df$target_end_date)), " week(s).")
+    if (round < 13) {
+      targetweek_test <- paste0(
+        "\U000274c Error: The projections should contains at least ",
+        n_target_week, " weeks of projection. The data frame contains only: ",
+        length(unique(df$target_end_date)), " week(s).")
+    } else {
+      targetweek_test <- paste0(
+        "\U0001f7e1 Warning: The projections should contains at least ",
+        n_target_week, " weeks of projection. The data frame contains only: ",
+        length(unique(df$target_end_date)), " week(s).")
+    }
   } else {
     if (isTRUE(length(unique(df$target_end_date)) > max_week)) {
       targetweek_test <- paste0(
