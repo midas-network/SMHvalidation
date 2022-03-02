@@ -5,3 +5,6 @@
 app-cache/*
 .DS_Store
 
+inst/doc
+/doc/
+/Meta/

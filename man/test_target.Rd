@@ -34,7 +34,10 @@ This function contains 7 tests:
  for the expected number of weeks or more. If a team submits more week than
  expected, a warning message will be returned, but the submission will be
  accepted. However, an error message will be returned if the submission file
- contains less projection week than expected.}
+ contains less projection week than expected. Starting round 13, if the file
+  contains less projected weeks than expected, the submission will still be
+  accepted, but will return a warning message and might not be included
+  in the Ensembles}
  \item{Week projected: }{The submission file contains projection for all
  expected weeks for each target, location, scenario and quantiles
  combination.}

@@ -1,0 +1,382 @@
+---
+title: "Validation Checks"
+output: 
+  rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Validation Checks}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>"
+)
+```
+
+The `covid19SMHvalidation` R package contains functions to pull data from the 
+R package covidcast (output in the Scenario Modeling Hub (SMH) standard format),
+to validate and visualize Scenario Modeling Hub submission.
+
+For more information on the Scenario Modeling Hub and on how to particiapte, 
+please feel free to consult the 
+[Github Repository](https://github.com/midas-network/covid19-scenario-modeling-hub/) 
+and/or the [SMH website](https://covid19scenariomodelinghub.org/).
+
+## Validation on model projection
+
+In this vignette, we will describe all the tests that are made on each SMH
+submission when using the function `validate_submision()`. The tests (or checks)
+are organized by group of columns tested together and by function `test_X()`. 
+
+Each function `test_X()` checks the submission for a "category" of checks. All
+`test_X()` functions are used in the `validate_submision()` function but they 
+also can be used individually. Each function has its own documentation 
+available with the command `?test_X()`
+
+ *Remarks:*  In the `validate_submission()` function, the round information 
+ (number) link to the submission is automatically extracted by using the date 
+ in the submission filename and if it failed, the "scenario_id" information in 
+ the submission file. By using the `test_X()` function, this information will
+ have to be manually entered (Same for the 1st week target date information). 
+
+### File format (`test_column()`)
+
+The name and number of the columns are corresponding to the expected format:
+
+|model_projection_date|scenario_name|scenario_id|target|target_end_date|location|type|quantile|value|
+|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|
+
+The order of the column is not important but it should contains 9 columns with
+each name correctly spelled. 
+
+ *Remarks:* If one column is missing, the submission test will directly stop and
+ return an error message without running all the other tests. 
+
+### Scenario Information (`test_scenario()`)
+
+ * The name and ID of the scenarios are corresponding to the expected name and
+ ID of the expected round without any typo.
+
+ * The names and ID of the scenarios are correctly matching (scenario ID A = 
+ scenario name A).
+ 
+### Column "model_projection_date" (`test_modelprojdate()`) 
+
+ * The `model_projection_date` column contains:
+     * one unique date value in the `YYYY-MM-DD` format.
+     * the date in the submission file is matching the date in the name of the 
+     file.
+     * the date in the submission file matching the projection starting date.
+      
+ *Remarks:* Implemented since round 12 only. 
+ 
+### Quantiles information and value (`test_quantile()`) 
+
+ * The submission file should contains quantiles matching the expected quantiles 
+ value: `0.01`, `0.025`, `0.05`, `0.1`, `0.15`, `0.2`, `0.25`, `0.3`, `0.35`, 
+ `0.4`, `0.45`, `0.5`, `0.55`, `0.6`, `0.65`, `0.7`, `0.75`, `0.8`, `0.85`, 
+ `0.9`, `0.95`, `0.975`, `0.99`. **If a submission is missing some (or all) 
+ quantiles it will still be accepted but will not included in the Ensembles.**
+ 
+ * Starting Round 10, two additional **optional** quantiles have been added to 
+ the list: `0` and `1`. These 2 quantiles are not required. 
+ 
+ * For each target/scenario/location group, the value increases with the 
+ quantiles. For example, for the 1st week ahead of target X for the location Y
+ and for the scenario A, if quantile `0.01`= "5" than quantile `0.5` should be 
+ equal or greater than "5".
+ 
+### Value and Types information (`test_val()`)
+ 
+ * The projection contains point values that are noted as `type` = "point" and 
+ `quantile` = NA
+ 
+ * The projection contains X point values, X = number of unique targets in the 
+ submission file * number of unique scenarios in the submission file * number 
+ of unique locations in the submission file.
+ 
+ * The projection contains only values greater than or equal to 0
+ 
+ * For each target name/scenario/location group (except locations `66` (Guam), 
+ `69` (Northern Mariana Island), `60` (American Samoa), `74` (US. Minor Outlying 
+ Islands)), the whole projection does not contain only 1 unique value. For 
+ example, the projection for the incidence cases for one location and for one
+ scenario does not contain only one unique value for the whole time series. **
+ As there is a possibility that 0 death or case might be projected, the 
+ submission will still be accepted if the test failed but it will return a 
+ warning message asking to verify the projection.**
+ 
+ * Starting round 13: each projected value cannot by greater than the population
+ size of the corresponding geographical entity. **As an individual can be 
+ reinfected, the submission will still be accepted if the test failed but it
+ will return a warning message asking to verify the projection.**
+ 
+ * Starting round 13: for the cumulative cases and deaths projection, the 
+ projected value should not be less than the week 0 (or week -1, depending on 
+ the availability on the time of submission) of the observed cumulative cases and
+ deaths, respectively. The test allow a difference of 5% to take into account
+ the difference between time of pulling the observed data, sources, ...
+ 
+ * Each quantile/target/scenario/location group combination has one unique value
+ projected. For example: only 1 value for quantile `0.5`, location `US`, 
+ target `1 wk ahead inc case` and, scenario `A`)
+ 
+ 
+### Target information and value (`test_target()`) 
+ 
+ * The target are corresponding to the target name as expressed in the SMH 
+ Github README and wiki files: `"inc death"`, `"inc case"`, `"cum death"`, 
+ `"cum case"`, `"inc hosp"`, `"cum hosp"`.
+ 
+ * The submission file contains projections for all the targets. **The 
+ submission file will be accepted if some targets are missing, but will return a
+ warning message asking the team if it’s correct and the submission might not be
+ included in the Ensembles**
+ 
+ * Each `target_end_date` should correspond to the end of the epiweek 
+ (Saturday) and should correspond to the expected value. For example, if the 
+  start date is defined as : "Start date for scenarios: January 9, 2022", than
+  the `1 wk ahead` should be `"2022-01-15"`, `2 wk ahead` should be 
+  `"2022-01-22"`, etc.
+ 
+ * The submission file containg projection for an expected number of week. **If 
+ the file contains more projected weeks than expected, the submission will still
+ be accepted, but will return a warning message and the additional weeks will 
+ not be included in the visualization on the SMH website. Starting round 13,
+ if the file contains less projected weeks than expected, the submission will 
+ still be accepted, but will return a warning message and might not be included 
+ in the Ensembles**
+ 
+|Round|Mininal number of weeks| Maximal number of weeks|
+|:---|:---:|:---:|
+|1 to 9 (included)|13|26|
+|10|26|52|
+|11 to 12 (included)|12|12|
+|13 to ...|52|52|
+
+ 
+### Column "location" (`test_location()`)
+ 
+ * The submission should contains projection by location, the 'location' column 
+ contains the location FIPS number as available in the 
+ [location table](https://github.com/midas-network/covid19-scenario-modeling-hub/blob/master/data-locations/locations.csv) 
+ in the SMH GitHub Repository. If the FIPS number are missing a trailing zero, 
+ the submission will be accepted but a warning message will be returned.
+ 
+*Remarks: *If a submission file contains only state level projection (one or 
+multiple), the `location` column might be automatically identify as numeric even
+if it was submitted in a character format. In this case, a warning message will
+be automatically print on the validation but, please feel free to ignore it. 
+
+ 
+## Validation on Metadata and Abstract
+
+The validation for the "metadata" and the "abstract" files associated with 
+the submission is currently manual. 
+
+### Metadata checks
+
+Each model is required to have metadata in `yaml` format, e.g. see 
+[example metadata file](https://github.com/midas-network/covid19-scenario-modeling-hub/blob/master/data-processed/MyTeam-MyModel/metadata-MyTeam-MyModel.txt).
+The filename should correspond to the structure: 
+`metadata-[team_abbr]-[model_abbr].txt`
+
+Given the many possible approaches to modeling COVID-19 scenarios, we are c
+ollecting relatively rich metadata, to be able to understand heterogeneity 
+among model projections. The information will only be used internally, unless otherwise indicated.
+
+#### Required variables
+
+* `team_name`: The name of your team that is less than 50 characters, no spaces.
+Will be displayed online.
+
+* `model_name`: The name of your model that is less than 50 characters, no 
+spaces. Will be displayed online.
+
+* `model_abbr`: An abbreviated name for your model that is less than 30 
+alphanumeric characters. The model abbreviation must be in the format of 
+`[team_abbr]-[model_abbr]`, where each of the `[team_abbr]` and `[model_abbr]`
+are text strings that are each less than 15 alphanumeric characters that do not 
+include a hyphen or whitespace. Note that this is a uniquely identifying field 
+in our system, so please choose this name carefully, as it may not be changed 
+once defined. An example of a valid model_abbr is UMass-MechBayes or UCLA-SuEIR.
+The model abbreviation will be displayed online.
+
+* `model_version`: A version number or date in YYYY-MM-DD format, to designate 
+the version of the model used for submitted model projections. 
+
+* `model_contributors`: A list of all individuals involved in the forecasting 
+effort, affiliations, and email address. At least one contributor needs to have 
+a valid email address. All email addresses provided will be added to an email 
+distribution list for model contributors. The syntax of this field should be: 
+`name1 (affiliation1) <user@address>, name2 (affiliation2) <user2@address2>`
+
+* `website_url`: A url to a website that has additional data about your model.
+We encourage teams to submit the most user-friendly version of your model, 
+e.g. a dashboard, or similar, that displays your model scenarios. If you have 
+additionally a data repository where you store scenarios and other model code, 
+please include that in your methods section below. If you only have a more t
+echnical site, e.g. github repo, please include that link here. 
+
+* `license`: We encourage teams to submit as a "cc-by-4.0" to allow the 
+broadest possible uses including private vaccine production (which would be 
+excluded by the "cc-by-nc-4.0" license). Alternatively, add the name and URL of
+the license used, as in cc-by-4.0, https://creativecommons.org/licenses/by/4.0/.
+Or, add the value LICENSE.txt, if a LICENSE.txt file was added within the 
+folder. Will be displayed online.
+
+* `methods`: A brief description of your forecasting methodology that is less 
+than approx. 200 characters. Will be displayed online.
+
+* `modeling_NPI`: A brief description of how Non-Pharmaceutical Interventions 
+(NPI) were represented by the model, or `"Not applicable"`.
+
+* `compliance_NPI`: A brief description of any additional assumptions made 
+regarding compliance with NPI, beyond what was specified in the given 
+scenarios; or `"Not applicable"`.
+
+* `contact_tracing`: A brief description of how contact tracing was 
+represented by the model, or `"Not applicable"`.
+
+* `testing`: A brief description of what testing strategies were represented 
+by the model, or `"Not applicable"`.
+
+* `vaccine_efficacy_transmission`: A brief description of assumptions 
+regarding vaccine efficacy against transmission, or `"Not applicable"`.
+
+* `vaccine_efficacy_delay`: If a delay was assumed in the build-up of vaccine 
+efficacy, please describe the assumptions here; or `"Not applicable"`.
+
+* `vaccine_hesitancy`: A brief description of assumptions or representation of 
+vaccine hesitancy, by priority target group such as healthcare workers, 
+essential worksers, elderly, etc.; or `"Not applicable"`.
+
+* `vaccine_immunity_duration`: Assumed length of vaccine-derived immunity, or 
+`"Not applicable"`.
+
+* `natural_immunity_duration`: Assumed length of the duration of natural 
+immunity assumed, or `"Not applicable"`.
+
+* `case_fatality_rate`: Assumed fatality rate of detected COVID-19 cases, 
+as a proportion between 0 and 1, or `"Not applicable"`.
+
+* `infection_fatality_rate`: Assumed fatality rate of SARS-CoV-2 infections 
+(detected or undetected), as a proportion between 0 and 1, or 
+`"Not applicable"`.
+
+* `asymptomatics`: Assumed proportion of SARS-CoV-2 infections that remain 
+asymptomatic, as a proportion between 0 and 1, or `"Not applicable"`.
+
+* `age_groups`: Age groups represented in the model, in years, given as a set 
+of intervals between square brackets: as in `[0-5, 6-10, 10-50, 50+]`, or 
+`"Not applicable"`.
+
+* `importations`: Brief description of assumptions made or representation in the
+model of importations, or `"Not applicable"`.
+
+* `confidence_interval_method`: Brief description of the method used to 
+compute confidence (or other uncertainty) interval, or `"Not applicable"`.
+
+* `calibration`: Brief description of model calibration methods, or 
+`"Not applicable"`.
+
+* `spatial_structure`: Brief description of how spatial structure is 
+represented by the model, or `"Not applicable"`.
+
+*Remarks:* if the submitted metadata file is missing one or multiple fields, if
+possible, the default value will be assumed for this field. For example, if the 
+Calibration" field is missing, we will assume`"Not applicable"` for this field.
+
+#### Optional
+
+* `team_funding`: Acknowledgement of funding source, by name of funding agency,
+grant title, and grant number.
+
+* `data_inputs`: A brief description of the data sources used to inform the 
+model, using as much as possible standard terminology that includes a source 
+name and the type of data, such as JHU CSSE case and death data, 
+NYTimes death data, Google mobility data, etc.
+
+* `citation`: A bibliographic citation to a paper, website, or other object 
+that people can go to to find out more about the model, in the style used by 
+PubMed, for example: `"Flaxman S, Mishra S, Gandy A, Unwin HJT, Mellan TA, Coupland H, Whittaker C, Zhu H, Berah T, Eaton JW, Monod M; Imperial College COVID-19 Response Team, Ghani AC, Donnelly CA, Riley S, Vollmer MAC, Ferguson NM, Okell LC, Bhatt S. Nature. 2020 Aug;584(7820):257-261. doi: 10.1038/s41586-020-2405-7. Epub 2020 Jun 8. PMID: 32512579`".
+
+* `methods_long`: An extended description of the methods used in the model. 
+If the model is modified, this field can be used to provide a description of 
+the change. Use `model_version` to indicate the version or date of last update.
+
+### Abstract checks
+
+Starting round 11, an optional abstract can be submitted with the projection 
+file.  The file should be povided in an markdown (`md`) format, e.g. see 
+[round 12 template abstract file](https://github.com/midas-network/covid19-scenario-modeling-hub/blob/master/data-processed/MyTeam-MyModel/2022-01-09-MyTeam-Abstract.md).
+The filename should correspond to the structure: 
+`YYYY-MM-DD-[team_abbr]-[model_abbr]-Abstract.md`, with the date corresponding 
+to the "Start date for scenarios" for the corresponding round (implemented 
+starting round 12.)
+
+Each Round will have it's specific template:
+
+#### Round 11
+
+```
+# Summary 
+FILL
+# Methods
+FILL
+# Results
+FILL
+# Discussion
+FILL 
+# Conclusion
+FILL
+
+```
+
+#### Round 12
+
+```
+# Summary of results
+FILL 
+# Explanation of observed dynamics given model assumptions
+FILL
+# Model assumptions
+## Initial distribution of susceptibility
+FILL
+## Transmissibility
+FILL 
+## Generation time
+FILL
+## Waning immunity assumptions
+FILL
+## Other updates in model assumptions from previous rounds (e.g., changes in reporting outcomes due to Omicron)
+FILL
+
+```
+
+#### Round 13
+
+```
+# Summary of results
+FILL 
+# Explanation of observed dynamics given model assumptions
+FILL
+# Model assumptions
+## Initial distribution of susceptibility
+FILL
+## Transmissibility
+FILL 
+## Generation time
+FILL
+## Waning immunity assumptions
+FILL
+## Seasonality implementation
+FILL
+## Emerging variant details
+FILL
+## Other updates in model assumptions from previous rounds (e.g., changes in reporting outcomes due to Omicron)
+FILL
+
+```

@@ -31,7 +31,7 @@ This function contains 10 tests:
  \item{Quantile: }{The projection contains "point" value noted as `quantile`
  = NA.}
  \item{Number of Point: }{The projection contains X point value, X = number
- of targets \* number of scenarios \* number of locations}
+ of targets * number of scenarios * number of locations}
  \item{Positive Value: }{The projection contains only values superior or
  equal to 0}
  \item{Unique Point: }{In the projection, each group of
