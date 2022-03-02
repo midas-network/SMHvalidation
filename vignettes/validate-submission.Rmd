@@ -45,6 +45,9 @@ documentation
 ?validate_submission()
 ```
 
+For more information on all the tests the function perform, please consult the
+vignette [Validation Checks](validation-checks.html).
+
 #### Parameters
 
 The function requires 2 parameters:
@@ -55,7 +58,7 @@ that can be used to test the function. There paths can be accessed by using:
 3 filenames (+ quick descriptions) are:
     * "2022-01-09_team-model.csv" : should returns no issues
     * "2021-08-15_team-model.gz" : should returns multiple warnings
-    * "2021-11-14_team-model.zip" : should returns multiple warnings and erros
+    * "2021-11-14_team-model.zip" : should returns multiple warnings and errors
 * `lst_gs`: named list of data frame containing the observed data. 
 We highly recommend to use the output of the `pull_gs_data()` function as input.
 This function will generate the output in the expected format with the expected 
