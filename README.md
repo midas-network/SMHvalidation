@@ -8,7 +8,8 @@ R package containing functions to pull data from the R package covidcast
 (output in the Scenario Modeling Hub (SMH) standard format), to validate and
 visualize Scenario Modeling Hub submission. For more information on the 
 Scenario Modeling Hub and/or on how to participate, please consult the
-Scenario Modeling Hub [GitHub repository]() or [website]()
+Scenario Modeling Hub [GitHub repository](https://github.com/midas-network/covid19-scenario-modeling-hub) or 
+[website](https://covid19scenariomodelinghub.org/)
 
 ## Installation
 
