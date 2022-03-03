@@ -40,7 +40,7 @@ Scenario Modeling Hub submissions. The function runs multiple checks, please
 look at the vignette ("Validation Checks" [In Progress]) containing the list
 of all the tests with detailed information. 
 
-The function Runs all the different validation checks functions 
+The function internally runs all the different validation checks functions 
 (`test_column()`, `test_scenario()`, `test_modelprojdate()`, 
 `test_quantiles()`, `test_val()`, `test_target()`, `test_location()`) 
 on a SMH submissions and prints information about the results of each 
