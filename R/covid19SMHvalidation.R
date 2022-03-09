@@ -3,7 +3,8 @@ utils::globalVariables(c("type", "target", "target_end_date", "start_date_t",
                          "location_name", "scenario_id", "last_value", "files",
                          "cum_test", "time_value", "fips", "target_name",
                          "scenario_name", "geo_value", "year", "week",
-                         "geo_value_fullname"))
+                         "geo_value_fullname", "FIPS", "abbreviation", "x",
+                         "state_abbr", "data_source", "signal", "Update"))
 
 #' covid19SMHvalidation: COVID-19 Scenario Modeling Hub Validations & Visualizations
 #'

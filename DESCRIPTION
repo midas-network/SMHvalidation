@@ -24,10 +24,14 @@ RoxygenNote: 7.1.1
 Imports: arrow, 
          covidcast, 
          data.table,
+         doParallel,
          dplyr, 
+         foreach,
          gh, 
          lubridate, 
          purrr, 
+         readr,
+         rlang,
          stringr, 
          tidyr
 Suggests: 
