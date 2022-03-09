@@ -4,13 +4,7 @@
 \alias{validate_submission}
 \title{Validate SMH (Scenario Modeling Hub) Submissions}
 \usage{
-validate_submission(
-  path,
-  lst_gs,
- 
-    pop_path = "https://raw.githubusercontent.com/midas-network/covid19-scenario-modeling-hub/master/data-locations/locations.csv",
-  scen_info = NULL
-)
+validate_submission(path, lst_gs, pop_path = NULL, scen_info = NULL)
 }
 \arguments{
 \item{path}{path to the submissions file to test}
@@ -23,8 +17,8 @@ instead of "confirmed_admissions_covid_1d".}
 
 \item{pop_path}{path to a table containing the population size of each
 geographical entities by FIPS (in a column "location") and by location name.
-By default, path to the locations file in the COVID19 Scenario Modeling Hub
-GitHub repository}
+By default, NULL, will use the path to the locations file in the COVID19
+Scenario Modeling Hub GitHub repository}
 
 \item{scen_info}{NULL, character vector (path leading to a csv file) or data
 frame, containing, the round and scenario information in the same output
