@@ -89,8 +89,8 @@ run_all_validation <- function(df, round, start_date, path, pop,
 #' instead of "confirmed_admissions_covid_1d".
 #'@param pop_path path to a table containing the population size of each
 #'  geographical entities by FIPS (in a column "location") and by location name.
-#'  By default, path to the locations file in the COVID19 Scenario Modeling Hub
-#'  GitHub repository
+#'  By default, NULL, will use the path to the locations file in the COVID19
+#'  Scenario Modeling Hub GitHub repository
 #'@param scen_info NULL, character vector (path leading to a csv file) or data
 #'  frame, containing, the round and scenario information in the same output
 #'  format as the function `scen_round_info()`. Please see documentation for
@@ -123,7 +123,7 @@ run_all_validation <- function(df, round, start_date, path, pop,
 #'@export
 validate_submission <- function(path,
                                 lst_gs,
-                                pop_path = "https://raw.githubusercontent.com/midas-network/covid19-scenario-modeling-hub/master/data-locations/locations.csv",
+                                pop_path = NULL,
                                 scen_info = NULL) {
 
   # Prerequisite --------
@@ -135,6 +135,11 @@ validate_submission <- function(path,
   }) %>%
     setNames(names(lst_gs))
   # Pull population data and prepare location hash vector
+  if (is.null(pop_path)) {
+    pop_path <- paste0(
+      "https://raw.githubusercontent.com/midas-network/",
+      "covid19-scenario-modeling-hub/master/data-locations/locations.csv")
+  }
   pop <- read_files(pop_path)
   number2location <- setNames(pop$location_name, pop$location)
   # Pull Scenario data and prepare scenario hash vector
@@ -150,7 +155,7 @@ validate_submission <- function(path,
       stop("`scen_info` paramater should either be: a path to a file containing ",
            "the round and scenario information, or a data frame, or NULL. If ",
            "NULL, the information will be automatically extracted from the ",
-           "Scenario Modeling Hub GitHub repository, ")
+           "Scenario Modeling Hub GitHub repository. ")
     }
   }
 
@@ -194,6 +199,6 @@ validate_submission <- function(path,
                      last_lst_gs = last_week_gs,
                      scenario_smname = scenario_smname,
                      scenario_sel = scenario_sel,
-                     number2location =number2location)
+                     number2location = number2location)
 }
 
