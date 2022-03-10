@@ -81,26 +81,29 @@ These 2 errors can be ignored.
 ## Pull "truth data":
 
 For more information, please feel free to look at the documentation of the 
-function (`?pull_gs_data`)
+functions (`?pull_gs_data` and `?get_covidcast_data`)
 
 #### Description
 
-The `covid19SMHvalidation` package contains the function `pull_gs_data()` that
-download and compile data to output weekly data on cumulative and 
-incidence number of cases and deaths, and hospitalization incidence:
+The `covid19SMHvalidation` package contains the functions `pull_gs_data()` and
+`get_covidcast_data()` that download and compile data to output weekly or 
+daily data, respectively, on cumulative and incidence number of cases and 
+deaths, and hospitalization incidence:
 
   * For the cumulative numbers: use the `confirmed_cumulative_num` and 
   `deaths_cumulative_num` signals from `jhu-csse`. As the data are expressed 
-  per day and the Scenario Modeling Hub use cumulative data by epiweek, the 
+  per day and the Scenario Modeling Hub uses cumulative data by epiweek, the 
   last day of each epiweek is selected for each location and the values are 
-  added between all states to obtains the US level data.
+  added between all states to obtains the US level data, only in the 
+  `pull_gs_data()` function.
     
   * For the incidence numbers: use the `confirmed_incidence_num` and 
   `deaths_incidence_num` signals from `jhu-csse` and 
   `confirmed_admissions_covid_1d` from `hhs`. As the data are expressed per 
   day and the Scenario Modeling Hub use cumulative data by epiweek, the sum of 
   the incidences is calculated by epiweek and by location, and the values are 
-  added between all states to obtains the US level data.
+  added between all states to obtains the US level data, only in the 
+  `pull_gs_data()` function.
 
 #### Source
 
@@ -112,20 +115,35 @@ Daily and Timeseries datasets.
 To access all these data we use the `covidcast` R package. A package using the 
 COVIDcast Epidata API maintained by the Delphi Research Group at Carnegie 
 Mellon University. Please see 
-[here](http://127.0.0.1:42884/help/library/covid19SMHvalidation/help/https://cran.r-project.org/web/packages/covidcast/index.html), 
+[here](https://cran.r-project.org/web/packages/covidcast/index.html), 
 for more information. 
 
 #### Usage
+
+For the `pull_gs_data()` function:
 
 ```{r}
 # Store the output in an object
 lst_gs <- pull_gs_data()
 
-# Look at the sctructure of the object
+# Look at the structure of the object
 str(lst_gs)
 
 # Print the output
 lst_gs
+```
+
+For the `get_covidcast_data()` function:
+
+```{r}
+# Store the output in an object
+df <- get_covidcast_data()
+
+# Look at the structure of the object
+str(df)
+
+# Print the output
+df
 ```
 
 ## Code license
