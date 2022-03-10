@@ -103,7 +103,8 @@ test_target <- function(df, start_date, round) {
       targetweek_test <- paste0(
         "\U0001f7e1 Warning: The projections should contains at least ",
         n_target_week, " weeks of projection. The data frame contains only: ",
-        length(unique(df$target_end_date)), " week(s).")
+        length(unique(df$target_end_date)), " week(s). The projection might ",
+        "not be included in the Ensembles.")
     }
   } else {
     if (isTRUE(length(unique(df$target_end_date)) > max_week)) {
