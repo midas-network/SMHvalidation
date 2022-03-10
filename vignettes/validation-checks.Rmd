@@ -361,22 +361,41 @@ FILL
 ```
 # Summary of results
 FILL 
+
 # Explanation of observed dynamics given model assumptions
 FILL
+
 # Model assumptions
-## Initial distribution of susceptibility
+## Number/type of immune classes considered
 FILL
-## Transmissibility
-FILL 
-## Generation time
+
+## Initial distribution of susceptibility if available
+### Proportion of people that were infected with Omicron before March 13
+FILL (if available)
+### Proportion of people that are naïve at start of projection (not vaccinated or infected)
+FILL (if available)
+### Other
+FILL (if available)
+
+## Initial variant characteristics (including Omicron transmissibility, immune escape, and how uncertainty or non-identifiability was handled) 
 FILL
-## Waning immunity assumptions
+
+## Process for setting/calibrating P(hosp given current infection) and P(death given current infection)
 FILL
+
+## Waning immunity details (e.g., distribution used)
+FILL
+
 ## Seasonality implementation
 FILL
-## Emerging variant details
+
+## Emerging variant details (including introduction process)
 FILL
-## Other updates in model assumptions from previous rounds (e.g., changes in reporting outcomes due to Omicron)
+
+## Nonpharmaceutical interventions 
+FILL
+
+## Other updates in model assumptions from previous rounds (e.g., changes in reporting outcomes, booster implementation)
 FILL
 
 ```
