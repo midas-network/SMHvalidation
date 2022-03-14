@@ -156,10 +156,14 @@ The submission will NOT be accepted and need correction before being accepted.
 
 The `covid19SMHvalidation` R package also contains plotting functionality to output a plot of each location and target, with all scenarios and observed data incorporated.
 
-```{r test3, error=TRUE}
+```{r proj_plots}
 path_test <- system.file("extdata", "2022-01-09_team-model.csv", package = "covid19SMHvalidation")
-path_test <- "inst/extdata/2022-01-09_team-model.csv"
-generate_validation_plots(path_proj=path_test, lst_gs=lst_gs, save_path=dirname(path_test), y_sqrt = FALSE, plot_quantiles = c(0.025, 0.975))
+# path_test <- "inst/extdata/2022-01-09_team-model.csv"
+save_path <- getwd()
+pdf_path <- file.path(save_path, paste0("2022-01-09", "_", "team-model", "_plots.pdf"))
+print(paste0("Saving pdf plots to ", pdf_path, "."))
+generate_validation_plots(path_proj=path_test, lst_gs=lst_gs, save_path=getwd(), y_sqrt = FALSE, plot_quantiles = c(0.025, 0.975))
+system(paste0('open "', pdf_path, '"'))
 ```
 
 
