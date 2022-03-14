@@ -88,7 +88,7 @@ print_table <- function(data=proj_plot_data_calib_cum,
   }
 
   if(nrow(tab_data)==0){
-    tab_data <- tibble::tibble(value = "There are no projections in this category for this submission.")
+    tab_data <- tibble::tibble(value = "     There are no projections in this category for this submission. Well done!     ")
   }
 
   # Build the table
