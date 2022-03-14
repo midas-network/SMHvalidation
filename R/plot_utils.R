@@ -88,7 +88,7 @@ print_table <- function(data=proj_plot_data_calib_cum,
   }
 
   if(nrow(tab_data)==0){
-    tab_data <- tibble::tibble(value = NA)
+    tab_data <- tibble::tibble(value = "There are no projections in this category for this submission.")
   }
 
   # Build the table
@@ -163,16 +163,16 @@ plot_projections <- function(data, st, projection_date, legend_rows=1, y_sqrt=FA
 
   data %>%
     dplyr::filter(scenario_name != "ground truth") %>%
-    ggplot2::ggplot(aes(x = date)) +
-    ggplot2::geom_ribbon(aes(ymin = low, ymax = high, fill = scenario_name), alpha = 0.20) +
-    ggplot2::geom_line(aes(y = median, color = scenario_name), size=1.5, linetype=1) +
-    ggplot2::geom_line(aes(y = point, color = scenario_name), linetype=2) +
-    ggplot2::geom_vline(aes(xintercept=projection_date), color="grey", linetype=2, size=1.5) +
-    ggplot2::geom_point(data=data %>% filter(pre_gs_end==TRUE), aes(y = value_gt), color="black") +
-    ggplot2::geom_point(data=data %>% filter(pre_gs_end==FALSE), aes(y = value_gt), color="red") +
+    ggplot2::ggplot(ggplot2::aes(x = date)) +
+    ggplot2::geom_ribbon(ggplot2::aes(ymin = low, ymax = high, fill = scenario_name), alpha = 0.20) +
+    ggplot2::geom_line(ggplot2::aes(y = median, color = scenario_name), size=1.5, linetype=1) +
+    ggplot2::geom_line(ggplot2::aes(y = point, color = scenario_name), linetype=2) +
+    ggplot2::geom_vline(ggplot2::aes(xintercept=projection_date), color="grey", linetype=2, size=1.5) +
+    ggplot2::geom_point(data=data %>% dplyr::filter(pre_gs_end==TRUE), ggplot2::aes(y = value_gt), color="black") +
+    ggplot2::geom_point(data=data %>% dplyr::filter(pre_gs_end==FALSE), ggplot2::aes(y = value_gt), color="red") +
     ggplot2::scale_x_date(date_breaks = "1 month", date_labels = "%b %y") +
     ggplot2::scale_color_viridis_d("Scenario") +
-    ggplot2::Tscale_fill_viridis_d("Scenario") +
+    ggplot2::scale_fill_viridis_d("Scenario") +
     ggplot2::theme_bw() +
     ggplot2::theme(legend.position = "top", legend.text = ggplot2::element_text(size=8),
                    axis.text.x = ggplot2::element_text(size=8, angle = 45, hjust=1),
