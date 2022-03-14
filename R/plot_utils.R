@@ -8,7 +8,8 @@
 #' @return
 #' @export
 #'
-#' @examples
+#' @importFrom dplyr bind_rows mutate select
+#' @importFrom tidyr separate
 format_gs_data <- function(lst_gs, projection_date){
 
   # Ground Truth Data
@@ -43,7 +44,14 @@ format_gs_data <- function(lst_gs, projection_date){
 #' @return
 #' @export
 #'
-#' @examples
+#' @importFrom dplyr select filter mutate across
+#' @importFrom tidyr pivot_wider
+#' @importFrom scales comma percent
+#' @importFrom tibble tibble
+#' @importFrom gridExtra ttheme_default tableGrob
+#' @importFrom gtable gtable_add_grob gtable_add_rows
+#' @importFrom grid gpar rectGrob
+#' @importFrom tidyselect all_of
 print_table <- function(data=proj_plot_data_calib_cum,
                         tab_title = "Top Outliers: Percent difference from ground truth, Cumulative",
                         metric = "prctdiff_gt", #"median",
@@ -150,7 +158,13 @@ print_table <- function(data=proj_plot_data_calib_cum,
 #' @return
 #' @export
 #'
-#' @examples
+#' @importFrom ggplot2 scale_y_sqrt scale_y_continuous aes ggplot geom_ribbon geom_line
+#' @importFrom ggplot2 geom_vline geom_point scale_x_date scale_color_viridis_d
+#' @importFrom ggplot2 scale_fill_viridis_d theme_bw theme guides guide_legend xlab
+#' @importFrom ggplot2 coord_cartesian element_text facet_wrap
+#' @importFrom lubridate as_date
+#' @importFrom dplyr filter
+#' @importFrom glue glue
 plot_projections <- function(data, st, projection_date, legend_rows=1, y_sqrt=FALSE){
 
   if (y_sqrt){
@@ -204,6 +218,21 @@ plot_projections <- function(data, st, projection_date, legend_rows=1, y_sqrt=FA
 #' @export
 #'
 #' @examples
+#'
+#' @importFrom dplyr filter mutate select rename arrange bind_rows left_join
+#' @importFrom dplyr full_join desc slice_head pull
+#' @importFrom tibble as_tibble
+#' @importFrom tidyr separate pivot_wider
+#' @importFrom readr read_csv
+#' @importFrom lubridate as_date
+#' @importFrom ggpubr get_legend
+#' @importFrom grDevices pdf dev.off
+#' @importFrom gridExtra grid.arrange
+#' @importFrom grid unit gpar textGrob
+#' @importFrom cowplot ggdraw draw_label plot_grid
+#' @importFrom glue glue
+#' @importFrom ggplot2 theme margin
+#'
 make_state_plot_pdf <- function(proj_data, gs_data, team_model_name, projection_date, save_path, plot_quantiles=c(0.025, 0.975), y_sqrt=FALSE){
 
   reich_locs <- readr::read_csv("https://raw.githubusercontent.com/reichlab/covid19-forecast-hub/master/data-locations/locations.csv")
@@ -396,6 +425,10 @@ make_state_plot_pdf <- function(proj_data, gs_data, team_model_name, projection_
 #' @export
 #'
 #' @examples
+#'
+#' @importFrom stringr str_split
+#' @importFrom lubridate as_date
+#' @importFrom dplyr mutate_if mutate
 generate_validation_plots <- function(path_proj, lst_gs, save_path=dirname(path_proj), y_sqrt = FALSE, plot_quantiles = c(0.025, 0.975)){
 
   # SETUP
