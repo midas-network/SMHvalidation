@@ -432,7 +432,7 @@ make_state_plot_pdf <- function(proj_data, gs_data, team_model_name, projection_
 generate_validation_plots <- function(path_proj, lst_gs, save_path=dirname(path_proj), y_sqrt = FALSE, plot_quantiles = c(0.025, 0.975)){
 
   # SETUP
-  file_ <- basename(path_test)
+  file_ <- basename(path_proj)
   info_ <- stringr::str_split(file_, pattern="_")[[1]]
   print(info_)
   projection_date = lubridate::as_date(info_[1])
