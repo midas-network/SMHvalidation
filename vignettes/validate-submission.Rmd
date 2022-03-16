@@ -178,7 +178,7 @@ generate_validation_plots(path_proj=path_test, lst_gs=lst_gs, save_path=getwd(),
 system(paste0('open "', pdf_path, '"'))
 ```
 
-```{r proj_plots2}
+```{r proj_plots3}
 path_test <- system.file("extdata", "2021-11-14_team-model.zip", package = "covid19SMHvalidation")
 # path_test <- "inst/extdata/2022-01-09_team-model.csv"
 save_path <- getwd()
