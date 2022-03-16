@@ -166,4 +166,24 @@ generate_validation_plots(path_proj=path_test, lst_gs=lst_gs, save_path=getwd(),
 system(paste0('open "', pdf_path, '"'))
 ```
 
+Try another file type
 
+```{r proj_plots2}
+path_test <- system.file("extdata", "2021-08-15_team-model.gz", package = "covid19SMHvalidation")
+# path_test <- "inst/extdata/2022-01-09_team-model.csv"
+save_path <- getwd()
+pdf_path <- file.path(save_path, paste0("2021-08-15", "_", "team-model", "_plots.pdf"))
+print(paste0("Saving pdf plots to ", pdf_path, "."))
+generate_validation_plots(path_proj=path_test, lst_gs=lst_gs, save_path=getwd(), y_sqrt = FALSE, plot_quantiles = c(0.025, 0.975))
+system(paste0('open "', pdf_path, '"'))
+```
+
+```{r proj_plots2}
+path_test <- system.file("extdata", "2021-11-14_team-model.zip", package = "covid19SMHvalidation")
+# path_test <- "inst/extdata/2022-01-09_team-model.csv"
+save_path <- getwd()
+pdf_path <- file.path(save_path, paste0("2021-11-14", "_", "team-model", "_plots.pdf"))
+print(paste0("Saving pdf plots to ", pdf_path, "."))
+generate_validation_plots(path_proj=path_test, lst_gs=lst_gs, save_path=getwd(), y_sqrt = FALSE, plot_quantiles = c(0.025, 0.975))
+system(paste0('open "', pdf_path, '"'))
+```

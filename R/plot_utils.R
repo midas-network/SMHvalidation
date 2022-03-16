@@ -58,8 +58,7 @@ print_table <- function(data=proj_plot_data_calib_cum,
                         thresholds=c(-Inf, -.20, -.06, 0),
                         colors=c("red", "orange", "yellow", "orange")) {
 
-  data <- data %>%
-    filter(!is.na(scenario_name))
+  data <- data %>% filter(!is.na(scenario_name))
   # Format the table
   tab_data <- data %>%
     dplyr::select(scenario_name, state, outcome, `ground truth`, value = tidyselect::all_of(metric)) %>%
@@ -67,16 +66,29 @@ print_table <- function(data=proj_plot_data_calib_cum,
 
   # Cells to highlight
   NAs <- which(is.na(tab_data), arr.ind=TRUE)
-  NAs <- NAs[which(NAs[,2] %in% which(names(tab_data) %in% unique(data$scenario_name))),]
-  NAs[,1] <- NAs[,1]+1
+  if (nrow(NAs)>0){
+    NAs <- NAs[which(NAs[[2]] %in% which(names(tab_data) %in% unique(data$scenario_name))),]
+  }
+
+  if (nrow(NAs)>0 || is.null(nrow(NAs))){
+    NAs <- tibble(row = NAs[["row"]],
+                  col = NAs[["col"]])
+    NAs[[1]] <- NAs[[1]]+1
+  }
 
   thresh_cols <- lapply(1:length(thresholds),
                         function(x) {
                           tmp <- which(tab_data>=thresholds[x] &
                                          tab_data<c(thresholds, Inf)[x+1] &
                                          !is.na(tab_data), arr.ind=TRUE)
-                          tmp <- tmp[which(tmp[,2] %in% which(names(tab_data) %in% unique(data$scenario_name))),]
-                          tmp[,1] <- tmp[,1]+1
+                          tmp <- tibble::as_tibble(tmp)
+
+                          if (nrow(NAs)>0 & !is.null(nrow(NAs))){
+                            tmp <- tmp[which(tmp$col %in% which(names(tab_data) %in% unique(data$scenario_name))),]
+                            tmp$row <- tmp$row+1
+                          } else {
+                            tmp <- NA
+                          }
                           tmp
                         })
 
@@ -96,7 +108,7 @@ print_table <- function(data=proj_plot_data_calib_cum,
   }
 
   if(nrow(tab_data)==0){
-    tab_data <- tibble::tibble(value = "     There are no projections in this category for this submission. Well done!     ")
+    tab_data <- tibble::tibble(value = "               There are no projections in this category for this submission. Well done!               ")
   }
 
   # Build the table
@@ -117,21 +129,21 @@ print_table <- function(data=proj_plot_data_calib_cum,
   # Highlight based on thresholds
   for (i in 1:length(thresh_cols)){
 
-    if (nrow(thresh_cols[[i]])==0) next
+    if (nrow(thresh_cols[[i]])==0 || is.na(thresh_cols[[i]])) next
 
     for (x in 1:nrow(thresh_cols[[i]])){
-      ind_ <- find_cell(g, thresh_cols[[i]][x,1], thresh_cols[[i]][x,2], "core-bg")
+      ind_ <- find_cell(g, as.integer(thresh_cols[[i]][x,1]), as.integer(thresh_cols[[i]][x,2]), "core-bg")
       g$grobs[ind_][[1]][["gp"]] <- grid::gpar(fill=colors[i], col="lightgrey")
     }
   }
 
   # Grey out NAs
-  for (x in 1:nrow(NAs)){
-
-    if (nrow(NAs)==0) next
-
-    ind_ <- find_cell(g, NAs[x,1], NAs[x,2], "core-fg")
-    g$grobs[ind_][[1]][["gp"]] <- grid::gpar(col="lightgrey")
+  if (nrow(NAs)>0){
+    for (x in seq_along(nrow(NAs))){
+      print(x)
+      ind_ <- find_cell(g, as.integer(NAs[x,1]), as.integer(NAs[x,2]), "core-fg")
+      g$grobs[ind_][[1]][["gp"]] <- grid::gpar(col="lightgrey")
+    }
   }
 
   # Add Title
@@ -239,6 +251,7 @@ make_state_plot_pdf <- function(proj_data, gs_data, team_model_name, projection_
 
   # Projections - Clean up and merge
   proj_data <- proj_data %>%
+    dplyr::mutate(location = stringr::str_pad(location, 2, "left", "0")) %>%
     dplyr::filter(quantile %in% c(plot_quantiles[1], 0.5, plot_quantiles[2]) | is.na(quantile)) %>%
     dplyr::mutate(quantile = ifelse(type=="point", "point", quantile)) %>%
     tidyr::separate(target, into = c("time_ahead", "time_unit", "A", "incid_cum", "outcome"), sep=" ") %>%
@@ -346,7 +359,9 @@ make_state_plot_pdf <- function(proj_data, gs_data, team_model_name, projection_
   # Create PDF
 
   states_ <- unique(proj_plot_data %>% dplyr::filter(scenario_name != "ground truth") %>% dplyr::pull(state))
-  states_ <- c("US", states_[states_!="US"])
+  if ("US" %in% states_){
+    states_ <- c("US", states_[states_!="US"])
+  }
 
   # INCIDENT
   p_inc <- proj_plot_data %>%
@@ -449,6 +464,10 @@ generate_validation_plots <- function(path_proj, lst_gs, save_path=dirname(path_
     dplyr::mutate_if(is.factor, as.character) %>%
     dplyr::mutate(target_end_date = lubridate::as_date(target_end_date),
                   model_projection_date = lubridate::as_date(model_projection_date))
+  #remove artifact column
+  if ("X" %in% colnames(proj_data)){
+    proj_data <- proj_data %>% dplyr::select(-X)
+  }
 
   # Create PDF of State Plots
   make_state_plot_pdf(proj_data=proj_data, gs_data=gs_data, team_model_name=team_model_name, projection_date=projection_date,
