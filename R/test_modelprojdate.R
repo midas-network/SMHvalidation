@@ -53,10 +53,8 @@ test_modelprojdate <- function(df, path, start_date) {
     unique(df$model_projection_date))) {
     mpdname_test <- paste0(
       "\U000274c Error: 'model_projection_date' is not corresponding to the  ",
-      "name in the file, the date should correspond to: '", paste(as.Date(
-        stringr::str_extract(basename(path),
-                             "[[:digit:]]{4}-[[:digit:]]{2}-[[:digit:]]{2}")),
-        collapse = ", "), "'.")
+      "name in the file, the 'model_projection_date' date value and the date ",
+      "in the filename should correspond to: '", start_date - 6, "'.")
   } else {
     mpdname_test <- NA
   }
