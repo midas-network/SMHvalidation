@@ -152,11 +152,19 @@ validate_submission <- function(path,
     } else if (is.data.frame(scen_info)) {
       scen_df <- scen_info
     } else {
-      stop("`scen_info` paramater should either be: a path to a file containing ",
-           "the round and scenario information, or a data frame, or NULL. If ",
-           "NULL, the information will be automatically extracted from the ",
-           "Scenario Modeling Hub GitHub repository. ")
+      scen_df <- NULL
+      err_message <- paste0(
+        "\U000274c Error: `scen_info` paramater should either be: a path to a ",
+        "file containing the round and scenario information, or a data frame, ",
+        "or NULL. If NULL, the information will be automatically extracted ",
+        "from the Scenario Modeling Hub GitHub repository.  \n")
     }
+  }
+
+  if (is.null(scen_df)) {
+    cat(err_message)
+    stop(" The submission contains one or multiple issues, please see ",
+         "information above")
   }
 
 
@@ -180,9 +188,14 @@ validate_submission <- function(path,
       scen_df$scenario_id %in% unique(df$scenario_id)), "round"])))
   }
   if (length(round) == 0) {
-    stop("Cannot extract round number information from the files, please ",
-         "verify file name and scenario id information. If the problem ",
-         "persists please leave a message tagging '@LucieContamin'.")
+    err_message <- paste0(
+      "\U000274c Error: Cannot extract round number information from the files",
+      ", please verify that the file name contains the expected date and the ",
+      "`scenario id` column contains the expected information. If the problem ",
+      "persists please leave a message tagging '@LucieContamin'. \n")
+    cat(err_message)
+    stop(" The submission contains one or multiple issues, please see ",
+         "information above")
   }
   # Extract start_date information
   start_date <- as.Date(unique(scen_df[which(
