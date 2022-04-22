@@ -7,10 +7,15 @@
 plot_projections(data, st, projection_date, legend_rows = 1, y_sqrt = FALSE)
 }
 \arguments{
-\item{y_sqrt}{}
-}
-\value{
+\item{data}{dataframe}
 
+\item{st}{vector}
+
+\item{projection_date}{a data vector}
+
+\item{legend_rows}{numeric, 1 by default}
+
+\item{y_sqrt}{boolean, FALSE by default}
 }
 \description{
 Plot Projections
