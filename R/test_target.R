@@ -47,7 +47,7 @@ test_target <- function(df, start_date, round) {
                     "inc hosp", "cum hosp")
   if (isFALSE(all(gsub(".+ wk ahead ", "", df$target) %in% target_names))) {
     targetname_test <-  paste0(
-      "\U000274c Error: At least one of the target_names is misspelled. ",
+      "\U000274c Error 601: At least one of the target_names is misspelled. ",
       "Please verify, the target_names should be: '",
       paste(target_names, collapse = ", "), "'. The data frame contains: '",
       paste(unique(gsub(".+ wk ahead ", "", df$target)), collapse = ", "),
@@ -59,7 +59,7 @@ test_target <- function(df, start_date, round) {
   # to submit projections for only certain target (for example: only cases, etc.)
   if (isFALSE(length(unique(gsub(".+ wk ahead ", "", df$target))) == 6)) {
     targetnum_test <- paste0(
-      "\U0001f7e1 Warning: The data frame contains projections for ",
+      "\U0001f7e1 Warning 602: The data frame contains projections for ",
       length(unique(gsub(".+ wk ahead ", "", df$target))), " targets instead ",
       "of 6. '", paste(unique(gsub(".+ wk ahead ", "", df$target)),
                        collapse = ", "), "' have been submitted.")
@@ -69,7 +69,7 @@ test_target <- function(df, start_date, round) {
   # - target_end_date corresponds to the end of the epiweek (Saturday)
   if (isFALSE(all(unique(df$target_end_date) %>% lubridate::wday() %in% 7))) {
     targetday_test <- paste0(
-      "\U000274c Error: The target_end_date should correspond to the end of ",
+      "\U000274c Error 603: The target_end_date should correspond to the end of ",
       "the epiweek (Saturday). For example, if the 1st week projection is on ",
       "the week starting 2021-11-14 and ending 2021-11-20. The target_end_week",
       " for this week should be: 2021-11-20.")
@@ -96,12 +96,12 @@ test_target <- function(df, start_date, round) {
   if (isFALSE(length(unique(df$target_end_date)) >= n_target_week)) {
     if (round < 13) {
       targetweek_test <- paste0(
-        "\U000274c Error: The projections should contains at least ",
+        "\U000274c Error 604: The projections should contains at least ",
         n_target_week, " weeks of projection. The data frame contains only: ",
         length(unique(df$target_end_date)), " week(s).")
     } else {
       targetweek_test <- paste0(
-        "\U0001f7e1 Warning: The projections should contains at least ",
+        "\U0001f7e1 Warning 605: The projections should contains at least ",
         n_target_week, " weeks of projection. The data frame contains only: ",
         length(unique(df$target_end_date)), " week(s). The projection might ",
         "not be included in the Ensembles.")
@@ -109,8 +109,8 @@ test_target <- function(df, start_date, round) {
   } else {
     if (isTRUE(length(unique(df$target_end_date)) > max_week)) {
       targetweek_test <- paste0(
-        "\U0001f7e1 Warning: The projection contains more projected week than ",
-        "expected.")
+        "\U0001f7e1 Warning 606: The projection contains more projected week ",
+        "than expected.")
     } else {
       targetweek_test <- NA
     }}
@@ -127,7 +127,7 @@ test_target <- function(df, start_date, round) {
                       unique(x$location), ", quantile: ",unique(x$quantile),
                       ", scenario: ",unique(x$scenario_id))
       targetwnum_test <- paste0(
-        "\U000274c Error: At least one target week is missing in the time ",
+        "\U000274c Error 607: At least one target week is missing in the time ",
         "series. Please verify: ", group)
     } else {
       targetwnum_test <- NA
@@ -137,8 +137,8 @@ test_target <- function(df, start_date, round) {
   if (isFALSE(unique(dplyr::filter(df, grepl("^1 wk ahead", target))
                      [, "target_end_date", TRUE]) == as.Date(start_date))) {
     targetstart_test <- paste0(
-      "\U000274c Error: 1st week target end date is not valid. It should be: '",
-      start_date, "' but it is: '", unique(dplyr::filter(
+      "\U000274c Error 608: 1st week target end date is not valid. It should ",
+      "be: '", start_date, "' but it is: '", unique(dplyr::filter(
         df, grepl("^1 wk ahead", target))[, "target_end_date", TRUE]), "'.")
   } else {
     targetstart_test <- NA
@@ -155,7 +155,7 @@ test_target <- function(df, start_date, round) {
              start_date + lubridate::period(x, "week") - 7)
     }) %>% unlist()
     targetalldate_test <- paste0(
-      "\U000274c Error: One or multiple target(s) end date are not valid. ",
+      "\U000274c Error 609: One or multiple target(s) end date are not valid. ",
       expected)
   } else {
     targetalldate_test <- NA
@@ -164,6 +164,10 @@ test_target <- function(df, start_date, round) {
   target_test <- na.omit(c(targetname_test,  targetnum_test, targetday_test,
                            targetweek_test, unlist(targetwnum_test),
                            targetstart_test, targetalldate_test))
+ # target_test <- c(list(targetname_test),  list(targetnum_test),
+ #                  list(targetday_test), list(targetweek_test), targetwnum_test,
+ #                  list(targetstart_test), list(targetalldate_test))
+ # target_test <- target_test[!is.na(target_test)]
   if (length(target_test) == 0)
     target_test <- paste0("No errors or warnings found in target and ",
                           "target_end_date columns")

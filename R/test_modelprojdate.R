@@ -32,7 +32,7 @@ test_modelprojdate <- function(df, path, start_date) {
   # Test the format of the column: should be a date
   if (any(is.na(as.Date(df$model_projection_date, "%Y-%m-%d")))) {
     mpddate_test <- paste0(
-      "\U000274c Error: 'model_projection_date' should be a date, format ",
+      "\U000274c Error 301: 'model_projection_date' should be a date, format ",
       "YYYY-MM-DD")
   } else {
     mpddate_test <- NA
@@ -40,8 +40,8 @@ test_modelprojdate <- function(df, path, start_date) {
   # Test the format of the column: should be an unique value
   if (isFALSE(length(unique(df$model_projection_date)) == 1)) {
     mpdone_test <- paste0(
-      "\U000274c Error: 'model_projection_date' should contains 1 unique date.",
-      " The file contains multiple `model_projection_date' values: '",
+      "\U000274c Error 302: 'model_projection_date' should contains 1 unique ",
+      "date. The file contains multiple `model_projection_date' values: '",
       paste(unique(df$model_projection_date), collapse = ", "), "'.")
   } else {
     mpdone_test <- NA
@@ -52,22 +52,24 @@ test_modelprojdate <- function(df, path, start_date) {
                          "[[:digit:]]{4}-[[:digit:]]{2}-[[:digit:]]{2}")) ==
     unique(df$model_projection_date))) {
     mpdname_test <- paste0(
-      "\U000274c Error: 'model_projection_date' is not corresponding to the  ",
-      "name in the file, the 'model_projection_date' date value and the date ",
-      "in the filename should correspond to: '", start_date - 6, "'.")
+      "\U000274c Error 303: 'model_projection_date' is not corresponding to ",
+      "the name in the file, the 'model_projection_date' date value and the ",
+      "date in the filename should correspond to: '", start_date - 6, "'.")
   } else {
     mpdname_test <- NA
   }
   # The model_projection_date should correspond to the projection starting date
   if (isFALSE(unique(df$model_projection_date) == start_date - 6)) {
     mpdvalue_test <- paste0(
-      "\U000274c Error: 'model_projection_date' should correspond to the ",
+      "\U000274c Error 304: 'model_projection_date' should correspond to the ",
       "projection starting date, as written in the README available on GitHub.")
   } else {
     mpdvalue_test <- NA
   }
 
   mpd_test <- na.omit(c(mpddate_test, mpdone_test, mpdname_test, mpdvalue_test))
+  #mpd_test <- list(mpddate_test, mpdone_test, mpdname_test, mpdvalue_test)
+  #mpd_test <- mpd_test[!is.na(mpd_test)]
   if (length(mpd_test) == 0)
     mpd_test  <- paste0("No errors or warnings found on the column ",
                         "'model_projection_date'")

@@ -29,14 +29,14 @@ test_location <- function(df, number2location) {
     }
     if (isFALSE(!any(is.na(number2location[unique(vect)])))) {
       location_test <- paste0(
-        "\U000274c Error: Some locations codes are not corresponding to any ",
-        "known location: '", paste(unique(df$location)[is.na(
+        "\U000274c Error 701: Some locations codes are not corresponding to ",
+        "any known location: '", paste(unique(df$location)[is.na(
           number2location[unique(df$location)])], collapse = ", "), "'.")
     } else {
       # is missing the trailing 0
       location_test <- paste0(
-        "\U0001f7e1 Warning: Some location value are missing a trailing 0. ",
-        "For example, ", vect0[which(nchar(vect0) == 1)], " instead of ",
+        "\U0001f7e1 Warning 702: Some location value are missing a trailing 0.",
+        " For example, ", vect0[which(nchar(vect0) == 1)], " instead of ",
         paste0(0,  vect0[which(nchar(vect0) == 1)]))
     }
   } else {
@@ -44,6 +44,8 @@ test_location <- function(df, number2location) {
   }
 
   test_loc <- na.omit(unique(location_test))
+  #test_loc <- list(unique(location_test))
+  #test_loc <- test_loc[!is.na(test_loc)]
   if (length(test_loc) == 0)
     test_loc <- "No errors or warnings found on Location"
 
