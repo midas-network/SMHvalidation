@@ -140,6 +140,10 @@ test_that("Test validation process", {
     extract_err_code(validate_submission(
       "training_data/2022-01-09_badstartdate.csv", lst_gs,
       scen_info = scen_info)), c("603", "608", "609"))
+  testthat::expect_equal(
+    extract_err_code(validate_submission(
+      "training_data/2022-03-13_round13_missingweek.csv", lst_gs,
+      scen_info = scen_info)), c("508", "509", "605"))
 
 
   # Test location error -----
