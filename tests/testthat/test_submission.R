@@ -107,6 +107,10 @@ test_that("Test validation process", {
       scen_info = scen_info)), c("404", "503", "506", "510"))
   testthat::expect_equal(
     extract_err_code(validate_submission(
+      "training_data/2022-01-09_doublequantzero.csv", lst_gs,
+      scen_info = scen_info)), c("404", "510"))
+  testthat::expect_equal(
+    extract_err_code(validate_submission(
       "training_data/2022-01-09_highvalue.csv", lst_gs, scen_info = scen_info)),
     c("507"))
   testthat::expect_equal(

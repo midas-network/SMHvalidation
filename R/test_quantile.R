@@ -69,18 +69,19 @@ test_quantiles <- function(df, round) {
     group <- paste0("target: ", unique(x$target), ", location: ",
                     unique(x$location), ", scenario: ", unique(x$scenario_id))
     dfstl <- dplyr::filter(x, type != "point")
-    sel_quantile <- sort(dfstl$quantile)
+    sel_quantile <- sort(unique(dfstl$quantile))
+    qval_test_tot <- NULL
     for (i in 1:(length(sel_quantile) - 1)) {
       value <- dfstl[dfstl$quantile == sel_quantile[i], "value", TRUE]
       n_value <- dfstl[dfstl$quantile == sel_quantile[i+1], "value", TRUE]
 
       if (length(n_value) > 1) {
         qval_test <- paste0(
-          "\U000274c Error 404: The quantile ,", sel_quantile[i], " is not ",
-          "associated with an unique value for the group: ", group)
+          "\U000274c Error 404: The quantile ", sel_quantile[i + 1], ", is not",
+          " associated with an unique value for the group: ", group)
       } else if (length(value) > 1) {
         qval_test <- paste0(
-          "\U000274c Error 404: The quantile ,", sel_quantile[i + 1], " is not ",
+          "\U000274c Error 404: The quantile ", sel_quantile[i], ", is not ",
           "associated with an unique value for the group: ", group)
       } else {
         if (n_value < value) {
@@ -93,8 +94,11 @@ test_quantiles <- function(df, round) {
         }
       }
       qval_test <- unique(qval_test)
+      qval_test_tot <- unique(c(qval_test_tot, qval_test))
     }
-    return(qval_test)
+    qval_test_tot <- unique(na.omit(qval_test_tot))
+    if (length(qval_test_tot) == 0) qval_test_tot <- NA
+    return(qval_test_tot)
   })
 
   quantiles_test <- na.omit(c(qvalues_test, qnum_test, unlist(qval_test)))
