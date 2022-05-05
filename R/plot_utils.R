@@ -20,10 +20,11 @@ format_gs_data <- function(lst_gs, projection_date){
     dplyr::mutate(outcome = tolower(outcome),
                   outcome = gsub("_num", "", outcome),
                   outcome = gsub("incidence", "inc", outcome),
-                  outcome = gsub("cumulative", "cum", outcome)) %>%
+                  outcome = gsub("cumulative", "cum", outcome),
+                  outcome = gsub("hospitalization", "hospitalization_inc", outcome)) %>%
     dplyr::select(date=time_value, location=fips, value, outcome, value) %>%
     tidyr::separate(outcome, into=c("outcome", "incid_cum"), sep="_") %>%
-    dplyr::mutate(outcome = dplyr::recode(outcome, "confirmed"="case", "deaths"="death", "hospitalization"="hosptilatization")) %>%
+    dplyr::mutate(outcome = dplyr::recode(outcome, "confirmed"="case", "deaths"="death", "hospitalization"="hosp")) %>%
     dplyr::mutate(pre_gs_end = date<projection_date)
 
   return(gs_data)
