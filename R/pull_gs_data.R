@@ -194,7 +194,7 @@ pull_gs_data <- function() {
     }
 
     # Call API to generate gold standard data from COVIDCast
-   df <- covidcast_signal(data_source = source, signal = x,
+   df <- covidcast::covidcast_signal(data_source = source, signal = x,
                                geo_type = "state", end_day = limit_date,
                                as_of = Sys.Date())
 
@@ -210,28 +210,28 @@ pull_gs_data <- function() {
       df <- gs_week_process(df) %>%
         week_date()
 
-      df_state <- distinct(df) %>%
+      df_state <- dplyr::distinct(df) %>%
         location_full(loc_dictionary_name = loc_dictionary_name) %>%
         sel_last_day_week(vect_week_date)
       df_us <- gs_sum(df_state) %>%
         week_date() %>%
-        distinct() %>%
+        dplyr::distinct() %>%
         sel_last_day_week(vect_week_date) %>%
-        mutate(geo_value_fullname = "US",
+        dplyr::mutate(geo_value_fullname = "US",
                geo_value = "us")
-      df_tot <- bind_rows(df_state, df_us)
+      df_tot <- dplyr::bind_rows(df_state, df_us)
     } else {
       df_state <- location_full(df, loc_dictionary_name = loc_dictionary_name)
       df_state <- sel_last_day_week(df_state, vect_week_date)
       df_us <- gs_sum(df_state ) %>%
         sel_last_day_week(vect_week_date) %>%
-        mutate(geo_value_fullname = "US",
+        dplyr::mutate(geo_value_fullname = "US",
                geo_value = "us")
-      df_tot <- bind_rows(df_state, df_us)
+      df_tot <- dplyr::bind_rows(df_state, df_us)
     }
     # Add geographical information for the mapping
-    df_tot <- mutate(df_tot, fips = location2number[geo_value_fullname]) %>%
-      select(time_value, geo_value_fullname, fips, value)
+    df_tot <- dplyr::mutate(df_tot, fips = location2number[geo_value_fullname]) %>%
+      dplyr::select(time_value, geo_value_fullname, fips, value)
   }) %>%
   setNames(c("deaths_cumulative_num", "confirmed_cumulative_num",
              "confirmed_incidence_num", "deaths_incidence_num",

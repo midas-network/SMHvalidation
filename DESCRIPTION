@@ -20,20 +20,31 @@ License: MIT + file LICENSE
 Encoding: UTF-8
 LazyData: true
 Depends: R (>= 3.5.0)
-RoxygenNote: 7.1.1
+RoxygenNote: 7.1.2.9000
 Imports: arrow, 
          covidcast, 
+         cowplot,
          data.table,
          doParallel,
          dplyr, 
          foreach,
+         ggplot2,
+         ggpubr,
          gh, 
+         glue,
+         grDevices,
+         grid,
+         gridExtra,
+         gtable,
          lubridate, 
          purrr, 
          readr,
          rlang,
+         scales,
          stringr, 
-         tidyr
+         tibble,
+         tidyr,
+         tidyselect
 Suggests: 
     rmarkdown,
     knitr,
