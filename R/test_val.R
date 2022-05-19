@@ -207,11 +207,6 @@ test_val <- function(df, pop, last_lst_gs, number2location) {
                           unlist(pointone_test), pointpop_test,
                           valcumcase_test, valcumdeath_test,
                           unlist(valunique_test)))
-  #value_test <- c(list(point_test), list(pointna_test), list(pointnum_test),
-  #                list(pointpos_test), pointuniq_test, pointone_test,
-  #                list(pointpop_test), list(valcumcase_test),
-  #                list(valcumdeath_test), valunique_test)
-  #value_test <- value_test[!is.na(value_test)]
   if (length(value_test) == 0)
     value_test <- "No errors or warnings found on Value and Type columns"
 

@@ -102,8 +102,6 @@ test_quantiles <- function(df, round) {
   })
 
   quantiles_test <- na.omit(c(qvalues_test, qnum_test, unlist(qval_test)))
-  #quantiles_test <- c(list(qvalues_test), list(qnum_test), qval_test)
-  #quantiles_test <- quantiles_test[!is.na(quantiles_test)]
   if (length(quantiles_test) == 0)
     quantiles_test <- paste0("No errors or warnings found on quantiles values ",
                              "and format")

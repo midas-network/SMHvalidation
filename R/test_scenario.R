@@ -77,8 +77,6 @@ test_scenario <- function(df, round, scenario_smname, scenario_sel) {
   }
 
   scen_test <- na.omit(c(scenname_test, scenid_test, scencorres_test))
-  #scen_test <- list(scenname_test, scenid_test, scencorres_test)
-  #scen_test <- scen_test[!is.na(scen_test)]
   if (length(scen_test) == 0)
     scen_test  <- paste0("No errors or warnings found on scenario name and ",
                          "scenario id columns")

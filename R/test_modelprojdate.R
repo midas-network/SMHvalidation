@@ -68,8 +68,6 @@ test_modelprojdate <- function(df, path, start_date) {
   }
 
   mpd_test <- na.omit(c(mpddate_test, mpdone_test, mpdname_test, mpdvalue_test))
-  #mpd_test <- list(mpddate_test, mpdone_test, mpdname_test, mpdvalue_test)
-  #mpd_test <- mpd_test[!is.na(mpd_test)]
   if (length(mpd_test) == 0)
     mpd_test  <- paste0("No errors or warnings found on the column ",
                         "'model_projection_date'")

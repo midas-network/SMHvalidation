@@ -164,10 +164,6 @@ test_target <- function(df, start_date, round) {
   target_test <- na.omit(c(targetname_test,  targetnum_test, targetday_test,
                            targetweek_test, unlist(targetwnum_test),
                            targetstart_test, targetalldate_test))
- # target_test <- c(list(targetname_test),  list(targetnum_test),
- #                  list(targetday_test), list(targetweek_test), targetwnum_test,
- #                  list(targetstart_test), list(targetalldate_test))
- # target_test <- target_test[!is.na(target_test)]
   if (length(target_test) == 0)
     target_test <- paste0("No errors or warnings found in target and ",
                           "target_end_date columns")

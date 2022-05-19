@@ -44,8 +44,6 @@ test_location <- function(df, number2location) {
   }
 
   test_loc <- na.omit(unique(location_test))
-  #test_loc <- list(unique(location_test))
-  #test_loc <- test_loc[!is.na(test_loc)]
   if (length(test_loc) == 0)
     test_loc <- "No errors or warnings found on Location"
 
