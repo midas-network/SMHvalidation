@@ -173,7 +173,7 @@ validate_submission <- function(path,
 
   # Process file to test and associated information --------
   # Read file
-  df <- suppressMessages(read_files(path)) %>%
+  df <- read_files(path) %>%
     dplyr::mutate_if(is.factor, as.character)
   # Extract round information
   round <- as.numeric(
