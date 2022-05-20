@@ -24,10 +24,11 @@ This function contains 7 tests:
 \itemize{
  \item{Target name: }{The target should correspond to the target name as
  expressed in the SMH Github: "inc death", "inc case", "cum death",
- "cum case", "inc hosp", "cum hosp".}
- \item{Target number: }{The submission file contains projection for all the
- targets. It is accepted to submit only a subset of target but a warning
- message will be return. }
+ "cum case", "inc hosp", "cum hosp". Starting round 14, an optional target
+ is also possible "inc inf". }
+ \item{Target number: }{The submission file contains projection for all
+ required targets. It is accepted to submit only a subset of target but
+ a warning message will be return (only if a required target is missing.}
  \item{End of week: }{The date in the "target_end_date" column should always
  correspond to the end of the epiweek (Saturday).}
  \item{Number of week projected: }{The submission file contains projections

@@ -13,10 +13,11 @@
 #'\itemize{
 #'  \item{Target name: }{The target should correspond to the target name as
 #'  expressed in the SMH Github: "inc death", "inc case", "cum death",
-#'  "cum case", "inc hosp", "cum hosp".}
-#'  \item{Target number: }{The submission file contains projection for all the
-#'  targets. It is accepted to submit only a subset of target but a warning
-#'  message will be return. }
+#'  "cum case", "inc hosp", "cum hosp". Starting round 14, an optional target
+#'  is also possible "inc inf". }
+#'  \item{Target number: }{The submission file contains projection for all
+#'  required targets. It is accepted to submit only a subset of target but
+#'  a warning message will be return (only if a required target is missing.}
 #'  \item{End of week: }{The date in the "target_end_date" column should always
 #'  correspond to the end of the epiweek (Saturday).}
 #'  \item{Number of week projected: }{The submission file contains projections
@@ -42,9 +43,12 @@
 #'@importFrom lubridate wday as.period
 #'@export
 test_target <- function(df, start_date, round) {
-  # - target names (should be the same as in the GitHub)
-  target_names <- c("inc death", "inc case", "cum death", "cum case",
+  # Prerequisite
+  target_req <- c("inc death", "inc case", "cum death", "cum case",
                     "inc hosp", "cum hosp")
+  if (round > 13) target_opt <- c("inc inf") else target_opt <- NULL
+  target_names <- c(target_req, target_opt)
+  # - target names (should be the same as in the GitHub)
   if (isFALSE(all(gsub(".+ wk ahead ", "", df$target) %in% target_names))) {
     targetname_test <-  paste0(
       "\U000274c Error 601: At least one of the target_names is misspelled. ",
@@ -57,15 +61,17 @@ test_target <- function(df, start_date, round) {
   }
   # - the submission contains all the targets. It is also accepted
   # to submit projections for only certain target (for example: only cases, etc.)
-  if (isFALSE(length(unique(gsub(".+ wk ahead ", "", df$target))) == 6)) {
+  df_req_target <- grep(paste(target_req, collapse = "|"), unique(
+    gsub(".+ wk ahead ", "", df$target)), value = TRUE)
+  if (length(df_req_target) < 6) {
     targetnum_test <- paste0(
-      "\U0001f7e1 Warning 602: The data frame contains projections for ",
-      length(unique(gsub(".+ wk ahead ", "", df$target))), " targets instead ",
-      "of 6. '", paste(unique(gsub(".+ wk ahead ", "", df$target)),
-                       collapse = ", "), "' have been submitted.")
-  } else {
+      "\U0001f7e1 Warning 602: The data frame does not contain projections",
+      " for '", target_req[!target_req %in% df_req_target],
+      "' target(s).")
+  }  else {
     targetnum_test <- NA
   }
+
   # - target_end_date corresponds to the end of the epiweek (Saturday)
   if (isFALSE(all(unique(df$target_end_date) %>% lubridate::wday() %in% 7))) {
     targetday_test <- paste0(
