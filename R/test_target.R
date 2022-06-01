@@ -35,6 +35,8 @@
 #'  the expected date (end of the epiweek of the starting projection date).}
 #'  \item{Correct date: }{Each target_end_date corresponds to the expected date
 #'   for example if 1 wk ahead = 2022-01-15, than 2 wk ahead = 2022-01-22.}
+#'  \item{Target value: }{For the round 14 and the optional target "prop_x", the
+#'   associated value with this target should be between 0 and 1.}
 #' }
 #' Function called in the `validate_submission()` function.
 #'
@@ -46,7 +48,12 @@ test_target <- function(df, start_date, round) {
   # Prerequisite
   target_req <- c("inc death", "inc case", "cum death", "cum case",
                     "inc hosp", "cum hosp")
-  if (round > 13) target_opt <- c("inc inf") else target_opt <- NULL
+  if (round > 13) {
+    target_opt <- c("inc inf")
+    if (round == 14) target_opt <- c(target_opt, "prop_X")
+  }  else {
+    target_opt <- NULL
+  }
   target_names <- c(target_req, target_opt)
   # - target names (should be the same as in the GitHub)
   if (isFALSE(all(gsub(".+ wk ahead ", "", df$target) %in% target_names))) {
@@ -71,7 +78,18 @@ test_target <- function(df, start_date, round) {
   }  else {
     targetnum_test <- NA
   }
-
+  # Only if the submission contains target prop_x (value should be between 0, 1)
+  if (round == 14) {
+    df_propx <- dplyr::filter(df, grepl("prop_X", target))
+    if (dim(df_propx)[1] > 0) {
+      test_propx <- dplyr::filter(df_propx, value > 1 | value < 0)
+      if (dim(test_propx)[1] > 0) {
+        propx_test <- paste0(
+          "\U000274c Error 610: At least one of the value associated with the",
+          "optional target 'prox_x' is not between 0 and 1.")
+      }
+    }
+  }
   # - target_end_date corresponds to the end of the epiweek (Saturday)
   if (isFALSE(all(unique(df$target_end_date) %>% lubridate::wday() %in% 7))) {
     targetday_test <- paste0(

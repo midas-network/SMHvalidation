@@ -129,7 +129,8 @@ each name correctly spelled.
  * The target are corresponding to the target name as expressed in the SMH 
  Github README and wiki files: `"inc death"`, `"inc case"`, `"cum death"`, 
  `"cum case"`, `"inc hosp"`, `"cum hosp"`. Starting round 14, an additional
- optional target has been added: `"inc inf"`. 
+ optional target has been added: `"inc inf"`. Also, for round 14 only, an other
+ additional optional target is possible: `"prop_X"`
  
  * The submission file contains projections for all the required targets. **The 
  submission file will be accepted if some targets are missing, but will return a
@@ -209,6 +210,7 @@ be automatically print on the validation but, please feel free to ignore it.
 |607|Error|Run in `test_target()` function|The projected time serie is not missing any weeks (complete time serie). |
 |608|Error|Run in `test_target()` function|The first week `target_end_date` correspond to the expected value.|
 |609|Error|Run in `test_target()` function|Each `target_end_date` correspond to the expected value.|
+|610|Error|Run in `test_target()` function|Only for round 14, the value associated with the optional target `prop_X` is between 0 and 1.|
 |701|Error|Run in `test_location()` function|Each location code correspond to the expected value.|
 |702|Warning|Run in `test_location()` function|The location code value is not missing any trailing `0`. |
 
