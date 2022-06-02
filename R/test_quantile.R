@@ -42,7 +42,7 @@ test_quantiles <- function(df, round) {
   # - quantiles values (should be the same as in the GitHub)
   if (isFALSE(all(na.omit(df$quantile) %in% quantiles))) {
     qvalues_test <- paste0(
-      "\U000274c Error: ", unique(na.omit(df$quantile))[!unique(na.omit(
+      "\U000274c Error 401: ", unique(na.omit(df$quantile))[!unique(na.omit(
         df$quantile)) %in% quantiles], " is not an accepted quantile.")
   } else {
     qvalues_test <- NA
@@ -51,8 +51,8 @@ test_quantiles <- function(df, round) {
   if (isTRUE(length(unique(df$quantile)) < n_quantile)) {
     if (isFALSE(all(quantiles[!quantiles %in% df$quantile] %in% c(0, 1)))) {
       qnum_test <- paste0(
-        "\U0001f7e1 Warning: Expected number of 'quantile' is at least 23 + NA",
-        " (+ 2 optional quantiles: 0, 1) unique values. The projection ",
+        "\U0001f7e1 Warning 402: Expected number of 'quantile' is at least 23",
+        " + NA (+ 2 optional quantiles: 0, 1) unique values. The projection ",
         "contains: ", length(unique(df$quantile)), " unique values of ",
         "`quantile`. The file is missing the quantile(s): '",
         paste(quantiles[!quantiles %in% df$quantile], collapse = ", "), "'. ",
@@ -69,20 +69,36 @@ test_quantiles <- function(df, round) {
     group <- paste0("target: ", unique(x$target), ", location: ",
                     unique(x$location), ", scenario: ", unique(x$scenario_id))
     dfstl <- dplyr::filter(x, type != "point")
-    sel_quantile <- sort(dfstl$quantile)
+    sel_quantile <- sort(unique(dfstl$quantile))
+    qval_test_tot <- NULL
     for (i in 1:(length(sel_quantile) - 1)) {
       value <- dfstl[dfstl$quantile == sel_quantile[i], "value", TRUE]
       n_value <- dfstl[dfstl$quantile == sel_quantile[i+1], "value", TRUE]
-      suppressWarnings(if (n_value < value) {
+
+      if (length(n_value) > 1) {
         qval_test <- paste0(
-          "\U000274c Error: Quantiles values are not increasing with quantiles",
-          ", please verify: ", sel_quantile[i], " and ", sel_quantile[i+1],
-          " for the group: ", group)
+          "\U000274c Error 404: The quantile ", sel_quantile[i + 1], ", is not",
+          " associated with an unique value for the group: ", group)
+      } else if (length(value) > 1) {
+        qval_test <- paste0(
+          "\U000274c Error 404: The quantile ", sel_quantile[i], ", is not ",
+          "associated with an unique value for the group: ", group)
       } else {
-        qval_test <- NA
-      })
+        if (n_value < value) {
+          qval_test <- paste0(
+            "\U000274c Error 403: Quantiles values are not increasing with ",
+            "quantiles, please verify: ", sel_quantile[i], " and ",
+            sel_quantile[i+1], " for the group: ", group)
+        } else {
+          qval_test <- NA
+        }
+      }
+      qval_test <- unique(qval_test)
+      qval_test_tot <- unique(c(qval_test_tot, qval_test))
     }
-    return(qval_test)
+    qval_test_tot <- unique(na.omit(qval_test_tot))
+    if (length(qval_test_tot) == 0) qval_test_tot <- NA
+    return(qval_test_tot)
   })
 
   quantiles_test <- na.omit(c(qvalues_test, qnum_test, unlist(qval_test)))

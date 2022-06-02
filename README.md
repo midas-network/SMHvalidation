@@ -20,8 +20,7 @@ the next steps:
 install.packages("remotes")
 remotes::install_github("midas-network/covid19SMHvalidation", 
                         build_vignettes = TRUE,
-                        ref = "main", auth_token = “<token>”) 
-# with <token> generated at https://github.com/settings/tokens
+                        ref = "main") 
 ```
 
 or it can be manually installed by directly cloning/forking/downloading the 
@@ -135,7 +134,7 @@ The overall project is available under an open-source MIT license.
 ## Contributing
 
 Please feel free to open an issue if you identify any issue with the 
-package or would like to suggest an idea/improvment. We also welcome
+package or would like to suggest an idea/improvement. We also welcome
 any pull-request. 
 
 ## Funding

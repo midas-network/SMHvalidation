@@ -15,14 +15,23 @@ make_state_plot_pdf(
 )
 }
 \arguments{
-\item{y_sqrt}{}
-}
-\value{
+\item{proj_data}{dataframe}
 
+\item{gs_data}{list of dataframe, containing observed data}
+
+\item{team_model_name}{character vector, name of the team and models,
+following Scenario Modeling Hub standard}
+
+\item{projection_date}{date vector}
+
+\item{save_path}{character vector, path to the saving folder for the PDF
+output}
+
+\item{plot_quantiles}{numeric vector, quantiles to use for plotting (should
+correspond to the quantiles from the `proj_data` parameter)}
+
+\item{y_sqrt}{boolean, FALSE by default}
 }
 \description{
 Generate PDF of state plots
-}
-\examples{
-
 }

@@ -170,7 +170,49 @@ multiple), the `location` column might be automatically identify as numeric even
 if it was submitted in a character format. In this case, a warning message will
 be automatically print on the validation but, please feel free to ignore it. 
 
- 
+## Table of error/warning code
+
+|Code|Type|Checking Step|Test|
+|:--|:--|:-------|:----------------|
+|001|Error|Information extracted before running the validation, **if any issue, stop and will not run the validation**|`scen_info` parameter should either be: a path to a file containing the round and scenario information, or a data frame, or NULL. If NULL, the information will be automatically extracted from the Scenario Modeling Hub GitHub repository.|
+|002|Error|Information extracted before running the validation, **if any issue, stop and will not run the validation**|Cannot extract round number information from the files, test that the file name contains the expected date and the `scenario id` column contains the expected information.|
+|101|Error|Run in `test_column()` function |No column name is misspelled or does not correspond to the expected column names.|
+|102|Error|Run in `test_column()` function |The data frame should contains 9 columns.|
+|103|Error|Run in `test_column()` function , if no error 101 but error 102 appears, **stop and will not run the validation**|No column name is misspelled or does not correspond to the expected column names. An additional unexpected column will stop the rest of the validation.|
+|201|Error|Run in `test_scenario()` function|The `scenario_name` values are correct.|
+|202|Error|Run in `test_scenario()` function|The `scenario_id` values are correct.|
+|203|Error|Run in `test_scenario()` function|The name and ID of the scenario are correctly associated.|
+|301|Error|Run in `modelprojdate()` function|The `model_projection_date` value is in a date format "YYYY-MM-DD".|
+|302|Error|Run in `modelprojdate()` function|The `model_projection_date` value is unique.|
+|303|Error|Run in `modelprojdate()` function|The `model_projection_date` value is corresponding to the date in the name of the submission file.|
+|304|Error|Run in `modelprojdate()` function|The `model_projection_date` value is corresponding to the projection starting date.|
+|401|Error|Run in `test_quantile()` function|The `quantile` values correspond to the expected values.|
+|402|Warning|Run in `test_quantile()` function|No quantiles are missing in the projection file.|
+|403|Error|Run in `test_quantile()` function|The `value` is equal or increase with the quantiles.|
+|404|Error|Run in `test_quantile()` function|All quantiles per scenario, target and location are unique.|
+|501|Error|Run in `test_val()` function|The projection contains type `"point"` value.|
+|502|Error|Run in `test_val()` function|The `"point"` type values have for value `NA` in the column `quantile`.|
+|503|Error|Run in `test_val()` function|The projection contains the expected number of `"point"` value|
+|504|Error|Run in `test_val()` function|All `value` are positive.|
+|505|Warning|Run in `test_val()` function|For each group of location/target/scenario, the projected `value` are not identical for the complete time serie.|
+|506|Error|Run in `test_val()` function|For each group of location/target/scenario, an unique `"point"` is associated.|
+|507|Warning|Run in `test_val()` function|The projected `value` is lower or equal to the population size of the associated geographical unit.|
+|508|Error|Run in `test_val()` function|The projected `value`  for the "cumulative case count" is equal or higher than the observed cumulative case count for the previous week (week 0) or previous past week (week - 1) (depending on availability) before projection starting date.|
+|509|Error|Run in `test_val()` function|The projected `value`  for the "cumulative death count" is equal or higher than the observed cumulative death count for the previous week (week 0) or previous past week (week - 1) (depending on availability) before projection starting date.|
+|510|Error|Run in `test_val()` function|For each group of location/target/quantile/scenario, an unique value is associated.|
+|601|Error|Run in `test_target()` function|No target name is misspelled.|
+|602|Warning|Run in `test_target()` function|No target is missing (expected 6 targets).|
+|603|Error|Run in `test_target()` function|Each `target_end_date` correspond to the end of an epiweek (Saturday).|
+|604|Error|Run in `test_target()` function|For rounds before round 13, the number of week projected should be equal or higher than the expected minimum.|
+|605|Warning|Run in `test_target()` function|For rounds after round 13 (including round 13), the number of week projected should be equal or higher than the expected minimum.|
+|606|Warning|Run in `test_target()` function|The number of projected is not greater than the expected maximum number of week.|
+|607|Error|Run in `test_target()` function|The projected time serie is not missing any weeks (complete time serie). |
+|608|Error|Run in `test_target()` function|The first week `target_end_date` correspond to the expected value.|
+|609|Error|Run in `test_target()` function|Each `target_end_date` correspond to the expected value.|
+|701|Error|Run in `test_location()` function|Each location code correspond to the expected value.|
+|702|Warning|Run in `test_location()` function|The location code value is not missing any trailing `0`. |
+
+
 ## Validation on Metadata and Abstract
 
 The validation for the "metadata" and the "abstract" files associated with 

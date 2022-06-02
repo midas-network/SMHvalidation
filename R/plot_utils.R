@@ -2,10 +2,9 @@
 
 #' Format Gold Standard Data for Plotting
 #'
-#' @param lst_gs
-#' @param projection_date
+#' @param lst_gs list of dataframe
+#' @param projection_date date
 #'
-#' @return
 #' @export
 #'
 #' @importFrom dplyr bind_rows mutate select
@@ -20,10 +19,11 @@ format_gs_data <- function(lst_gs, projection_date){
     dplyr::mutate(outcome = tolower(outcome),
                   outcome = gsub("_num", "", outcome),
                   outcome = gsub("incidence", "inc", outcome),
-                  outcome = gsub("cumulative", "cum", outcome)) %>%
+                  outcome = gsub("cumulative", "cum", outcome),
+                  outcome = gsub("hospitalization", "hospitalization_inc", outcome)) %>%
     dplyr::select(date=time_value, location=fips, value, outcome, value) %>%
     tidyr::separate(outcome, into=c("outcome", "incid_cum"), sep="_") %>%
-    dplyr::mutate(outcome = dplyr::recode(outcome, "confirmed"="case", "deaths"="death", "hospitalization"="hosptilatization")) %>%
+    dplyr::mutate(outcome = dplyr::recode(outcome, "confirmed"="case", "deaths"="death", "hospitalization"="hosp")) %>%
     dplyr::mutate(pre_gs_end = date<projection_date)
 
   return(gs_data)
@@ -35,13 +35,12 @@ format_gs_data <- function(lst_gs, projection_date){
 
 #' Print outlier tables for validation report
 #'
-#' @param data
-#' @param tab_title
-#' @param metric
-#' @param thresholds
-#' @param colors
+#' @param data data frame
+#' @param tab_title character vector, title
+#' @param metric character vector, metric
+#' @param thresholds numeric vector, thresholds
+#' @param colors vector, colors
 #'
-#' @return
 #' @export
 #'
 #' @importFrom dplyr select filter mutate across
@@ -161,13 +160,12 @@ print_table <- function(data=proj_plot_data_calib_cum,
 
 #' Plot Projections
 #'
-#' @param data
-#' @param st
-#' @param projection_date
-#' @param legend_rows
-#' @param y_sqrt
+#' @param data dataframe
+#' @param st vector
+#' @param projection_date a data vector
+#' @param legend_rows numeric, 1 by default
+#' @param y_sqrt boolean, FALSE by default
 #'
-#' @return
 #' @export
 #'
 #' @importFrom ggplot2 scale_y_sqrt scale_y_continuous aes ggplot geom_ribbon geom_line
@@ -218,18 +216,18 @@ plot_projections <- function(data, st, projection_date, legend_rows=1, y_sqrt=FA
 
 #' Generate PDF of state plots
 #'
-#' @param proj_data
-#' @param gs_data
-#' @param team_model_name
-#' @param projection_date
-#' @param save_path
-#' @param plot_quantiles
-#' @param y_sqrt
+#' @param proj_data dataframe
+#' @param gs_data list of dataframe, containing observed data
+#' @param team_model_name character vector, name of the team and models,
+#'   following Scenario Modeling Hub standard
+#' @param projection_date date vector
+#' @param save_path character vector, path to the saving folder for the PDF
+#'    output
+#' @param plot_quantiles numeric vector, quantiles to use for plotting (should
+#'    correspond to the quantiles from the `proj_data` parameter)
+#' @param y_sqrt boolean, FALSE by default
 #'
-#' @return
 #' @export
-#'
-#' @examples
 #'
 #' @importFrom dplyr filter mutate select rename arrange bind_rows left_join
 #' @importFrom dplyr full_join desc slice_head pull
@@ -430,16 +428,16 @@ make_state_plot_pdf <- function(proj_data, gs_data, team_model_name, projection_
 
 #' Generate Validation Plots
 #'
-#' @param path_proj
-#' @param save_path
-#' @param y_sqrt
-#' @param plot_quantiles
-#' @param lst_gs
+#' @param path_proj dataframe, format as the Scenario Modeling Hub standard
+#' @param lst_gs, list of dataframe, observed data (advice to use the output
+#'    of the function `pull_gs_data()`)
+#' @param save_path character vector, path to the saving folder for the PDF
+#'    output
+#' @param y_sqrt boolean, by default FALSE
+#' @param plot_quantiles numeric vector, quantiles to use for plotting (should
+#'    correspond to the quantiles from the `proj_data` parameter)
 #'
-#' @return
 #' @export
-#'
-#' @examples
 #'
 #' @importFrom stringr str_split
 #' @importFrom lubridate as_date

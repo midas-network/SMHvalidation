@@ -250,6 +250,7 @@
 #write.csv(base_df %>% filter(location == "US") %>% mutate(quantile = ifelse(grepl("point", type) & location == "US", 0.5, quantile)), "tests/testthat/training_data/2022-01-09_badpointquant.csv", row.names = FALSE)
 #write.csv(base_df %>% filter(location == "US") %>% mutate(value = ifelse(scenario_id == "A-2022-01-09" & quantile == 0 & location == "US" & target == "1 wk ahead inc death", -10, value)), "tests/testthat/training_data/2022-01-09_negvalue.csv", row.names = FALSE)
 #write.csv(base_df %>% filter(location == "US") %>% rbind(filter(., scenario_id == "A-2022-01-09" & location == "US" & target == "1 wk ahead inc death")), "tests/testthat/training_data/2022-01-09_doublepoint.csv", row.names = FALSE)
+#write.csv(base_df %>% filter(location == "US") %>% rbind(filter(., scenario_id == "A-2022-01-09" & location == "US" & target == "1 wk ahead inc death", quantile == 0)), "tests/testthat/training_data/2022-01-09_doublequantzero.csv", row.names = FALSE)
 #write.csv(base_df %>% filter(location == "US") %>% mutate(value = ifelse(scenario_id == "A-2022-01-09" & quantile == 1 & location == "US" & target == "1 wk ahead inc death", 1e9, value)), "tests/testthat/training_data/2022-01-09_highvalue.csv", row.names = FALSE)
 #write.csv(base_df %>% filter(location == "US") %>% mutate(value = ifelse(scenario_id == "A-2022-01-09" & location == "US" & grepl("inc death", target), 1, value)), "tests/testthat/training_data/2022-01-09_uniquevalue.csv", row.names = FALSE)
 #write.csv(base_df %>% filter(location == "US") %>% mutate(value = ifelse(scenario_id == "A-2022-01-09" & location == "US" & target == "1 wk ahead cum case", 10, value)), "tests/testthat/training_data/2022-01-09_lowcumcase.csv", row.names = FALSE)
@@ -262,6 +263,21 @@
 #write.csv(gz_df, gz1, row.names = FALSE)
 #close(gz1)
 #write.csv(base_df %>% filter(location == "US") %>% mutate(target_end_date = as.Date(gsub("2022-01-15", "2022-01-09", target_end_date))), "tests/testthat/training_data/2022-01-09_badstartdate.csv", row.names = FALSE)
+#write.csv(base_df %>% filter(location == "US") %>%
+#            mutate(
+#              scenario_id = case_when(
+#                scenario_id == "A-2022-01-09" ~ "A-2022-02-25",
+#                scenario_id == "B-2022-01-09" ~ "B-2022-02-25",
+#                scenario_id == "C-2022-01-09" ~ "C-2022-02-25",
+#                scenario_id == "D-2022-01-09" ~ "D-2022-02-25"),
+#              scenario_name = case_when(
+#                scenario_name == "optSev_highIE" ~ "optWan_noVar",
+#                scenario_name == "optSev_lowIE" ~ "optWan_Var",
+#                scenario_name == "pessSev_highIE" ~ "pessWan_noVar",
+#                scenario_name == "pessSev_lowIE" ~ "pessWan_Var"),
+#              model_projection_date = "2022-03-13",
+#            target_end_date = as.Date(target_end_date) + lubridate::period(9, "week")),
+#          "tests/testthat/training_data/2022-03-13_round13_missingweek.csv", row.names = FALSE)
 ## location
 #write.csv(base_df %>% filter(location == "US") %>% mutate(location = gsub("US", "0202", location)), "tests/testthat/training_data/2022-01-09_badlocation.csv", row.names = FALSE)
 #write.csv(base_df %>% filter(location == "02") %>% mutate(location = gsub("02", "2", location)), "tests/testthat/training_data/2021-11-14_no0location.csv", row.names = FALSE)

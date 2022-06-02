@@ -13,10 +13,15 @@ print_table(
 )
 }
 \arguments{
-\item{colors}{}
-}
-\value{
+\item{data}{data frame}
 
+\item{tab_title}{character vector, title}
+
+\item{metric}{character vector, metric}
+
+\item{thresholds}{numeric vector, thresholds}
+
+\item{colors}{vector, colors}
 }
 \description{
 Print outlier tables for validation report
