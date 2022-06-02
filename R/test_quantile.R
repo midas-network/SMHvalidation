@@ -64,7 +64,10 @@ test_quantiles <- function(df, round) {
     qnum_test <- NA
   }
   # - value increases with the quantiles
-  lst_df <- split(df, list(df$scenario_id, df$location, df$target))
+  target_sel <- c("inc death", "inc case", "cum death", "cum case",
+              "inc hosp", "cum hosp", "inc inf")
+  df2 <- dplyr::filter(df, grepl(paste(target_sel, collapse = "|"), target))
+  lst_df <- split(df2, list(df2$scenario_id, df2$location, df2$target))
   qval_test <- lapply(lst_df, function(x) {
     group <- paste0("target: ", unique(x$target), ", location: ",
                     unique(x$location), ", scenario: ", unique(x$scenario_id))
@@ -75,11 +78,11 @@ test_quantiles <- function(df, round) {
       value <- dfstl[dfstl$quantile == sel_quantile[i], "value", TRUE]
       n_value <- dfstl[dfstl$quantile == sel_quantile[i+1], "value", TRUE]
 
-      if (length(n_value) > 1) {
+      if (length(n_value) != 1) {
         qval_test <- paste0(
           "\U000274c Error 404: The quantile ", sel_quantile[i + 1], ", is not",
           " associated with an unique value for the group: ", group)
-      } else if (length(value) > 1) {
+      } else if (length(value) != 1) {
         qval_test <- paste0(
           "\U000274c Error 404: The quantile ", sel_quantile[i], ", is not ",
           "associated with an unique value for the group: ", group)

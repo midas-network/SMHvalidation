@@ -35,8 +35,9 @@
 #'  the expected date (end of the epiweek of the starting projection date).}
 #'  \item{Correct date: }{Each target_end_date corresponds to the expected date
 #'   for example if 1 wk ahead = 2022-01-15, than 2 wk ahead = 2022-01-22.}
-#'  \item{Target value: }{For the round 14 and the optional target "prop_x", the
-#'   associated value with this target should be between 0 and 1.}
+#'  \item{Target value: }{For the round 14 and the optional target "prop X", the
+#'   associated value with this target should be between 0 and 1 and should
+#'   be noted with quantile = NA and type = "point".}
 #' }
 #' Function called in the `validate_submission()` function.
 #'
@@ -50,7 +51,7 @@ test_target <- function(df, start_date, round) {
                     "inc hosp", "cum hosp")
   if (round > 13) {
     target_opt <- c("inc inf")
-    if (round == 14) target_opt <- c(target_opt, "prop_X")
+    if (round == 14) target_opt <- c(target_opt, "prop X")
   }  else {
     target_opt <- NULL
   }
@@ -59,9 +60,10 @@ test_target <- function(df, start_date, round) {
   if (isFALSE(all(gsub(".+ wk ahead ", "", df$target) %in% target_names))) {
     targetname_test <-  paste0(
       "\U000274c Error 601: At least one of the target_names is misspelled. ",
-      "Please verify, the target_names should be: '",
-      paste(target_names, collapse = ", "), "'. The data frame contains: '",
-      paste(unique(gsub(".+ wk ahead ", "", df$target)), collapse = ", "),
+      "Please verify, the target_names should be (optional target(s) inluded)",
+      ": '", paste(target_names, collapse = ", "), "'. The data frame contains",
+      ": '", paste(unique(gsub(".+ wk ahead ", "", df$target)),
+                   collapse = ", "),
       "', as targets names.")
   } else {
     targetname_test <- NA
@@ -78,17 +80,32 @@ test_target <- function(df, start_date, round) {
   }  else {
     targetnum_test <- NA
   }
-  # Only if the submission contains target prop_x (value should be between 0, 1)
+  # Only if the submission contains target prop X (value should be between 0, 1)
   if (round == 14) {
-    df_propx <- dplyr::filter(df, grepl("prop_X", target))
+    df_propx <- dplyr::filter(df, grepl("prop X", target))
     if (dim(df_propx)[1] > 0) {
       test_propx <- dplyr::filter(df_propx, value > 1 | value < 0)
       if (dim(test_propx)[1] > 0) {
         propx_test <- paste0(
-          "\U000274c Error 610: At least one of the value associated with the",
-          "optional target 'prox_x' is not between 0 and 1.")
+          "\U0001f7e1 Warning Error 610: At least one of the value associated ",
+          "with the optional target 'prop X' is not between 0 and 1.")
+      } else {
+        propx_test <- NA
       }
+    if (isFALSE(all(is.na(df_propx$quantile)) & all(df_propx$type == "point"))) {
+      propx_format_test <- paste0(
+        "\U0001f7e1 Warning 611: The optional target 'prop X' should contains ",
+        "only mean estimates, noted with quantile = NA and type = 'point'.")
+    } else {
+      propx_format_test <- NA
     }
+    } else {
+      propx_test <- NA
+      propx_format_test <- NA
+    }
+  } else {
+    propx_test <- NA
+    propx_format_test <- NA
   }
   # - target_end_date corresponds to the end of the epiweek (Saturday)
   if (isFALSE(all(unique(df$target_end_date) %>% lubridate::wday() %in% 7))) {
@@ -187,7 +204,8 @@ test_target <- function(df, start_date, round) {
 
   target_test <- na.omit(c(targetname_test,  targetnum_test, targetday_test,
                            targetweek_test, unlist(targetwnum_test),
-                           targetstart_test, targetalldate_test))
+                           targetstart_test, targetalldate_test, propx_test,
+                           propx_format_test))
   if (length(target_test) == 0)
     target_test <- paste0("No errors or warnings found in target and ",
                           "target_end_date columns")

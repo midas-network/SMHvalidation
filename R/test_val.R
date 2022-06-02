@@ -188,15 +188,29 @@ test_val <- function(df, pop, last_lst_gs, number2location) {
   }
   # unique projection for each combination
   lst_df <- df %>%
-    split(list(df$quantile, df$scenario_id, df$target, df$location))
-  valunique_test <- lapply(lst_df, function(x){
-    group <- paste0("target: ", unique(x$target), ", location: ",
-                    unique(x$location), ", scenario: ", unique(x$scenario_id),
-                    ", quantile:", unique(x$quantile))
-    if (dim(x)[1] != 1) {
+    split(list(df$quantile, df$scenario_id, df$target, df$location), sep = ";")
+  valunique_test <- lapply(seq_along(lst_df), function(x){
+    x_name <- names(lst_df[x])
+    x <- lst_df[[x]]
+    if (dim(x)[1] > 1) {
+      group <- paste0("target: ", unique(x$target), ", location: ",
+                      unique(x$location), ", scenario: ", unique(x$scenario_id),
+                      ", quantile:", unique(x$quantile))
       valunique_test <- paste0(
         "\U000274c Error 510: Each quantile/target/scenario/location combination",
         " should have one unique value. Please verify for: ", group)
+    } else if (dim(x)[1] < 1) {
+      group <-  paste0("target: ", strsplit(x_name, ";")[[1]][3],
+                       ", location: ", strsplit(x_name, ";")[[1]][4],
+                       ", scenario: ", strsplit(x_name, ";")[[1]][2],
+                       ", quantile:", strsplit(x_name, ";")[[1]][1])
+      if ((grepl("prop", group) & !is.na(strsplit(x_name, ";")[[1]][1]))) {
+        valunique_test <- NA
+      } else {
+        valunique_test <- paste0(
+          "\U000274c Error 510: Each quantile/target/scenario/location combination",
+          " should have one unique value. Please verify for: ", group)
+      }
     } else {
       valunique_test <- NA
     }

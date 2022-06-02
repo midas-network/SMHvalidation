@@ -56,8 +56,7 @@ test_column <- function(df) {
   }
 
   col_test <- na.omit(c(colnames_test, coldim_test))
-  #col_test <- list(colnames_test, coldim_test)
-  #col_test <- col_test[!is.na(col_test)]
+
   if (length(col_test) == 0)
     col_test <- "No errors or warnings found on the column names and numbers"
 

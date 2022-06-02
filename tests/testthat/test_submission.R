@@ -126,6 +126,11 @@ test_that("Test validation process", {
       "training_data/2022-01-09_uniquevalue.csv", lst_gs,
       scen_info = scen_info)),
     c("505"))
+  testthat::expect_equal(
+    extract_err_code(validate_submission(
+      "training_data/2022-01-09_missingrow.csv", lst_gs,
+      scen_info = scen_info)),
+    c("510", "607"))
 
   # Test target error -----
   testthat::expect_equal(

@@ -229,6 +229,7 @@
 #
 ## Write df:
 #write.csv(base_df %>% filter(location == "US"), "tests/testthat/training_data/2022-01-09_no_error.csv", row.names = FALSE)
+#write.csv(base_df %>% filter(location == "US") %>% .[-100, ], "tests/testthat/training_data/2022-01-09_missingrow.csv", row.names = FALSE)
 ## col test
 #write.csv(base_df %>% filter(location == "US", is.na(quantile)) %>% rename(fips = location), "tests/testthat/training_data/2022-01-09_colname.csv", row.names = FALSE)
 #arrow::write_parquet(base_df %>% filter(location == "US") %>% mutate(row = seq(nrow(.))), "tests/testthat/training_data/2022-01-09_addcol.pqt")
