@@ -126,12 +126,17 @@ test_that("Test validation process", {
       "training_data/2022-01-09_uniquevalue.csv", lst_gs,
       scen_info = scen_info)),
     c("505"))
+  testthat::expect_equal(
+    extract_err_code(validate_submission(
+      "training_data/2022-01-09_missingrow.csv", lst_gs,
+      scen_info = scen_info)),
+    c("510", "607"))
 
   # Test target error -----
   testthat::expect_equal(
     extract_err_code(validate_submission(
       "training_data/2022-01-09_badnametarget.csv", lst_gs,
-      scen_info = scen_info)), c("601", "602", "607"))
+      scen_info = scen_info)), c("601", "607"))
   testthat::expect_equal(
     extract_err_code(validate_submission(
       "training_data/2022-01-09_misswk.csv", lst_gs, scen_info = scen_info)),
@@ -148,7 +153,10 @@ test_that("Test validation process", {
     extract_err_code(validate_submission(
       "training_data/2022-03-13_round13_missingweek.csv", lst_gs,
       scen_info = scen_info)), c("508", "509", "605"))
-
+  testthat::expect_equal(
+    extract_err_code(validate_submission(
+      "training_data/2022-06-05_round14_misswk_targ.csv", lst_gs,
+      scen_info = scen_info)), c("508", "509", "602", "605"))
 
   # Test location error -----
   testthat::expect_equal(

@@ -150,8 +150,6 @@ has been found.
 The submission will NOT be accepted and need correction before being accepted.
 
 
-
-
 ## Plotting Projections
 
 The `covid19SMHvalidation` R package also contains plotting functionality to output a plot of each location and target, with all scenarios and observed data incorporated.

@@ -24,10 +24,11 @@ This function contains 7 tests:
 \itemize{
  \item{Target name: }{The target should correspond to the target name as
  expressed in the SMH Github: "inc death", "inc case", "cum death",
- "cum case", "inc hosp", "cum hosp".}
- \item{Target number: }{The submission file contains projection for all the
- targets. It is accepted to submit only a subset of target but a warning
- message will be return. }
+ "cum case", "inc hosp", "cum hosp". Starting round 14, an optional target
+ is also possible "inc inf". }
+ \item{Target number: }{The submission file contains projection for all
+ required targets. It is accepted to submit only a subset of target but
+ a warning message will be return (only if a required target is missing.}
  \item{End of week: }{The date in the "target_end_date" column should always
  correspond to the end of the epiweek (Saturday).}
  \item{Number of week projected: }{The submission file contains projections
@@ -45,6 +46,9 @@ This function contains 7 tests:
  the expected date (end of the epiweek of the starting projection date).}
  \item{Correct date: }{Each target_end_date corresponds to the expected date
   for example if 1 wk ahead = 2022-01-15, than 2 wk ahead = 2022-01-22.}
+ \item{Target value: }{For the round 14 and the optional target "prop X", the
+  associated value with this target should be between 0 and 1 and should
+  be noted with quantile = NA and type = "point".}
 }
 Function called in the `validate_submission()` function.
 }

@@ -128,12 +128,16 @@ each name correctly spelled.
  
  * The target are corresponding to the target name as expressed in the SMH 
  Github README and wiki files: `"inc death"`, `"inc case"`, `"cum death"`, 
- `"cum case"`, `"inc hosp"`, `"cum hosp"`.
+ `"cum case"`, `"inc hosp"`, `"cum hosp"`. Starting round 14, an additional
+ optional target has been added: `"inc inf"`. Also, for round 14 only, an other
+ additional optional target is possible: `"prop X"`
  
- * The submission file contains projections for all the targets. **The 
+ * The submission file contains projections for all the required targets. **The 
  submission file will be accepted if some targets are missing, but will return a
- warning message asking the team if it’s correct and the submission might not be
- included in the Ensembles**
+ warning message and the submission might not be included in the Ensembles**
+ 
+ * Only for Round 14 and optional target `prop X`, the submission file should 
+ contains only point value between 0 and 1 for this target. 
  
  * Each `target_end_date` should correspond to the end of the epiweek 
  (Saturday) and should correspond to the expected value. For example, if the 
@@ -141,13 +145,14 @@ each name correctly spelled.
   the `1 wk ahead` should be `"2022-01-15"`, `2 wk ahead` should be 
   `"2022-01-22"`, etc.
  
- * The submission file containg projection for an expected number of week. **If 
+ * The submission file contains projection for an expected number of week. **If 
  the file contains more projected weeks than expected, the submission will still
  be accepted, but will return a warning message and the additional weeks will 
  not be included in the visualization on the SMH website. Starting round 13,
  if the file contains less projected weeks than expected, the submission will 
  still be accepted, but will return a warning message and might not be included 
  in the Ensembles**
+ 
  
 |Round|Mininal number of weeks| Maximal number of weeks|
 |:---|:---:|:---:|
@@ -188,8 +193,8 @@ be automatically print on the validation but, please feel free to ignore it.
 |304|Error|Run in `modelprojdate()` function|The `model_projection_date` value is corresponding to the projection starting date.|
 |401|Error|Run in `test_quantile()` function|The `quantile` values correspond to the expected values.|
 |402|Warning|Run in `test_quantile()` function|No quantiles are missing in the projection file.|
-|403|Error|Run in `test_quantile()` function|The `value` is equal or increase with the quantiles.|
-|404|Error|Run in `test_quantile()` function|All quantiles per scenario, target and location are unique.|
+|403|Error|Run in `test_quantile()` function|The `value` is equal or increase with the quantiles (exception of Round 14, `prop X` target containing only point value).|
+|404|Error|Run in `test_quantile()` function|All quantiles per scenario, target and location are unique (exception of Round 14, `prop X` target containing only point value).|
 |501|Error|Run in `test_val()` function|The projection contains type `"point"` value.|
 |502|Error|Run in `test_val()` function|The `"point"` type values have for value `NA` in the column `quantile`.|
 |503|Error|Run in `test_val()` function|The projection contains the expected number of `"point"` value|
@@ -199,9 +204,9 @@ be automatically print on the validation but, please feel free to ignore it.
 |507|Warning|Run in `test_val()` function|The projected `value` is lower or equal to the population size of the associated geographical unit.|
 |508|Error|Run in `test_val()` function|The projected `value`  for the "cumulative case count" is equal or higher than the observed cumulative case count for the previous week (week 0) or previous past week (week - 1) (depending on availability) before projection starting date.|
 |509|Error|Run in `test_val()` function|The projected `value`  for the "cumulative death count" is equal or higher than the observed cumulative death count for the previous week (week 0) or previous past week (week - 1) (depending on availability) before projection starting date.|
-|510|Error|Run in `test_val()` function|For each group of location/target/quantile/scenario, an unique value is associated.|
+|510|Error|Run in `test_val()` function|For each group of location/target/quantile/scenario, an unique value is associated (exception of Round 14, `prop X` target containing only point value).|
 |601|Error|Run in `test_target()` function|No target name is misspelled.|
-|602|Warning|Run in `test_target()` function|No target is missing (expected 6 targets).|
+|602|Warning|Run in `test_target()` function|No required target is missing (expected the 6 required targets).|
 |603|Error|Run in `test_target()` function|Each `target_end_date` correspond to the end of an epiweek (Saturday).|
 |604|Error|Run in `test_target()` function|For rounds before round 13, the number of week projected should be equal or higher than the expected minimum.|
 |605|Warning|Run in `test_target()` function|For rounds after round 13 (including round 13), the number of week projected should be equal or higher than the expected minimum.|
@@ -209,6 +214,8 @@ be automatically print on the validation but, please feel free to ignore it.
 |607|Error|Run in `test_target()` function|The projected time serie is not missing any weeks (complete time serie). |
 |608|Error|Run in `test_target()` function|The first week `target_end_date` correspond to the expected value.|
 |609|Error|Run in `test_target()` function|Each `target_end_date` correspond to the expected value.|
+|610|Warning|Run in `test_target()` function|Only for round 14, the value associated with the optional target `prop X` is between 0 and 1.|
+|611|Warning|Run in `test_target()` function|Only for round 14, the value associated with the optional target `prop X` is noted with `quantile = NA` and `type = "point"`.|
 |701|Error|Run in `test_location()` function|Each location code correspond to the expected value.|
 |702|Warning|Run in `test_location()` function|The location code value is not missing any trailing `0`. |
 
