@@ -461,7 +461,8 @@ generate_validation_plots <- function(path_proj, lst_gs, save_path=dirname(path_
   proj_data <- suppressMessages(read_files(path_proj)) %>%
     dplyr::mutate_if(is.factor, as.character) %>%
     dplyr::mutate(target_end_date = lubridate::as_date(target_end_date),
-                  model_projection_date = lubridate::as_date(model_projection_date))
+                  model_projection_date = lubridate::as_date(model_projection_date)) %>%
+    dplyr::filter(grepl("inc case|inc death|inc hosp|cum case|cum death|cum hosp", target))
   #remove artifact column
   if ("X" %in% colnames(proj_data)){
     proj_data <- proj_data %>% dplyr::select(-X)
