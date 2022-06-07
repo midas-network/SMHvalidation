@@ -24,7 +24,7 @@ scenario_path_round <- function(repo_path) {
   tree <- gh::gh(paste0("GET /repos/", repo_path, "git/trees/master?recursive=1"))
   tree_readme <- tibble(files =  unlist(purrr::map(tree$tree, "path"))) %>%
     filter(grepl("README", files), grepl(".md$", files), grepl("round", files),
-           !grepl("1_and_2", files)) %>%
+           !grepl("1_and_2", files), !grepl("resources", files)) %>%
     mutate(url = paste0("https://raw.githubusercontent.com/", repo_path,
                         "master/", files),
            round = tolower(gsub("previous-rounds/README_|\\.md", "", files,
