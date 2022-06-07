@@ -163,7 +163,7 @@ test_val <- function(df, pop, last_lst_gs, number2location) {
 
   if (dim(test)[1] > 0) {
     valcumcase_test <- paste0(
-      "\U000274c Error 508: Some values are less than the last oberved ",
+      "\U000274c Error 508: Some values are less than the last observed ",
       "cumulative cases count. Please check location(s): ", dplyr::distinct(
         dplyr::select(test, location)))
   } else {
@@ -180,7 +180,7 @@ test_val <- function(df, pop, last_lst_gs, number2location) {
 
   if (dim(test)[1] > 0) {
     valcumdeath_test <- paste0(
-      "\U000274c Error 509: Some values are less than the last oberved ",
+      "\U000274c Error 509: Some values are less than the last observed ",
       "cumulative deaths count. Please check location(s): ",
       dplyr::distinct(dplyr::select(test, location)))
   } else {
