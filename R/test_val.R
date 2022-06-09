@@ -78,23 +78,40 @@ test_val <- function(df, pop, last_lst_gs, number2location) {
   if (isFALSE(length(unique(df$target)) * length(unique(df$scenario_id)) *
               length(unique(df$location)) == dim(
                 dplyr::filter(df, grepl("point", type)))[1])) {
+    all_point <- length(unique(df$target)) *
+      length(unique(df$scenario_id)) * length(unique(df$location))
+    sub_point <- dim(dplyr::filter(df, grepl("point", type)))[1]
     if (any(grepl("inc inf|prop", df$target))) {
-      pointnum_test <-  paste0(
-        "\U000274c Error 503: The data frame should contains a 'point' type ",
-        "value for each target, scenario and locations projected. Expected ",
-        "number of value is: '", length(unique(df$target)) *
-          length(unique(df$scenario_id)) * length(unique(df$location)),
-        "' for all targets (required and optionals) and the data frame ",
-        "contains: '", dim(
-          dplyr::filter(df, grepl("point", type)))[1], "' point values")
+      exp_point <- length(unique(grep("prop|inc inf", unique(df$target),
+                                       invert = TRUE))) *
+        length(unique(df$scenario_id)) *
+        length(unique(df$location))
+      sub_exp_point <- dim(dplyr::filter(df, grepl("point", type),
+                                         !grepl("inc inf|prop", target)))[1]
+      if (isFALSE(exp_point == sub_exp_point)) {
+        pointnum_test <-  paste0(
+          "\U000274c Error 503: The data frame should contains a 'point' type ",
+          "value for each target, scenario and locations projected. Expected ",
+          "number of value is: '", exp_point, "' for all required target and ",
+          " the data frame  contains: '", sub_exp_point, "' point values.")
+      } else {
+       # pointnum_test <-  paste0(
+       #   "\U0001f7e1 Warning 503: The data frame should contains a 'point'",
+       #   " type value for each target, scenario and locations projected. ",
+       #   "Expected number of value is: '", all_point,
+       #   "' for all targets (required and optionals) and the data frame ",
+       #   "contains: '", sub_point, "' point values. The submission will be",
+       #   " accepted if point value(s) are missing for Round 14, target ",
+       #   "'prop X', scenarios 'A-2022-05-09' and/or 'C-2022-05-09' or for ",
+       #   "some locations in Round 14, target 'prop X'.")
+        pointnum_test <- NA
+      }
     } else {
       pointnum_test <- paste0(
         "\U000274c Error 503: The data frame should contains a 'point' type",
-        "  value for each target, scenario and locations projected. Expected",
-        " number of  value is: '", length(unique(df$target)) *
-          length(unique(df$scenario_id)) * length(unique(df$location)),
-        "' and the data frame contains: '", dim(
-          dplyr::filter(df, grepl("point", type)))[1], "' point values")
+        "  value for each target, scenario and locations projected. Expected ",
+        "number of  value is: '", all_point, "' and the data frame contains: '",
+        sub_point, "' point values.")
     }
   } else {
     pointnum_test <- NA
@@ -143,12 +160,21 @@ test_val <- function(df, pop, last_lst_gs, number2location) {
       group <-  paste0("target: ", strsplit(x_name, ";")[[1]][3],
                        ", location: ", strsplit(x_name, ";")[[1]][2],
                        ", scenario: ", strsplit(x_name, ";")[[1]][1])
-      pointone_test <- paste0(
-        "\U000274c Error 506: Each group of scenario, location and target ",
-        "should have one unique point value. The group: ", group, " has ",
-        dim(point)[1], " points value, please verify")
+      if (grepl("prop", strsplit(x_name, ";")[[1]][3]) &
+          grepl("A-|C-", strsplit(x_name, ";")[[1]][1])) {
+        pointone_test <- NA
+      } else {
+        pointone_test <- paste0(
+          "\U000274c Error 506: Each group of scenario, location and target ",
+          "should have one unique point value. The group: ", group, " has ",
+          dim(point)[1], " points value, please verify")
+      }
     } else {
       pointone_test <- NA
+    }
+    if (grepl("prop", group)) {
+      pointone_test <- gsub("\U000274c Error", "\U0001f7e1 Warning",
+                            pointone_test)
     }
     return(pointone_test)
   })
@@ -170,10 +196,10 @@ test_val <- function(df, pop, last_lst_gs, number2location) {
   if (dim(test)[1] > 0) {
     test <- dplyr::distinct(
       dplyr::select(test, target, location_name, scenario_id, quantile))
-    if (dim(test)[1] > 250)
+    if (dim(test)[1] > 100)
       test <- dplyr::distinct(
         dplyr::select(test, target, location_name, scenario_id))
-    if (dim(test)[1] > 250)
+    if (dim(test)[1] > 100)
       test <- dplyr::distinct(dplyr::select(test, scenario_id, location_name))
     pointpop_test <-  paste0(
       "\U0001f7e1 Warning 507: Some value(s) are greater than the population ",

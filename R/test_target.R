@@ -82,7 +82,7 @@ test_target <- function(df, start_date, round) {
   }
   # Only if the submission contains target prop X (value should be between 0, 1)
   if (round == 14) {
-    df_propx <- dplyr::filter(df, grepl("prop X", target))
+    df_propx <- dplyr::filter(df, grepl("prop", target))
     if (dim(df_propx)[1] > 0) {
       test_propx <- dplyr::filter(df_propx, value > 1 | value < 0)
       if (dim(test_propx)[1] > 0) {
@@ -157,7 +157,8 @@ test_target <- function(df, start_date, round) {
     }}
   # - all target weeks are present (1,2,3, etc.) by target, scenario, location,
   # quantile
-  df2 <-  dplyr::mutate(df, target_name = gsub(".+ wk ahead ", "", df$target))
+  df2 <-  dplyr::mutate(df, target_name = gsub(".+ wk ahead ", "", df$target),
+                        quantile = ifelse(type == "point", "point", quantile))
   lst_df <- split(df2, list(df2$scenario_id, df2$location, df2$quantile,
                             df2$target_name))
   targetwnum_test <- lapply(lst_df, function(x) {
@@ -165,7 +166,8 @@ test_target <- function(df, start_date, round) {
                                                 x$target)))) ==
                     seq_len(length(unique(x$target_end_date)))))) {
       group <- paste0("target: ", unique(x$target_name), ", location: ",
-                      unique(x$location), ", quantile: ",unique(x$quantile),
+                      unique(x$location), ", quantile: ",
+                      gsub("point", NA, unique(x$quantile)),
                       ", scenario: ",unique(x$scenario_id))
       targetwnum_test <- paste0(
         "\U000274c Error 607: At least one target week is missing in the time ",
