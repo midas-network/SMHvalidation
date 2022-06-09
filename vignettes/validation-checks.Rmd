@@ -137,7 +137,10 @@ each name correctly spelled.
  warning message and the submission might not be included in the Ensembles**
  
  * Only for Round 14 and optional target `prop X`, the submission file should 
- contains only point value between 0 and 1 for this target. 
+ contains only point value between 0 and 1 for this target. The target can be 
+ missing for the Scenario A and C, as the Variant X is not present in these 2 
+ scenarios. The `prop X` target can also be provided for a subset of location, 
+ but a warning message will be return. 
  
  * Each `target_end_date` should correspond to the end of the epiweek 
  (Saturday) and should correspond to the expected value. For example, if the 
@@ -200,7 +203,7 @@ be automatically print on the validation but, please feel free to ignore it.
 |503|Error|Run in `test_val()` function|The projection contains the expected number of `"point"` value|
 |504|Error|Run in `test_val()` function|All `value` are positive.|
 |505|Warning|Run in `test_val()` function|For each group of location/target/scenario, the projected `value` are not identical for the complete time serie.|
-|506|Error|Run in `test_val()` function|For each group of location/target/scenario, an unique `"point"` is associated.|
+|506|Error|Run in `test_val()` function|For each group of location/target/scenario, an unique `"point"` is associated. (exception of Round 14 and the optional targets, `prop X`target can be missing for scenario A and C (no message), the optional targets can be missing for some locations (warning message for the missing location))|
 |507|Warning|Run in `test_val()` function|The projected `value` is lower or equal to the population size of the associated geographical unit.|
 |508|Error|Run in `test_val()` function|The projected `value`  for the "cumulative case count" is equal or higher than the observed cumulative case count for the previous week (week 0) or previous past week (week - 1) (depending on availability) before projection starting date.|
 |509|Error|Run in `test_val()` function|The projected `value`  for the "cumulative death count" is equal or higher than the observed cumulative death count for the previous week (week 0) or previous past week (week - 1) (depending on availability) before projection starting date.|

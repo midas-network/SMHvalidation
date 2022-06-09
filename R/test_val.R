@@ -23,7 +23,7 @@
 #'  \item{Positive Value: }{The projection contains only values superior or
 #'  equal to 0}
 #'  \item{Unique Point: }{In the projection, each group of
-#'  scenario/location/target has 1 unique point value}
+#'  scenario/location/target has 1 unique point value (for the required targets)}
 #'  \item{Unique value: }{For each target/scenario/location group (except
 #'  locations 66 (Guam), 69 (Northern Mariana Island), 60 (American Samoa),
 #'  74 (US. Minor Outlying Islands)), the whole time frame projection does not
@@ -172,7 +172,7 @@ test_val <- function(df, pop, last_lst_gs, number2location) {
     } else {
       pointone_test <- NA
     }
-    if (grepl("prop", group)) {
+    if (grepl("prop|inc inf", group)) {
       pointone_test <- gsub("\U000274c Error", "\U0001f7e1 Warning",
                             pointone_test)
     }

@@ -35,7 +35,7 @@ This function contains 10 tests:
  \item{Positive Value: }{The projection contains only values superior or
  equal to 0}
  \item{Unique Point: }{In the projection, each group of
- scenario/location/target has 1 unique point value}
+ scenario/location/target has 1 unique point value (for the required targets)}
  \item{Unique value: }{For each target/scenario/location group (except
  locations 66 (Guam), 69 (Northern Mariana Island), 60 (American Samoa),
  74 (US. Minor Outlying Islands)), the whole time frame projection does not
