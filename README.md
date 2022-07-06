@@ -19,7 +19,8 @@ the next steps:
 ```{r}
 install.packages("remotes")
 remotes::install_github("midas-network/covid19SMHvalidation", 
-                        build_vignettes = TRUE,
+                        build_vignettes = TRUE, 
+                        dependencies = TRUE,
                         ref = "main") 
 ```
 
