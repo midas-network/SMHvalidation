@@ -67,6 +67,10 @@ test_quantiles <- function(df, round) {
   target_sel <- c("inc death", "inc case", "cum death", "cum case",
               "inc hosp", "cum hosp", "inc inf")
   df2 <- dplyr::filter(df, grepl(paste(target_sel, collapse = "|"), target))
+  df2 <- dplyr::filter(df2, !is.na(value))
+  df2 <-  mutate(df2,
+                 location = ifelse(nchar(location) == 1, paste0("0", location),
+                                   location))
   lst_df <- split(df2, list(df2$scenario_id, df2$location, df2$target))
   qval_test <- lapply(lst_df, function(x) {
     group <- paste0("target: ", unique(x$target), ", location: ",
