@@ -51,7 +51,7 @@ test_target <- function(df, start_date, round) {
                     "inc hosp", "cum hosp")
   if (round > 13) {
     target_opt <- c("inc inf")
-    if (round == 14) target_opt <- c(target_opt, "prop X")
+    if (round %in% c(14, 15)) target_opt <- c(target_opt, "prop X")
   }  else {
     target_opt <- NULL
   }
@@ -81,7 +81,7 @@ test_target <- function(df, start_date, round) {
     targetnum_test <- NA
   }
   # Only if the submission contains target prop X (value should be between 0, 1)
-  if (round == 14) {
+  if (round %in% c(14, 15)) {
     df_propx <- dplyr::filter(df, grepl("prop", target))
     if (dim(df_propx)[1] > 0) {
       test_propx <- dplyr::filter(df_propx, value > 1 | value < 0)
@@ -126,6 +126,9 @@ test_target <- function(df, start_date, round) {
     } else if (round == 10) {
       n_target_week <- 26 # minimum number of projected week accepted
       max_week <- 52 # maximum number of projected week accepted
+    } else if (round == 15) {
+      n_target_week <- 40 # minimum number of projected week accepted
+      max_week <- 40 # maximum number of projected week accepted
     } else {
       n_target_week <- 52 # minimum number of projected week accepted
       max_week <- 52 # maximum number of projected week accepted
