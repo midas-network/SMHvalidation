@@ -208,7 +208,7 @@ be automatically print on the validation but, please feel free to ignore it.
 |508|Error|Run in `test_val()` function|The projected `value`  for the "cumulative case count" is equal or higher than the observed cumulative case count for the previous week (week 0) or previous past week (week - 1) (depending on availability) before projection starting date.|
 |509|Error|Run in `test_val()` function|The projected `value`  for the "cumulative death count" is equal or higher than the observed cumulative death count for the previous week (week 0) or previous past week (week - 1) (depending on availability) before projection starting date.|
 |510|Error|Run in `test_val()` function|For each group of location/target/quantile/scenario, an unique value is associated (exception of Round 14, `prop X` target containing only point value).|
-|522|Error|Run in `test_val()` function|For each quantile/target name/scenario/location combination (for the cumulative target only), the projected values are not decreasing with time|
+|511|Error|Run in `test_val()` function|For each quantile/target name/scenario/location combination (for the cumulative target only), the projected values are not decreasing with time|
 |601|Error|Run in `test_target()` function|No target name is misspelled.|
 |602|Warning|Run in `test_target()` function|No required target is missing (expected the 6 required targets).|
 |603|Error|Run in `test_target()` function|Each `target_end_date` correspond to the end of an epiweek (Saturday).|
