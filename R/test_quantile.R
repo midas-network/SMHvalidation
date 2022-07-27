@@ -24,6 +24,7 @@
 #'
 #'@importFrom stats na.omit
 #'@importFrom dplyr filter
+#'@importFrom purrr discard
 #'
 #'@export
 test_quantiles <- function(df, round) {
@@ -72,6 +73,7 @@ test_quantiles <- function(df, round) {
                  location = ifelse(nchar(location) == 1, paste0("0", location),
                                    location))
   lst_df <- split(df2, list(df2$scenario_id, df2$location, df2$target))
+  lst_df <- purrr::discard(lst_df, function(x) dim(x)[[1]] < 1)
   qval_test <- lapply(lst_df, function(x) {
     group <- paste0("target: ", unique(x$target), ", location: ",
                     unique(x$location), ", scenario: ", unique(x$scenario_id))

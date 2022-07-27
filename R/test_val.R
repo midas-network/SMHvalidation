@@ -57,6 +57,7 @@
 #'@importFrom stats na.omit
 #'@importFrom dplyr filter left_join mutate distinct %>%
 #'@importFrom tidyr unite
+#'@importFrom purrr discard
 #'@export
 test_val <- function(df, pop, last_lst_gs, number2location) {
   # - the data frame has "point" value noted as type = "point" & quantile = NA.
@@ -98,15 +99,6 @@ test_val <- function(df, pop, last_lst_gs, number2location) {
           "number of value is: '", exp_point, "' for all required target and ",
           " the data frame  contains: '", sub_exp_point, "' point values.")
       } else {
-       # pointnum_test <-  paste0(
-       #   "\U0001f7e1 Warning 503: The data frame should contains a 'point'",
-       #   " type value for each target, scenario and locations projected. ",
-       #   "Expected number of value is: '", all_point,
-       #   "' for all targets (required and optionals) and the data frame ",
-       #   "contains: '", sub_point, "' point values. The submission will be",
-       #   " accepted if point value(s) are missing for Round 14, target ",
-       #   "'prop X', scenarios 'A-2022-05-09' and/or 'C-2022-05-09' or for ",
-       #   "some locations in Round 14, target 'prop X'.")
         pointnum_test <- NA
       }
     } else {
@@ -294,6 +286,7 @@ test_val <- function(df, pop, last_lst_gs, number2location) {
                  target_name = gsub(".+ wk ahead ", "", target))
   lst_df <- split(df2, list(df2$scenario_id, df2$location, df2$quantile,
                             df2$target_name))
+  lst_df <- purrr::discard(lst_df, function(x) dim(x)[[1]] < 2)
   valcum_test <- lapply(seq_along(lst_df), function(x) {
     group <- paste0("target: ", unique(lst_df[[x]]$target_name), ", location: ",
                     unique(lst_df[[x]]$location), ", scenario: ",
