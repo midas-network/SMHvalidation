@@ -7,10 +7,9 @@
 format_gs_data(lst_gs, projection_date)
 }
 \arguments{
-\item{projection_date}{}
-}
-\value{
+\item{lst_gs}{list of dataframe}
 
+\item{projection_date}{date}
 }
 \description{
 Format Gold Standard Data for Plotting

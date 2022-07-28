@@ -13,14 +13,19 @@ generate_validation_plots(
 )
 }
 \arguments{
-\item{lst_gs}{}
-}
-\value{
+\item{path_proj}{dataframe, format as the Scenario Modeling Hub standard}
 
+\item{lst_gs, }{list of dataframe, observed data (advice to use the output
+of the function `pull_gs_data()`)}
+
+\item{save_path}{character vector, path to the saving folder for the PDF
+output}
+
+\item{y_sqrt}{boolean, by default FALSE}
+
+\item{plot_quantiles}{numeric vector, quantiles to use for plotting (should
+correspond to the quantiles from the `proj_data` parameter)}
 }
 \description{
 Generate Validation Plots
-}
-\examples{
-
 }

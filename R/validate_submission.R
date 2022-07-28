@@ -44,14 +44,14 @@ run_all_validation <- function(df, round, start_date, path, pop,
   out_loc <- test_location(df, number2location)
   # Report:
   test_report <- paste(
-    " ## Columns: \n\n", paste(out_col, collapse = "\n"), "\n\n",
-    "## Scenarios: \n\n", paste(out_scen, collapse = "\n"), "\n\n",
+    "\n ## Columns: \n\n", paste(out_col, collapse = "\n"),
+    "\n\n## Scenarios: \n\n", paste(out_scen, collapse = "\n"), "\n\n",
     "## Model Projection Date Column:  \n\n", paste(out_mpd, collapse = "\n"),
-    "\n\n## Quantiles: \n\n", paste(out_quant, collapse = "\n"), "\n\n",
-    "## Value and Type Columns: \n\n", paste(out_val, collapse = "\n"), "\n\n",
-    "## Target Columns: \n\n", paste(out_target, collapse = "\n"), "\n\n",
-    "## Locations: \n\n", paste(out_loc, collapse = "\n"), "\n\n"
-  )
+    "\n\n## Quantiles: \n\n", paste(out_quant, collapse = "\n"),
+    "\n\n## Value and Type Columns: \n\n", paste(out_val, collapse = "\n"),
+    "\n\n## Target Columns: \n\n", paste(out_target, collapse = "\n"),
+    "\n\n## Locations: \n\n", paste(out_loc, collapse = "\n"),
+    "\n\n")
   #Output:
   if (!(all(grepl("^No error", c(out_col, out_scen, out_mpd, out_quant,
                                  out_val, out_target, out_loc))))) {
@@ -127,7 +127,7 @@ validate_submission <- function(path,
                                 scen_info = NULL) {
 
   # Prerequisite --------
-  # Load gold stantard data
+  # Load gold standard data
   lst_gs <- lapply(seq_along(lst_gs), function(x) {
     df_gs <- dplyr::mutate(lst_gs[[x]],
                            target_name = names(lst_gs[x])) %>%
@@ -152,10 +152,15 @@ validate_submission <- function(path,
     } else if (is.data.frame(scen_info)) {
       scen_df <- scen_info
     } else {
-      stop("`scen_info` paramater should either be: a path to a file containing ",
-           "the round and scenario information, or a data frame, or NULL. If ",
-           "NULL, the information will be automatically extracted from the ",
-           "Scenario Modeling Hub GitHub repository. ")
+      scen_df <- NULL
+      err_message <- paste0(
+        "\U000274c Error 001: `scen_info` parameter should either be: a path ",
+        "to a file containing the round and scenario information, or a data ",
+        "frame, or NULL. If NULL, the information will be automatically ",
+        "extracted from the Scenario Modeling Hub GitHub repository.\n")
+     cat(err_message)
+     stop("The submission contains one or multiple issues, please see ",
+           "information above")
     }
   }
 
@@ -168,7 +173,7 @@ validate_submission <- function(path,
 
   # Process file to test and associated information --------
   # Read file
-  df <- suppressMessages(read_files(path)) %>%
+  df <- read_files(path) %>%
     dplyr::mutate_if(is.factor, as.character)
   # Extract round information
   round <- as.numeric(
@@ -180,14 +185,19 @@ validate_submission <- function(path,
       scen_df$scenario_id %in% unique(df$scenario_id)), "round"])))
   }
   if (length(round) == 0) {
-    stop("Cannot extract round number information from the files, please ",
-         "verify file name and scenario id information. If the problem ",
-         "persists please leave a message tagging '@LucieContamin'.")
+    err_message2 <- paste0(
+      "\U000274c Error 002: Cannot extract round number information from the ",
+      "files, please verify that the file name contains the expected date and ",
+      "the `scenario id` column contains the expected information. If the ",
+      "problem persists please leave a message tagging '@LucieContamin'.")
+    cat(err_message2)
+    stop("The submission contains one or multiple issues, please see ",
+         "information above")
   }
   # Extract start_date information
   start_date <- as.Date(unique(scen_df[which(
     scen_df$round == paste0("round", round)), "first_week_ahead", TRUE]))
-  # Extract w0 or w-1 of observed data
+  # Extract week 0 or week -1 of observed data
   last_week_gs <-  lapply(lst_gs, function(x) {
     lastw_df <- dplyr::filter(x, time_value < start_date) %>%
       dplyr::filter(time_value == max(time_value)) %>%

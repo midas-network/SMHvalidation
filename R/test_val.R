@@ -23,7 +23,7 @@
 #'  \item{Positive Value: }{The projection contains only values superior or
 #'  equal to 0}
 #'  \item{Unique Point: }{In the projection, each group of
-#'  scenario/location/target has 1 unique point value}
+#'  scenario/location/target has 1 unique point value (for the required targets)}
 #'  \item{Unique value: }{For each target/scenario/location group (except
 #'  locations 66 (Guam), 69 (Northern Mariana Island), 60 (American Samoa),
 #'  74 (US. Minor Outlying Islands)), the whole time frame projection does not
@@ -58,15 +58,15 @@
 test_val <- function(df, pop, last_lst_gs, number2location) {
   # - the data frame has "point" value noted as type = "point" & quantile = NA.
   if (isFALSE(dim(dplyr::filter(df, grepl("point", type)))[1] > 0)) {
-    point_test <- paste0("\U000274c Error: The data frame is missing point ",
-                         "value.")
+    point_test <- paste0("\U000274c Error 501: The data frame is missing point",
+                         " value.")
   } else {
     point_test <- NA
   }
   if (isFALSE(all(is.na(dplyr::filter(df, grepl("point", type))$quantile)))) {
     pointna_test <- paste0(
-      "\U000274c Error: The value type 'point' should have NA as 'quantile'. ",
-      "The data frame contains: '",
+      "\U000274c Error 502: The value type 'point' should have NA as ",
+      "'quantile'. The data frame contains: '",
       na.omit(dplyr::filter(df, grepl("point", type))$quantile),
       "' in the column 'quantile' for 'point' value.")
     pointna_test <- unique(pointna_test)
@@ -78,21 +78,49 @@ test_val <- function(df, pop, last_lst_gs, number2location) {
   if (isFALSE(length(unique(df$target)) * length(unique(df$scenario_id)) *
               length(unique(df$location)) == dim(
                 dplyr::filter(df, grepl("point", type)))[1])) {
-    pointnum_test <- paste0(
-      "\U000274c Error: The data frame should contains a 'point' type value ",
-      "for each target, scenario and locations projected. Expected number of ",
-      "value is: '", length(unique(df$target)) *
-        length(unique(df$scenario_id)) * length(unique(df$location)),
-      "' and the data frame contains: '", dim(
-        dplyr::filter(df, grepl("point", type)))[1], "' point values")
+    all_point <- length(unique(df$target)) *
+      length(unique(df$scenario_id)) * length(unique(df$location))
+    sub_point <- dim(dplyr::filter(df, grepl("point", type)))[1]
+    if (any(grepl("inc inf|prop", df$target))) {
+      exp_point <- length(unique(grep("prop|inc inf", unique(df$target),
+                                       invert = TRUE))) *
+        length(unique(df$scenario_id)) *
+        length(unique(df$location))
+      sub_exp_point <- dim(dplyr::filter(df, grepl("point", type),
+                                         !grepl("inc inf|prop", target)))[1]
+      if (isFALSE(exp_point == sub_exp_point)) {
+        pointnum_test <-  paste0(
+          "\U000274c Error 503: The data frame should contains a 'point' type ",
+          "value for each target, scenario and locations projected. Expected ",
+          "number of value is: '", exp_point, "' for all required target and ",
+          " the data frame  contains: '", sub_exp_point, "' point values.")
+      } else {
+       # pointnum_test <-  paste0(
+       #   "\U0001f7e1 Warning 503: The data frame should contains a 'point'",
+       #   " type value for each target, scenario and locations projected. ",
+       #   "Expected number of value is: '", all_point,
+       #   "' for all targets (required and optionals) and the data frame ",
+       #   "contains: '", sub_point, "' point values. The submission will be",
+       #   " accepted if point value(s) are missing for Round 14, target ",
+       #   "'prop X', scenarios 'A-2022-05-09' and/or 'C-2022-05-09' or for ",
+       #   "some locations in Round 14, target 'prop X'.")
+        pointnum_test <- NA
+      }
+    } else {
+      pointnum_test <- paste0(
+        "\U000274c Error 503: The data frame should contains a 'point' type",
+        "  value for each target, scenario and locations projected. Expected ",
+        "number of  value is: '", all_point, "' and the data frame contains: '",
+        sub_point, "' point values.")
+    }
   } else {
     pointnum_test <- NA
   }
   # - all value are positives
   if (isFALSE(all(df$value >= 0))) {
     pointpos_test <- paste0(
-      "\U000274c Error: All values should be positive, the data frame contains",
-      " negative values.")
+      "\U000274c Error 504: All values should be positive, the data frame ",
+      "contains negative values.")
   } else {
     pointpos_test <- NA
   }
@@ -108,29 +136,55 @@ test_val <- function(df, pop, last_lst_gs, number2location) {
                     unique(x$location), ", scenario: ", unique(x$scenario_id))
     if (length(unique(x$value)) == 1)  {
       pointuniq_test <- paste0(
-        "\U0001f7e1 Warning: Some locations/targets have a unique value for ",
-        "the whole projection period. Please verify: ", group)
+        "\U0001f7e1 Warning 505: Some location/target/scenario groups have a ",
+        "unique value for the whole projection period. Please verify: ", group)
     } else {
       pointuniq_test <- NA
     }
     return(unique(pointuniq_test))
   })
   # Each group of scenario/location/target has 1 unique point value
-  lst_df <- split(df, list(df$scenario_id, df$location, df$target))
-  pointone_test <- lapply(lst_df, function(x) {
+  lst_df <- split(df, list(df$scenario_id, df$location, df$target), sep = ";")
+  pointone_test <- lapply(seq_along(lst_df), function(x) {
+    x_name <- names(lst_df)[x]
+    x <- lst_df[[x]]
     group <- paste0("target: ", unique(x$target), ", location: ",
                     unique(x$location), ", scenario: ", unique(x$scenario_id))
     point <- dplyr::filter(x, grepl("point", type))
-    if (dim(point)[1] != 1) {
+    if (dim(point)[1] > 1) {
       pointone_test <- paste0(
-        "\U000274c Error: Each group of scenario, location and target should",
-        " have one unique point value. The group: ", group, " has ",
+        "\U000274c Error 506: Each group of scenario, location and target ",
+        "should have one unique point value. The group: ", group, " has ",
         dim(point)[1], " points value, please verify")
+    } else if (dim(point)[1] < 1) {
+      group <-  paste0("target: ", strsplit(x_name, ";")[[1]][3],
+                       ", location: ", strsplit(x_name, ";")[[1]][2],
+                       ", scenario: ", strsplit(x_name, ";")[[1]][1])
+      if (grepl("prop", strsplit(x_name, ";")[[1]][3]) &
+          grepl("A-|C-", strsplit(x_name, ";")[[1]][1])) {
+        pointone_test <- NA
+      } else {
+        pointone_test <- paste0(
+          "\U000274c Error 506: Each group of scenario, location and target ",
+          "should have one unique point value. The group: ", group, " has ",
+          dim(point)[1], " points value, please verify")
+      }
     } else {
       pointone_test <- NA
     }
+    if (grepl("prop|inc inf", group)) {
+      pointone_test <- gsub("\U000274c Error", "\U0001f7e1 Warning",
+                            pointone_test)
+    }
     return(pointone_test)
   })
+
+  if (length(pointone_test) > 100) {
+    pointone_test <- unique(gsub("\\d+? wk ahead ", "", unlist(pointone_test)))
+    pointone_test <- unique(gsub("has \\d+? points value", "has some issue(s)",
+                            pointone_test))
+  }
+
   # Value should be lower than population size
   if (any(nchar(df$location) == 1)) {
     df$location[which(nchar(df$location) == 1)] <- paste0(
@@ -140,15 +194,22 @@ test_val <- function(df, pop, last_lst_gs, number2location) {
     dplyr::mutate(pop_test = ifelse(population < value, 1, 0)) %>%
     dplyr::filter(pop_test > 0)
   if (dim(test)[1] > 0) {
+    test <- dplyr::distinct(
+      dplyr::select(test, target, location_name, scenario_id, quantile))
+    if (dim(test)[1] > 100)
+      test <- dplyr::distinct(
+        dplyr::select(test, target, location_name, scenario_id))
+    if (dim(test)[1] > 100)
+      test <- dplyr::distinct(dplyr::select(test, scenario_id, location_name))
     pointpop_test <-  paste0(
-      "\U0001f7e1 Warning: Some value(s) are greater than the population size",
-      ". Please verify: ",
-      dplyr::distinct(
-        dplyr::select(test, target, location_name, scenario_id)) %>%
-        tidyr::unite("pop_test_fail", sep = "; ") %>% unlist())
+      "\U0001f7e1 Warning 507: Some value(s) are greater than the population ",
+      "size. Please verify: ",
+      tidyr::unite(test, "pop_test_fail", sep = "; ") %>% unlist())
   } else {
     pointpop_test <- NA
   }
+
+
   # Cumulative value should not be lower than GS cumulative data (deaths; cases)
   cum_gs <- last_lst_gs[grepl("cumulative", names(last_lst_gs))]
 
@@ -162,7 +223,7 @@ test_val <- function(df, pop, last_lst_gs, number2location) {
 
   if (dim(test)[1] > 0) {
     valcumcase_test <- paste0(
-      "\U000274c Error: Some values are less than the last oberved ",
+      "\U000274c Error 508: Some values are less than the last observed ",
       "cumulative cases count. Please check location(s): ", dplyr::distinct(
         dplyr::select(test, location)))
   } else {
@@ -179,7 +240,7 @@ test_val <- function(df, pop, last_lst_gs, number2location) {
 
   if (dim(test)[1] > 0) {
     valcumdeath_test <- paste0(
-      "\U000274c Error: Some values are less than the last oberved ",
+      "\U000274c Error 509: Some values are less than the last observed ",
       "cumulative deaths count. Please check location(s): ",
       dplyr::distinct(dplyr::select(test, location)))
   } else {
@@ -187,20 +248,33 @@ test_val <- function(df, pop, last_lst_gs, number2location) {
   }
   # unique projection for each combination
   lst_df <- df %>%
-    split(list(df$quantile, df$scenario_id, df$target, df$location))
-  valunique_test <- lapply(lst_df, function(x){
-    group <- paste0("target: ", unique(x$target), ", location: ",
-                    unique(x$location), ", scenario: ", unique(x$scenario_id),
-                    ", quantile:", unique(x$quantile))
-    if (dim(x)[1] != 1) {
+    split(list(df$quantile, df$scenario_id, df$target, df$location), sep = ";")
+  valunique_test <- lapply(seq_along(lst_df), function(x){
+    x_name <- names(lst_df[x])
+    x <- lst_df[[x]]
+    if (dim(x)[1] > 1) {
+      group <- paste0("target: ", unique(x$target), ", location: ",
+                      unique(x$location), ", scenario: ", unique(x$scenario_id),
+                      ", quantile:", unique(x$quantile))
       valunique_test <- paste0(
-        "\U000274c Error: Each quantile/target/scenario/location combination",
+        "\U000274c Error 510: Each quantile/target/scenario/location combination",
         " should have one unique value. Please verify for: ", group)
+    } else if (dim(x)[1] < 1) {
+      group <-  paste0("target: ", strsplit(x_name, ";")[[1]][3],
+                       ", location: ", strsplit(x_name, ";")[[1]][4],
+                       ", scenario: ", strsplit(x_name, ";")[[1]][2],
+                       ", quantile:", strsplit(x_name, ";")[[1]][1])
+      if ((grepl("prop", group) & !is.na(strsplit(x_name, ";")[[1]][1]))) {
+        valunique_test <- NA
+      } else {
+        valunique_test <- paste0(
+          "\U000274c Error 510: Each quantile/target/scenario/location combination",
+          " should have one unique value. Please verify for: ", group)
+      }
     } else {
       valunique_test <- NA
     }
   })
-
 
   value_test <- na.omit(c(point_test, pointna_test, pointnum_test,
                           pointpos_test, unlist(pointuniq_test),
