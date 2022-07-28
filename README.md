@@ -112,7 +112,7 @@ Daily and Timeseries datasets.
 To access all these data we use the `covidcast` R package. A package using the 
 COVIDcast Epidata API maintained by the Delphi Research Group at Carnegie 
 Mellon University. Please see 
-[here](http://127.0.0.1:42884/help/library/covid19SMHvalidation/help/https://cran.r-project.org/web/packages/covidcast/index.html), 
+[here](https://cran.r-project.org/web/packages/covidcast/index.html), 
 for more information. 
 
 #### Usage
