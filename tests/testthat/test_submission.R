@@ -82,7 +82,7 @@ test_that("Test validation process", {
   testthat::expect_equal(
     extract_err_code(validate_submission(
       "training_data/2022-01-09_valquant.csv", lst_gs, scen_info = scen_info)),
-    c("403"))
+    c("403", "504"))
   testthat::expect_equal(
     extract_err_code(validate_submission(
       "training_data/2022-01-09_missoptquant.csv", lst_gs,
@@ -112,7 +112,7 @@ test_that("Test validation process", {
   testthat::expect_equal(
     extract_err_code(validate_submission(
       "training_data/2022-01-09_highvalue.csv", lst_gs, scen_info = scen_info)),
-    c("507"))
+    c("504", "507"))
   testthat::expect_equal(
     extract_err_code(validate_submission(
       "training_data/2022-01-09_lowcumcase.csv", lst_gs,
