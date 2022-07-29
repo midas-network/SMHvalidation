@@ -46,9 +46,9 @@ This function contains 7 tests:
  the expected date (end of the epiweek of the starting projection date).}
  \item{Correct date: }{Each target_end_date corresponds to the expected date
   for example if 1 wk ahead = 2022-01-15, than 2 wk ahead = 2022-01-22.}
- \item{Target value: }{For the round 14 and the optional target "prop X", the
-  associated value with this target should be between 0 and 1 and should
-  be noted with quantile = NA and type = "point".}
+ \item{Target value: }{For the round 14s and 15, and for the optional target
+ "prop X", the associated value with this target should be between 0 and 1
+ and should be noted with quantile = NA and type = "point".}
 }
 Function called in the `validate_submission()` function.
 }
