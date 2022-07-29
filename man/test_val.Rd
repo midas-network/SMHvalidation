@@ -33,7 +33,7 @@ This function contains 10 tests:
  \item{Number of Point: }{The projection contains X point value, X = number
  of targets * number of scenarios * number of locations}
  \item{Positive Value: }{The projection contains only values superior or
- equal to 0}
+ equal to 0, NA will also returns an error}
  \item{Unique Point: }{In the projection, each group of
  scenario/location/target has 1 unique point value (for the required targets)}
  \item{Unique value: }{For each target/scenario/location group (except
@@ -60,6 +60,9 @@ This function contains 10 tests:
  quantile/target/scenario/location combination has one unique value
  projected. (For example: only 1 value for quantile 0.5, location US,
  target 1 wk ahead inc case and scenario A).}
+ \item{Cumulative Projections: }{In the submission, each
+ quantile/target name/scenario/location combination for the cumulative target
+ only, has projected values that increase or stay the same with time.}
 }
 Function called in the `validate_submission()` function.
 }

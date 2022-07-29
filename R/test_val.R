@@ -21,7 +21,7 @@
 #'  \item{Number of Point: }{The projection contains X point value, X = number
 #'  of targets * number of scenarios * number of locations}
 #'  \item{Positive Value: }{The projection contains only values superior or
-#'  equal to 0}
+#'  equal to 0, NA will also returns an error}
 #'  \item{Unique Point: }{In the projection, each group of
 #'  scenario/location/target has 1 unique point value (for the required targets)}
 #'  \item{Unique value: }{For each target/scenario/location group (except
@@ -48,12 +48,16 @@
 #'  quantile/target/scenario/location combination has one unique value
 #'  projected. (For example: only 1 value for quantile 0.5, location US,
 #'  target 1 wk ahead inc case and scenario A).}
+#'  \item{Cumulative Projections: }{In the submission, each
+#'  quantile/target name/scenario/location combination for the cumulative target
+#'  only, has projected values that increase or stay the same with time.}
 #' }
 #' Function called in the `validate_submission()` function.
 #'
 #'@importFrom stats na.omit
 #'@importFrom dplyr filter left_join mutate distinct %>%
 #'@importFrom tidyr unite
+#'@importFrom purrr discard
 #'@export
 test_val <- function(df, pop, last_lst_gs, number2location) {
   # - the data frame has "point" value noted as type = "point" & quantile = NA.
@@ -95,15 +99,6 @@ test_val <- function(df, pop, last_lst_gs, number2location) {
           "number of value is: '", exp_point, "' for all required target and ",
           " the data frame  contains: '", sub_exp_point, "' point values.")
       } else {
-       # pointnum_test <-  paste0(
-       #   "\U0001f7e1 Warning 503: The data frame should contains a 'point'",
-       #   " type value for each target, scenario and locations projected. ",
-       #   "Expected number of value is: '", all_point,
-       #   "' for all targets (required and optionals) and the data frame ",
-       #   "contains: '", sub_point, "' point values. The submission will be",
-       #   " accepted if point value(s) are missing for Round 14, target ",
-       #   "'prop X', scenarios 'A-2022-05-09' and/or 'C-2022-05-09' or for ",
-       #   "some locations in Round 14, target 'prop X'.")
         pointnum_test <- NA
       }
     } else {
@@ -116,13 +111,19 @@ test_val <- function(df, pop, last_lst_gs, number2location) {
   } else {
     pointnum_test <- NA
   }
-  # - all value are positives
+  # - all value are positives and contains no NA
   if (isFALSE(all(df$value >= 0))) {
     pointpos_test <- paste0(
       "\U000274c Error 504: All values should be positive, the data frame ",
       "contains negative values.")
   } else {
-    pointpos_test <- NA
+    if (any(is.na(df$value))) {
+      pointpos_test <- paste0(
+        "\U000274c Error 504: All values should be positive, the data frame ",
+        "contains 'NA' values.")
+    } else {
+      pointpos_test <- NA
+    }
   }
   # - test for all location and target if the projection does not contains only
   #   1 value (for example just 0 incident cases all along the projections)
@@ -209,7 +210,6 @@ test_val <- function(df, pop, last_lst_gs, number2location) {
     pointpop_test <- NA
   }
 
-
   # Cumulative value should not be lower than GS cumulative data (deaths; cases)
   cum_gs <- last_lst_gs[grepl("cumulative", names(last_lst_gs))]
 
@@ -275,12 +275,45 @@ test_val <- function(df, pop, last_lst_gs, number2location) {
       valunique_test <- NA
     }
   })
-
+  # Cumulative values are not decreasing
+  target_sel <- c("cum death", "cum case", "cum hosp")
+  df2 <- dplyr::filter(df, grepl(paste(target_sel, collapse = "|"), target))
+  df2 <- dplyr::filter(df2, !is.na(value))
+  df2 <-  mutate(df2,
+                 location = ifelse(nchar(location) == 1, paste0("0", location),
+                                   location),
+                 quantile = ifelse(is.na(quantile), "point", quantile),
+                 target_name = gsub(".+ wk ahead ", "", target))
+  lst_df <- split(df2, list(df2$scenario_id, df2$location, df2$quantile,
+                            df2$target_name))
+  lst_df <- purrr::discard(lst_df, function(x) dim(x)[[1]] < 2)
+  valcum_test <- lapply(seq_along(lst_df), function(x) {
+    group <- paste0("target: ", unique(lst_df[[x]]$target_name), ", location: ",
+                    unique(lst_df[[x]]$location), ", scenario: ",
+                    unique(lst_df[[x]]$scenario_id), ", quantile: ",
+                    lst_df[[x]]$quantile)
+    val_test_tot <- NULL
+    for (i in 1:(dim(lst_df[[x]])[1] - 1)) {
+      n_val <- lst_df[[x]]$value[i]
+      n1_val <- lst_df[[x]]$value[i + 1]
+      if (n1_val < n_val) {
+        val_test <- paste0(
+          "\U000274c Error 511: The cumulative value of the target ",
+          lst_df[[x]]$target[i + 1], ", is lower than the previous week target",
+          ", please verify the group: ", group)
+      } else {
+        val_test <- NA
+      }
+      val_test <- unique(val_test)
+      val_test_tot <- unique(c(val_test_tot, val_test))
+    }
+    return(val_test_tot)
+  })
   value_test <- na.omit(c(point_test, pointna_test, pointnum_test,
                           pointpos_test, unlist(pointuniq_test),
                           unlist(pointone_test), pointpop_test,
                           valcumcase_test, valcumdeath_test,
-                          unlist(valunique_test)))
+                          unlist(valunique_test), unlist(valcum_test)))
   if (length(value_test) == 0)
     value_test <- "No errors or warnings found on Value and Type columns"
 
