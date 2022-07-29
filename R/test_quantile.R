@@ -23,7 +23,7 @@
 #' Function called in the `validate_submission()` function.
 #'
 #'@importFrom stats na.omit
-#'@importFrom dplyr filter
+#'@importFrom dplyr filter %>%
 #'
 #'@export
 test_quantiles <- function(df, round) {
@@ -72,37 +72,50 @@ test_quantiles <- function(df, round) {
     group <- paste0("target: ", unique(x$target), ", location: ",
                     unique(x$location), ", scenario: ", unique(x$scenario_id))
     dfstl <- dplyr::filter(x, type != "point")
-    sel_quantile <- sort(unique(dfstl$quantile))
-    qval_test_tot <- NULL
-    for (i in 1:(length(sel_quantile) - 1)) {
-      value <- dfstl[dfstl$quantile == sel_quantile[i], "value", TRUE]
-      n_value <- dfstl[dfstl$quantile == sel_quantile[i+1], "value", TRUE]
 
-      if (length(n_value) != 1) {
-        qval_test <- paste0(
-          "\U000274c Error 404: The quantile ", sel_quantile[i + 1], ", is not",
-          " associated with an unique value for the group: ", group)
-      } else if (length(value) != 1) {
-        qval_test <- paste0(
-          "\U000274c Error 404: The quantile ", sel_quantile[i], ", is not ",
-          "associated with an unique value for the group: ", group)
-      } else {
-        if (n_value < value) {
+   # if (length(unique(dfstl$value)) == 1) {
+   #    qval_test_tot <- paste0(
+  #      "\U000274c Error 405: All the quantiles seem to be ",
+  #      "equal to a unique value for the group: ", group)
+  #  } else {
+      sel_quantile <- sort(unique(dfstl$quantile))
+      qval_test_tot <- NULL
+      for (i in 1:(length(sel_quantile) - 1)) {
+        value <- dfstl[dfstl$quantile == sel_quantile[i], "value", TRUE]
+        n_value <- dfstl[dfstl$quantile == sel_quantile[i+1], "value", TRUE]
+
+        if (length(n_value) != 1) {
           qval_test <- paste0(
-            "\U000274c Error 403: Quantiles values are not increasing with ",
-            "quantiles, please verify: ", sel_quantile[i], " and ",
-            sel_quantile[i+1], " for the group: ", group)
+            "\U000274c Error 404: The quantile ", sel_quantile[i + 1], ", is not",
+            " associated with an unique value for the group: ", group)
+        } else if (length(value) != 1) {
+          qval_test <- paste0(
+            "\U000274c Error 404: The quantile ", sel_quantile[i], ", is not ",
+            "associated with an unique value for the group: ", group)
         } else {
-          qval_test <- NA
+          if (n_value < value) {
+            qval_test <- paste0(
+              "\U000274c Error 403: Quantiles values are not increasing with ",
+              "quantiles, please verify: ", sel_quantile[i], " and ",
+              sel_quantile[i+1], " for the group: ", group)
+          } else {
+            qval_test <- NA
+          }
         }
+        qval_test <- unique(qval_test)
+        qval_test_tot <- unique(c(qval_test_tot, qval_test))
       }
-      qval_test <- unique(qval_test)
-      qval_test_tot <- unique(c(qval_test_tot, qval_test))
-    }
+   # }
     qval_test_tot <- unique(na.omit(qval_test_tot))
     if (length(qval_test_tot) == 0) qval_test_tot <- NA
     return(qval_test_tot)
   })
+
+  if (length(qval_test) > 150) {
+    qval_test <- unique(na.omit(unlist(qval_test))) %>%
+      gsub(" target: \\d{1,2} wk ahead", "", .) %>% unique
+  }
+
 
   quantiles_test <- na.omit(c(qvalues_test, qnum_test, unlist(qval_test)))
   if (length(quantiles_test) == 0)
