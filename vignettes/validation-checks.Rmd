@@ -129,18 +129,18 @@ each name correctly spelled.
  * The target are corresponding to the target name as expressed in the SMH 
  Github README and wiki files: `"inc death"`, `"inc case"`, `"cum death"`, 
  `"cum case"`, `"inc hosp"`, `"cum hosp"`. Starting round 14, an additional
- optional target has been added: `"inc inf"`. Also, for round 14 only, an other
- additional optional target is possible: `"prop X"`
+ optional target has been added: `"inc inf"`. Also, for round 14 and round 15 
+ only, an other additional optional target is possible: `"prop X"`
  
  * The submission file contains projections for all the required targets. **The 
  submission file will be accepted if some targets are missing, but will return a
  warning message and the submission might not be included in the Ensembles**
  
- * Only for Round 14 and optional target `prop X`, the submission file should 
- contains only point value between 0 and 1 for this target. The target can be 
- missing for the Scenario A and C, as the Variant X is not present in these 2 
- scenarios. The `prop X` target can also be provided for a subset of location, 
- but a warning message will be return. 
+ * Only for Round 14 and Round 15, and for the optional target `prop X`, the 
+ submission file should contains only point value between 0 and 1 for this 
+ target. The target can be missing for the Scenario A and C, as the Variant X 
+ is not present in these 2 scenarios. The `prop X` target can also be provided 
+ for a subset of location, but a warning message will be return. 
  
  * Each `target_end_date` should correspond to the end of the epiweek 
  (Saturday) and should correspond to the expected value. For example, if the 
@@ -162,7 +162,8 @@ each name correctly spelled.
 |1 to 9 (included)|13|26|
 |10|26|52|
 |11 to 12 (included)|12|12|
-|13 to ...|52|52|
+|13 to 14 (included)|52|52|
+|15|40|40|
 
  
 ### Column "location" (`test_location()`)
@@ -501,3 +502,49 @@ FILL
 
 ```
 
+#### Round 15
+
+```
+# Summary of results
+FILL 
+
+# Explanation of observed dynamics given model assumptions
+FILL
+
+# Model assumptions
+## Number/type of immune classes considered
+FILL
+
+## Initial distribution of susceptibility if available
+### Proportion of people that were infected with Omicron before July 31
+FILL (if available)
+### Proportion of people that are naïve at start of projection (not vaccinated or infected)
+FILL (if available)
+### Other
+FILL (if available)
+
+## Initial variant characteristics (including Omicron transmissibility, immune escape, whether BA4/BA5 were considered and how uncertainty or non-identifiability was handled) 
+FILL
+
+## Process for setting/calibrating P(hosp given current infection) and P(death given current infection)
+FILL
+
+## Waning immunity details (including values used for the duration and level of protection against infection or symptomatic disease, whether a point estimate was used or a sample from the specified values, distribution used)
+FILL
+
+## Seasonality implementation
+FILL
+
+## Emerging variant details (including introduction process and estimate of variant X emergence timing and variability)
+FILL
+
+## Nonpharmaceutical interventions 
+FILL
+
+## Case ascertainment assumptions (including relation to infections, e.g., what value or values were used to translate to case estimates and how were they estimated)
+FILL
+
+## Other updates in model assumptions from previous rounds (e.g., booster implementation)
+FILL
+
+```
