@@ -4,11 +4,22 @@
 \alias{scen_round_info}
 \title{Create summary table with round, scenario and date information}
 \usage{
-scen_round_info(repo_path = "midas-network/covid19-scenario-modeling-hub/")
+scen_round_info(
+  repo_path = "midas-network/covid19-scenario-modeling-hub/",
+  branch = "master",
+  add_readme = NULL
+)
 }
 \arguments{
 \item{repo_path}{character vector, relative path of the COVID-19 scenario
 model hub (i.e "midas-network/covid19-scenario-modeling-hub/")}
+
+\item{branch}{character, name of the branch to extract information from. By
+default "master"}
+
+\item{add_readme}{data frame of 4 columns: files (NA),
+url ("https""//LINK/README") and round ("round1") to manually add README
+path information in the output. By default, NULL (does not add anything)}
 }
 \description{
 From a path linking to the Scenario Modeling Hub, reads all the scenario's
