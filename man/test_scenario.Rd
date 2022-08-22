@@ -4,20 +4,13 @@
 \alias{test_scenario}
 \title{Runs Validation Checks on Scenario ID and Scenario Name columns}
 \usage{
-test_scenario(df, round, scenario_smname, scenario_sel)
+test_scenario(df, js_def)
 }
 \arguments{
 \item{df}{data frame to test}
 
-\item{round}{numeric corresponding to the current round number}
-
-\item{scenario_smname}{named vector containing the scenario ID as name and the
-corresponding abbreviated name as value (example: name: "A-2020-12-22",
- value: "optimistic")}
-
-\item{scenario_sel}{named vector containing the round number as name in a
-"roundX" format and the corresponding scenario ID as value (example:
- name: "round1", value: "A-2020-12-22")}
+\item{js_def}{list containing round definitions: number and names of columns,
+target names, ...}
 }
 \description{
 Validate Scenario Modeling Hub submissions: test if the name and id of the

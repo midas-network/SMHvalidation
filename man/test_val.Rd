@@ -4,7 +4,7 @@
 \alias{test_val}
 \title{Runs Validation Checks on the Projection value and type point columns}
 \usage{
-test_val(df, pop, last_lst_gs, number2location)
+test_val(df, pop, last_lst_gs, js_def)
 }
 \arguments{
 \item{df}{data frame to test}
@@ -16,24 +16,27 @@ entities by fips (in a column "location")}
 containing the last avaible week of observed data  before start of the
 projection}
 
-\item{number2location}{named vector containing the FIPS as name and the
-corresponding location name as value (example: name: "01", value: "Alabama")}
+\item{js_def}{list containing round definitions: number and names of columns,
+target names, ...}
 }
 \description{
 Validate Scenario Modeling Hub submissions: test if the
 `value` and `type` columns contain the expected information and value.
 }
 \details{
-This function contains 10 tests:
+This function contains 12 tests:
 \itemize{
  \item{Type: }{The projection contains "point" value noted as `type` =
- "point".}
+ "point" when required.}
  \item{Quantile: }{The projection contains "point" value noted as `quantile`
  = NA.}
  \item{Number of Point: }{The projection contains X point value, X = number
- of targets * number of scenarios * number of locations}
- \item{Positive Value: }{The projection contains only values superior or
- equal to 0, NA will also returns an error}
+ of targets * number of scenarios * number of locations (only when all
+ required targets required point projections for all scenarios, locations,
+ etc.)}
+ \item{Value: }{All `value` have the expected value (for example,
+ ">= 0" or in between 0 and 1)}
+ \item{Numeric Value: }{All `value` are numeric, `NA` are not accepted)}
  \item{Unique Point: }{In the projection, each group of
  scenario/location/target has 1 unique point value (for the required targets)}
  \item{Unique value: }{For each target/scenario/location group (except
@@ -44,18 +47,17 @@ This function contains 10 tests:
  accepted if so, but will return a warning asking to verify if the projection
   is correct for the specific location/target group}
  \item{Value < Population size: }{Each projected value cannot by higher than
- the population size of the corresponding geographical entity (currently
- developed on each incidence and cumulative value, starting round 13). The
+ the population size of the corresponding geographical entity. The
  submission is still accepted if the test failed, but will return a message
  asking to verify the projected value for the specific target and location}
- \item{Cumulative cases: }{In the submission, the projected cumulative
- case counts value should not be lower than the week 0 (or week -1, depending
-  on availability on the time of submission) of the observed cumulative
-  cases}
- \item{Cumulative deaths: }{In the submission, the projected cumulative
- death counts value should not be lower than the week 0 (or week -1,
- depending on availability on the time of submission) of the observed
- cumulative deaths}
+ \item{Cumulative cases: }{If the submission contains cumulative case count,
+ the projected cumulative case counts value should not be lower than the
+  week 0 (or week -1, depending on availability on the time of submission)
+  of the observed cumulative cases}
+ \item{Cumulative deaths: }{If the submission contains cumulative death, the
+ projected cumulative death counts value should not be lower than the week
+ 0 (or week -1, depending on availability on the time of submission) of the
+ observed cumulative deaths}
  \item{Unique Projections: }{In the submission, each
  quantile/target/scenario/location combination has one unique value
  projected. (For example: only 1 value for quantile 0.5, location US,

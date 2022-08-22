@@ -37,6 +37,7 @@ test_modelprojdate <- function(df, path, start_date) {
   } else {
     mpddate_test <- NA
   }
+
   # Test the format of the column: should be an unique value
   if (isFALSE(length(unique(df$model_projection_date)) == 1)) {
     mpdone_test <- paste0(
@@ -68,6 +69,7 @@ test_modelprojdate <- function(df, path, start_date) {
   }
 
   mpd_test <- na.omit(c(mpddate_test, mpdone_test, mpdname_test, mpdvalue_test))
+  mpd_test <- unique(mpd_test)
   if (length(mpd_test) == 0)
     mpd_test  <- paste0("No errors or warnings found on the column ",
                         "'model_projection_date'")

@@ -4,12 +4,13 @@
 \alias{test_quantiles}
 \title{Runs Validation Checks on the Quantiles type and value columns}
 \usage{
-test_quantiles(df, round)
+test_quantiles(df, js_def)
 }
 \arguments{
 \item{df}{data frame to test}
 
-\item{round}{numeric corresponding to the current round number}
+\item{js_def}{list containing round definitions: number and names of columns,
+target names, ...}
 }
 \description{
 Validate Scenario Modeling Hub submissions: test if the
@@ -17,7 +18,7 @@ Validate Scenario Modeling Hub submissions: test if the
 and the projection value increases with the quantiles.
 }
 \details{
-This function contains 3 tests:
+This function contains 6 tests:
 \itemize{
  \item{Quantiles: }{The `quantile` column matches the expected quantiles:
  0, 0.01, 0.025, 0.05, 0.1, 0.15, 0.2, 0.25, 0.3, 0.35, 0.4, 0.45, 0.5, 0.55,
@@ -29,6 +30,14 @@ This function contains 3 tests:
  \item{Value: }{The `value` associated with each `quantile` is increasing as
  the quantile increased. For example, if quantile 0.01 = 5 than quantile
  0.5 should be equal or greater than 5.}
+ \item{Unique value: }{For the target(s) requiring quantiles information,
+ not all the quantiles per scenario, target and location (and age_group if
+ necessary) are equal.}
+ \item{1 quantile: }{For the target(s) requiring quantiles information, all
+ quantiles per scenario, target and location (and age_group if necessary) are
+  unique.}
+ \item{Target: }{All targets required to have quantiles information have all
+ expected quantiles.}
 }
 Function called in the `validate_submission()` function.
 }

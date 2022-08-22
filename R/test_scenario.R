@@ -6,13 +6,8 @@
 #' associated with each others.
 #'
 #'@param df data frame to test
-#'@param round numeric corresponding to the current round number
-#'@param scenario_smname named vector containing the scenario ID as name and the
-#' corresponding abbreviated name as value (example: name: "A-2020-12-22",
-#'  value: "optimistic")
-#'@param scenario_sel named vector containing the round number as name in a
-#' "roundX" format and the corresponding scenario ID as value (example:
-#'  name: "round1", value: "A-2020-12-22")
+#'@param js_def list containing round definitions: number and names of columns,
+#' target names, ...
 #'
 #'@details  This function contains 3 tests:
 #'\itemize{
@@ -26,57 +21,61 @@
 #' Function called in the `validate_submission()` function.
 #'
 #'@importFrom stats na.omit
+#'@importFrom dplyr select filter %>% distinct
+#'@importFrom purrr map
+#'@importFrom tidyr unite
 #'@export
-test_scenario <- function(df, round, scenario_smname, scenario_sel) {
+test_scenario <- function(df, js_def) {
   # test scenario name are correctly spelled and correspond to the expected
   # values
-  if (isFALSE(all(df$scenario_name %in%
-                  scenario_smname[scenario_sel[which(
-                    names(scenario_sel) == paste0("round", round))]]))) {
+  if (isFALSE(all(df$scenario_name %in% unlist(purrr::map(js_def$scenarios,
+                                                          "name"))))) {
     scenname_test <- paste0(
       "\U000274c Error 201: At least 1 of the 'scenario_name' do(es) not ",
       "correspond: '", unique(df$scenario_name[
-        !df$scenario_name %in% scenario_smname[scenario_sel[which(
-          names(scenario_sel) == paste0("round", round))]]]),
-      "'. The scenarios names for this round are: '", paste(scenario_smname[
-        scenario_sel[which(names(scenario_sel) ==  paste0("round", round))]],
-        collapse = ", "), "'. Please verify.")
+        !df$scenario_name %in% unlist(purrr::map(js_def$scenarios, "name"))]),
+      "'. The scenarios names for this round are: '", paste(
+        unlist(purrr::map(js_def$scenarios, "name")), collapse = ", "),
+      "'. Please verify.")
   } else {
     scenname_test <-NA
   }
   # test scenario id are correctly spelled and correspond to the expected
   # values
-  if (isFALSE(all(df$scenario_id %in%scenario_sel[which(
-    names(scenario_sel) == paste0("round", round))]))) {
+  if (isFALSE(all(df$scenario_id %in% unlist(purrr::map(js_def$scenarios,
+                                                        "id"))))) {
     scenid_test <-  paste0(
       "\U000274c Error 202: At least 1 of the 'scenario_id' do(es) not ",
-      "correspond: '", unique(df$scenario_id[!df$scenario_id %in%scenario_sel[
-        which(names(scenario_sel) == paste0("round", round))]]),
-      "'. The scenarios ids for this round are: '", paste(unique(scenario_sel[
-        which(names(scenario_sel) == paste0("round", round))]),
-        collapse = ", "), "'. Please verify.")
+      "correspond: '", unique(df$scenario_id[!df$scenario_id %in%
+          unlist(purrr::map(js_def$scenarios, "id"))]),
+      "'. The scenarios ids for this round are: '", paste(unlist(
+        purrr::map(js_def$scenarios, "id")), collapse = ", "),
+      "'. Please verify.")
   } else {
     scenid_test <- NA
   }
   # test scenario name & scenario id are correctly linked together
-  if (isFALSE(identical(df$scenario_name,
-                        as.vector(scenario_smname[df$scenario_id])))) {
-    scencorres_test <- paste0(
-      "\U000274c Error 203: At least 1 of the 'scenario_id' do(es) not ",
-      "correspond to the scenario name associated. Should be: \n'", paste(
-        unique(names(scenario_smname[names(scenario_smname) %in% as.vector(
-          scenario_sel[which(names(scenario_sel) == paste0("round", round))])])
-        ), "=", unique(scenario_smname[names(scenario_smname) %in% as.vector(
-          scenario_sel[which(names(scenario_sel) == paste0("round", round))])]
-        ), collapse = "\n"), "',\n but is: \n\n'",
-      paste(distinct(df[, c("scenario_id", "scenario_name")]) %>%
-              tidyr::unite("name", sep = " = ") %>% unlist(), collapse = "\n"),
-      "'.")
-  } else {
-    scencorres_test <- NA
-  }
+  scencorres_test <- lapply(js_def$scenarios, function(x) {
+    test <- unlist(dplyr::select(dplyr::filter(df, scenario_id == x$id),
+                                 scenario_name))
+    test_res <- identical(unique(test), x$name)
+    if (isFALSE(test_res)) {
+      scencorres_test <-  paste0(
+        "\U000274c Error 203: At least 1 of the 'scenario_id' do(es) not ",
+        "correspond to the scenario name associated. Should be: \n'",
+        paste(x, collapse = " = "), "'\n but is: \n'",
+        paste(dplyr::distinct(df[, c("scenario_id", "scenario_name")]) %>%
+                tidyr::unite("name", sep = " = ") %>% unlist(),
+              collapse = "\n"),"'.")
+    } else {
+      scencorres_test <- NA
+    }
+    return(scencorres_test)
+  })
+  scencorres_test <- unique(unlist(scencorres_test))
 
   scen_test <- na.omit(c(scenname_test, scenid_test, scencorres_test))
+  scen_test <- unique(scen_test)
   if (length(scen_test) == 0)
     scen_test  <- paste0("No errors or warnings found on scenario name and ",
                          "scenario id columns")
