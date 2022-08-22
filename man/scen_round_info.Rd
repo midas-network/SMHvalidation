@@ -26,7 +26,27 @@ From a path linking to the Scenario Modeling Hub, reads all the scenario's
 README and extracts scenario name, scenario id and 1 weak ahead projection
 date information.
 }
+\details{
+For the four first rounds of COVID-19, the SMH README are slightly
+different and required the use of the "add_readme" parameters or it will
+returns an error. Please see the examples
+}
 \examples{
-scen_round_info()
+# For COVID-19
+repo_path <- "https://raw.githubusercontent.com/midas-network/covid19-scenario-modeling-hub/"
+scen_round_info(add_readme =  data.frame(
+  files = NA,
+  url = c(
+    paste0(repo_path, "6dc683b9710c3a7eee6fa40d2986d0d79c0c918f/README.md"),
+    paste0(repo_path, "a88188d964543ae06885d499eecaba8e34ee68f9/README.md"),
+    paste0(repo_path, "52263c2086d8ef2d59c92b0a72d0d5c521290917/README.md")
+  ),
+  round = c("round1", "round2", "round3")
+)
+)
+
+# For FLU
+scen_round_info(repo_path = "midas-network/flu-scenario-modeling-hub/",
+               branch = "main")
 
 }

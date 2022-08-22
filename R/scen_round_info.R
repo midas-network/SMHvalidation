@@ -81,14 +81,19 @@ scenario_path_round <- function(repo_path, branch = "master",
 #' @importFrom dplyr bind_rows %>% add_row
 #' @importFrom purrr map
 #'
+#' @details For the four first rounds of COVID-19, the SMH README are slightly
+#' different and required the use of the "add_readme" parameters or it will
+#' returns an error. Please see the examples
+#'
 #' @examples
 #' # For COVID-19
+#' repo_path <- "https://raw.githubusercontent.com/midas-network/covid19-scenario-modeling-hub/"
 #' scen_round_info(add_readme =  data.frame(
 #'   files = NA,
 #'   url = c(
-#'     "https://raw.githubusercontent.com/midas-network/covid19-scenario-modeling-hub/6dc683b9710c3a7eee6fa40d2986d0d79c0c918f/README.md",
-#'     "https://raw.githubusercontent.com/midas-network/covid19-scenario-modeling-hub/a88188d964543ae06885d499eecaba8e34ee68f9/README.md",
-#'     "https://raw.githubusercontent.com/midas-network/covid19-scenario-modeling-hub/52263c2086d8ef2d59c92b0a72d0d5c521290917/README.md"
+#'     paste0(repo_path, "6dc683b9710c3a7eee6fa40d2986d0d79c0c918f/README.md"),
+#'     paste0(repo_path, "a88188d964543ae06885d499eecaba8e34ee68f9/README.md"),
+#'     paste0(repo_path, "52263c2086d8ef2d59c92b0a72d0d5c521290917/README.md")
 #'   ),
 #'   round = c("round1", "round2", "round3")
 #' )
@@ -116,16 +121,14 @@ scen_round_info <- function(
       stringr::str_extract("[:alpha:]+ \\d+, \\d\\d\\d\\d") %>%
       as.Date("%B %d, %Y") + 6
     # extract scenario id and name depending on the format of the
-    # README (change after round 4)
-    if (!is.null(add_readme)) {
-      if (df[x, "round_number", TRUE] %in% c(1, 2, 3, 4)) {
+    # README (change after round 4 for COVID SMH repo)
+    if (!is.null(add_readme) & (df[x, "round_number", TRUE] %in% c(1, 2, 3, 4))) {
         scenario_id <- scenario[which(grepl("Scenario id", scenario[,1])),] %>%
           stringr::str_extract(".-\\d{4}-\\d{2}-\\d{2}")
         scenario_name <- scenario[which(grepl("Scenario name",
                                               scenario[,1])),] %>%
           stringr::str_extract("\\`.+\\`")
-      }
-    } else {
+      }  else {
       table_info <- scenario[grep("\\|", scenario[,1]), 1] %>% strsplit("\\|")
       scenario_id <- table_info %>%
         unlist() %>% .[grep(".-\\d{4}-\\d{2}-\\d{2}", .)] %>% trimws()
