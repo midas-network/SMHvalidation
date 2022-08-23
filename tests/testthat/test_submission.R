@@ -140,23 +140,23 @@ test_that("Test validation process", {
     extract_err_code(validate_submission(
       "training_data/2022-01-09_badstartdate.csv", lst_gs, pop_path, js_def)),
     c("603", "608", "609"))
-#  testthat::expect_equal(
-#    extract_err_code(validate_submission(
-#      "training_data/2022-03-13_round13_missingweek.csv", lst_gs,
-#      scen_info = scen_info)), c("508", "509", "605"))
-#  testthat::expect_equal(
-#    extract_err_code(validate_submission(
-#      "training_data/2022-06-05_round14_misswk_targ.csv", lst_gs,
-#      scen_info = scen_info)), c("508", "509", "602", "605"))
+  testthat::expect_equal(
+    extract_err_code(validate_submission(
+      "training_data/2022-03-13_round13_missingweek.csv", lst_gs, pop_path,
+      js_def_0313)), c("508", "509", "605", "607"))
+  testthat::expect_equal(
+    extract_err_code(validate_submission(
+      "training_data/2022-06-05_round14_misswk_targ.csv", lst_gs, pop_path,
+      js_def_0605)), c("508", "509", "602", "605", "607"))
 
   # Test location error -----
   testthat::expect_equal(
     extract_err_code(validate_submission(
       "training_data/2022-01-09_badlocation.csv", lst_gs, pop_path, js_def)),
     c("701"))
-#  testthat::expect_equal(
-#    extract_err_code(validate_submission(
-#      "training_data/2021-11-14_no0location.zip", lst_gs,
-#      scen_info = scen_info)), c("507", "702"))
+  testthat::expect_equal(
+    extract_err_code(validate_submission(
+      "training_data/2021-11-14_no0location.zip", lst_gs, pop_path,
+      js_def_1114)), c("405", "509", "702"))
 
 })
