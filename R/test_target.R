@@ -134,7 +134,7 @@ test_target <- function(df, start_date, js_def) {
       sort(as.numeric(unique(gsub("[^[:digit:]]", "", x$target)))) ==
       seq_len(length(unique(x$target_end_date))))) |
       (isFALSE(length(unique(
-        gsub("[^[:digit:]]", "", x$target))) == n_target_week))) {
+        gsub("[^[:digit:]]", "", x$target))) >= n_target_week))) {
       group <- paste(names(unique(x[, sel_group])), ":", unique(x[, sel_group]),
                      collapse = ", ")
       targetwnum_test <- paste0(
@@ -144,6 +144,11 @@ test_target <- function(df, start_date, js_def) {
       targetwnum_test <- NA
     }
   })
+  if (length(unique(na.omit(unlist(targetwnum_test)))) > 100) {
+    targetwnum_test <- unique(gsub(
+      "age_group : \\d{1,3}-\\d{1,3}(, )?|quantile : (point|\\d(\\.\\d{1,4})?)(, )?",
+      "", unlist(targetwnum_test)))
+  }
 
   # - all target weeks are NA by target, scenario, location, quantile/sample
   # for the target(s) requiring it
