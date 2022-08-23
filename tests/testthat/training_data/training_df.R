@@ -145,18 +145,22 @@ ak_base_df <- lapply(lst_df, function(x) {
                                  x[which(quantile == 0.5), "value"], value))
   sort_quantile <- sort(na.omit(unique(df$quantile)))
   for (i in 1:(length(sort_quantile))) {
-    if (is.na(df[which(df$quantile == sort_quantile[i]), "value"])) {
-      if (sort_quantile[i] < 0.5) {
-        df[which(df$quantile == sort_quantile[i]), "value"] <- df[which(df$quantile == 0.5), "value"]
-      } else {
-        df[which(df$quantile == sort_quantile[i]), "value"] <- sort_quantile[i] * df[which(df$quantile == 0.5), "value"] + df[which(df$quantile == 0.5), "value"]
+      if (is.na(df[which(df$quantile == sort_quantile[i]), "value"])) {
+        if (sort_quantile[i] < 0.5 & sort_quantile[i] > 0) {
+          df[which(df$quantile == sort_quantile[i]), "value"] <- df[which(df$quantile == 0.5), "value"] - 1/sort_quantile[i]
+        } else if (sort_quantile[i] < 0.5 & sort_quantile[i] == 0) {
+          df[which(df$quantile == sort_quantile[i]), "value"] <- df[which(df$quantile == 0.5), "value"] - 1/0.005
+        } else {
+          df[which(df$quantile == sort_quantile[i]), "value"] <- sort_quantile[i] * df[which(df$quantile == 0.5), "value"] + df[which(df$quantile == 0.5), "value"]
+        }
       }
+      df
     }
-    df
-  }
   df
 }) %>% bind_rows() %>%
-  select(-target_name)
+  select(-target_name) %>%
+  mutate(value = ifelse(value < 0, 0, value)) %>%
+  mutate(value = ifelse(value > 730000, 730000, value))
 
 rm(lst_df)
 
@@ -183,17 +187,17 @@ al_base_df <- expand.grid(location =  c("01"),
            scenario_id == "C-2021-08-17" ~ "lowPro_slowWan",
            scenario_id == "D-2021-08-17" ~ "lowPro_fastWan"),
          value = case_when(
-           grepl(" wk .+ inc case", target) & quantile == 0.5 ~ 900000 * (as.numeric(gsub("[^[:digit:]]", "", target))),
-           grepl(" wk .+ cum case", target) & quantile == 0.5 ~ 37000000 * (as.numeric(gsub("[^[:digit:]]", "", target))),
+           grepl(" wk .+ inc case", target) & quantile == 0.5 ~ 9000 * (as.numeric(gsub("[^[:digit:]]", "", target))),
+           grepl(" wk .+ cum case", target) & quantile == 0.5 ~ 700000 * (as.numeric(gsub("[^[:digit:]]", "", target))),
            grepl(" wk .+ inc death", target) & quantile == 0.5 ~ 4600 * (as.numeric(gsub("[^[:digit:]]", "", target))),
-           grepl(" wk .+ cum death", target) & quantile == 0.5 ~ 621000 * (as.numeric(gsub("[^[:digit:]]", "", target))),
-           grepl(" wk .+ inc hosp", target) & quantile == 0.5 ~ 80000 * (as.numeric(gsub("[^[:digit:]]", "", target))),
+           grepl(" wk .+ cum death", target) & quantile == 0.5 ~ 62100 * (as.numeric(gsub("[^[:digit:]]", "", target))),
+           grepl(" wk .+ inc hosp", target) & quantile == 0.5 ~ 8000 * (as.numeric(gsub("[^[:digit:]]", "", target))),
            grepl(" wk .+ cum hosp", target) & quantile == 0.5 ~ 1 * (as.numeric(gsub("[^[:digit:]]", "", target)))),
          value = ifelse(as.numeric(gsub("[^[:digit:]]", "", target)) > 1 & as.numeric(gsub("[^[:digit:]]", "", target)) < 7, value / 2, value),
          value = ifelse(as.numeric(gsub("[^[:digit:]]", "", target)) > 7, value * 0.1, value),
          value = ifelse(scenario_id == "B-2021-08-17", value * 1.05, value),
          value = ifelse(scenario_id == "C-2021-08-17", value * 1.1, value),
-         value = ifelse(scenario_id == "D-2021-08-17", value * 1.15, value),
+         value = ifelse(scenario_id == "D-2021-08-17", value * 1.125, value),
          target_name = gsub("\\d+ wk ahead ", "", target))
 
 lst_df <- split(al_base_df, list(al_base_df$location, al_base_df$scenario_id,
@@ -219,8 +223,10 @@ al_base_df <- lapply(lst_df, function(x) {
   sort_quantile <- sort(na.omit(unique(df$quantile)))
   for (i in 1:(length(sort_quantile))) {
     if (is.na(df[which(df$quantile == sort_quantile[i]), "value"])) {
-      if (sort_quantile[1] < 0.5) {
-        df[which(df$quantile == sort_quantile[i]), "value"] <- df[which(df$quantile == 0.5), "value"]
+      if (sort_quantile[i] < 0.5 & sort_quantile[i] > 0) {
+        df[which(df$quantile == sort_quantile[i]), "value"] <- df[which(df$quantile == 0.5), "value"] - 1/sort_quantile[i]
+      } else if (sort_quantile[i] < 0.5 & sort_quantile[i] == 0) {
+        df[which(df$quantile == sort_quantile[i]), "value"] <- df[which(df$quantile == 0.5), "value"] - 1/0.005
       } else {
         df[which(df$quantile == sort_quantile[i]), "value"] <- sort_quantile[i] * df[which(df$quantile == 0.5), "value"] + df[which(df$quantile == 0.5), "value"]
       }
@@ -229,7 +235,9 @@ al_base_df <- lapply(lst_df, function(x) {
   }
   df
 }) %>% bind_rows() %>%
-  select(-target_name)
+  select(-target_name) %>%
+  mutate(value = ifelse(value < 0, 0, value)) %>%
+  mutate(value = ifelse(value > 4900000, 4900000, value))
 
 rm(lst_df)
 

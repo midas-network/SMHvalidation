@@ -5,6 +5,12 @@ test_that("Test validation process", {
   js_def <- "training_data/2022-01-09_metadata.json"
   js_def <- jsonlite::fromJSON(js_def)
 
+  js_def_0815 <- jsonlite::fromJSON("training_data/2021-08-15_metadata.json")
+  js_def_1114 <- jsonlite::fromJSON("training_data/2021-11-14_metadata.json")
+  js_def_0313 <- jsonlite::fromJSON("training_data/2022-03-13_metadata.json")
+  js_def_0605 <- jsonlite::fromJSON("training_data/2022-06-05_metadata.json")
+
+
   extract_err_code <- function(expr) {
     test <- capture.output(try(suppressWarnings(expr), silent = TRUE))
     code <- stringr::str_extract(
@@ -126,10 +132,10 @@ test_that("Test validation process", {
     extract_err_code(validate_submission(
       "training_data/2022-01-09_misswk.csv", lst_gs, pop_path, js_def)),
     c("605", "607"))
-#  testthat::expect_equal(
-#    extract_err_code(validate_submission(
-#      "training_data/2021-08-15_morewk.gz", lst_gs,
-#      scen_info = scen_info)), c("507", "606", "702"))
+  testthat::expect_equal(
+    extract_err_code(validate_submission(
+      "training_data/2021-08-15_morewk.gz", lst_gs, pop_path, js_def_0815)),
+    c("606", "702"))
   testthat::expect_equal(
     extract_err_code(validate_submission(
       "training_data/2022-01-09_badstartdate.csv", lst_gs, pop_path, js_def)),
