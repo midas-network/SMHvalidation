@@ -57,7 +57,7 @@
 #' Function called in the `validate_submission()` function.
 #'
 #'@importFrom stats na.omit
-#'@importFrom dplyr filter left_join mutate distinct %>% arrange
+#'@importFrom dplyr filter left_join mutate distinct %>% arrange matches
 #'@importFrom tidyr unite
 #'@importFrom purrr discard map
 #'@export
@@ -84,13 +84,17 @@ test_val <- function(df, pop, last_lst_gs, js_def) {
   }
 
   # Verify all points value are correctly identified
-  if (isFALSE(all(is.na(dplyr::filter(df, grepl("point", type))$quantile)))) {
-    pointna_test <- paste0(
-      "\U000274c Error 502: The value type 'point' should have NA as ",
-      "'quantile'. The data frame contains: '",
-      na.omit(dplyr::filter(df, grepl("point", type))$quantile),
-      "' in the column 'quantile' for 'point' value.")
-    pointna_test <- unique(pointna_test)
+  if (any(any(grepl("all|point", unlist(target_type))))) {
+    if (isFALSE(all(is.na(dplyr::filter(df, grepl("point", type))$quantile)))) {
+      pointna_test <- paste0(
+        "\U000274c Error 502: The value type 'point' should have NA as ",
+        "'quantile'. The data frame contains: '",
+        na.omit(dplyr::filter(df, grepl("point", type))$quantile),
+        "' in the column 'quantile' for 'point' value.")
+      pointna_test <- unique(pointna_test)
+    } else {
+      pointna_test <- NA
+    }
   } else {
     pointna_test <- NA
   }
@@ -185,37 +189,42 @@ test_val <- function(df, pop, last_lst_gs, js_def) {
   # Each required group of scenario/location/target has 1 unique point value
   name_target <- names(purrr::keep(purrr::map(target_type, "required"),
                                    function(x) any(x %in% "point")))
-  df2 <- dplyr::filter(df, grepl(paste(name_target, collapse = "|"), target))
-  sel_group <- grep(
-    "value|target_end_date|type|quantile|model_projection_date|scenario_name",
-    js_def$column_names, invert = TRUE, value = TRUE)
-  lst_df <-  split(df2, as.list(df2[,sel_group]), drop = TRUE)
-  lst_df <- purrr::discard(lst_df, function(x) dim(x)[[1]] < 1)
-  pointone_test <- lapply(seq_along(lst_df), function(x) {
-    x <- lst_df[[x]]
-    group <- paste(names(unique(x[, sel_group])), ":", unique(x[, sel_group]),
-                   collapse = ", ")
-    point <- dplyr::filter(x, grepl("point", type))
-    if (dim(point)[1] != 1) {
-      pointone_test <- paste0(
-        "\U000274c Error 506: Each group of scenario, location and target ",
-        "should have one unique point value. The group: ", group, " has ",
-        dim(point)[1], " points value, please verify")
-    } else {
-      pointone_test <- NA
-    }
-    if (length(names(js_def$targets$optional)) > 0) {
-      if (grepl(paste(names(js_def$targets$optional), collapse = "|"), group)) {
-        pointone_test <- gsub("\U000274c Error", "\U0001f7e1 Warning",
-                              pointone_test)
+  if (length(name_target) > 0) {
+    print("wrong")
+    df2 <- dplyr::filter(df, grepl(paste(name_target, collapse = "|"), target))
+    sel_group <- grep(
+      "value|target_end_date|type|quantile|model_projection_date|scenario_name",
+      js_def$column_names, invert = TRUE, value = TRUE)
+    lst_df <-  split(df2, as.list(df2[,sel_group]), drop = TRUE)
+    lst_df <- purrr::discard(lst_df, function(x) dim(x)[[1]] < 1)
+    pointone_test <- lapply(seq_along(lst_df), function(x) {
+      x <- lst_df[[x]]
+      group <- paste(names(unique(x[, sel_group])), ":", unique(x[, sel_group]),
+                     collapse = ", ")
+      point <- dplyr::filter(x, grepl("point", type))
+      if (dim(point)[1] != 1) {
+        pointone_test <- paste0(
+          "\U000274c Error 506: Each group of scenario, location and target ",
+          "should have one unique point value. The group: ", group, " has ",
+          dim(point)[1], " points value, please verify")
+      } else {
+        pointone_test <- NA
       }
-    }
-    return(pointone_test)
-  })
+      if (length(names(js_def$targets$optional)) > 0) {
+        if (grepl(paste(names(js_def$targets$optional), collapse = "|"), group)) {
+          pointone_test <- gsub("\U000274c Error", "\U0001f7e1 Warning",
+                                pointone_test)
+        }
+      }
+      return(pointone_test)
+    })
+  } else {
+    pointone_test <- NA
+  }
   if (length(unique(na.omit(unlist(pointone_test)))) > 100) {
     pointone_test <- unique(gsub("\\d+? wk ahead ", "", unlist(pointone_test)))
     pointone_test <- unique(gsub("has \\d+? points value", "has some issue(s)",
-                            pointone_test))
+                                 pointone_test))
   }
 
   # Value should be lower than population size
@@ -228,7 +237,8 @@ test_val <- function(df, pop, last_lst_gs, js_def) {
     dplyr::filter(pop_test > 0)
   if (dim(test)[1] > 0) {
     test <- dplyr::distinct(
-      dplyr::select(test, target, location_name, scenario_id, quantile))
+      dplyr::select(test, target, location_name, scenario_id,
+                    matches("quantile|sample")))
     if (dim(test)[1] > 100)
       test <- dplyr::distinct(
         dplyr::select(test, target, location_name, scenario_id))
@@ -319,8 +329,11 @@ test_val <- function(df, pop, last_lst_gs, js_def) {
   df2 <- dplyr::mutate(
     df2, location = ifelse(nchar(location) == 1, paste0("0", location),
                            location),
-    quantile = ifelse(is.na(quantile), "point", quantile),
     target_name = gsub(".+ wk ahead ", "", target))
+  if (any(grepl("quantile", colnames(df2)))) {
+    df2 <- dplyr::mutate(df2, quantile = ifelse(is.na(quantile), "point",
+                                                quantile))
+  }
   sel_group <- grep(
     "value|target_end_date|type|model_projection_date|scenario_name|target$",
     names(df2), invert = TRUE, value = TRUE)

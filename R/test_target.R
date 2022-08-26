@@ -70,7 +70,7 @@ test_target <- function(df, start_date, js_def) {
   # to submit projections for only certain target (for example: only cases, etc.)
   df_req_target <- grep(paste(target_req, collapse = "|"), unique(
     gsub(".+ wk ahead ", "", df$target)), value = TRUE)
-  if (length(df_req_target) < 6) {
+  if (length(df_req_target) < length(target_req)) {
     targetnum_test <- paste0(
       "\U0001f7e1 Warning 602: The data frame does not contain projections",
       " for '", target_req[!target_req %in% df_req_target],
@@ -123,8 +123,11 @@ test_target <- function(df, start_date, js_def) {
 
   df2 <- dplyr::filter(df, grepl(paste(hor_target, collapse = "|"), target))
   df2 <- dplyr::mutate(
-    df2, target_name = gsub(".+ wk ahead ", "", target),
-    quantile = ifelse(type == "point", "point", quantile))
+    df2, target_name = gsub(".+ wk ahead ", "", target))
+  if (any(grepl("quantile", colnames(df2)))) {
+    df2 <- dplyr::mutate(df2, quantile = ifelse(is.na(quantile), "point",
+                                                quantile))
+  }
   sel_group <- grep(
     "value|target_end_date|type|model_projection_date|scenario_name|target$",
     names(df2), invert = TRUE, value = TRUE)
@@ -156,8 +159,11 @@ test_target <- function(df, start_date, js_def) {
                                  function(x) is.na(x)))
   if (length(na_target) > 0) {
     df2 <- dplyr::filter(df, grepl(paste(na_target, collapse = "|"), target))
-    df2 <-  dplyr::mutate(df2, target_name = target,
-                          quantile = ifelse(type == "point", "point", quantile))
+    df2 <-  dplyr::mutate(df2, target_name = target)
+    if (any(grepl("quantile", colnames(df2)))) {
+      df2 <- dplyr::mutate(df2, quantile = ifelse(is.na(quantile), "point",
+                                                  quantile))
+    }
     sel_group <- grep(
       "value|target_end_date|type|model_projection_date|scenario_name|target$",
       names(df2), invert = TRUE, value = TRUE)
