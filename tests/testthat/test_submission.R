@@ -1,7 +1,11 @@
 test_that("Test validation process", {
 
   lst_gs <- readRDS("training_data/2022-08-22_lst_gs.rds")
+  lst_gs_flu <- NULL
+
   pop_path <- "https://raw.githubusercontent.com/midas-network/covid19-scenario-modeling-hub/master/data-locations/locations.csv"
+  pop_path_flu <- "https://raw.githubusercontent.com/midas-network/flu-scenario-modeling-hub/main/data-locations/locations.csv"
+
   js_def <- "training_data/2022-01-09_metadata.json"
   js_def <- jsonlite::fromJSON(js_def)
 
@@ -10,6 +14,7 @@ test_that("Test validation process", {
   js_def_0313 <- jsonlite::fromJSON("training_data/2022-03-13_metadata.json")
   js_def_0605 <- jsonlite::fromJSON("training_data/2022-06-05_metadata.json")
 
+  js_def_flu1 <- jsonlite::fromJSON("training_data/2022-08-14_metadata.json")
 
   extract_err_code <- function(expr) {
     test <- capture.output(try(suppressWarnings(expr), silent = TRUE))
@@ -19,7 +24,7 @@ test_that("Test validation process", {
     return(code)
   }
 
-  # Test no error -----
+  ### Test on COVID ###
   testthat::expect_equal(
     validate_submission(
       "training_data/2022-01-09_no_error.csv", lst_gs, pop_path, js_def),
@@ -158,5 +163,39 @@ test_that("Test validation process", {
     extract_err_code(validate_submission(
       "training_data/2021-11-14_no0location.zip", lst_gs, pop_path,
       js_def_1114)), c("405", "509", "702"))
+
+  ### Tests on FLU ###
+  testthat::expect_equal(
+    validate_submission(
+      "training_data/2022-08-14_flu_no_error.csv", lst_gs_flu, pop_path_flu,
+      js_def_flu1),
+    "End of validation check: all the validation checks were successfull")
+  testthat::expect_equal(
+    validate_submission(
+      "training_data/2022-08-14_flu_nopoint_noerror.csv", lst_gs_flu,
+      pop_path_flu, js_def_flu1),
+    "End of validation check: all the validation checks were successfull")
+
+  # Test additional location error -----
+  testthat::expect_equal(
+    extract_err_code(validate_submission(
+      "training_data/2022-08-14_flu_addloc.csv", lst_gs_flu, pop_path_flu,
+      js_def_flu1)), c("703"))
+
+  # Test age-group ----
+  testthat::expect_equal(
+    extract_err_code(validate_submission(
+      "training_data/2022-08-14_flu_missage.csv", lst_gs_flu, pop_path_flu,
+      js_def_flu1)), c("802", "803","805", "804", "806"))
+  testthat::expect_equal(
+    extract_err_code(validate_submission(
+      "training_data/2022-08-14_flu_badage.csv", lst_gs_flu, pop_path_flu,
+      js_def_flu1)), c("801", "804", "806"))
+
+  # Test target_end_date -----
+  testthat::expect_equal(
+    extract_err_code(validate_submission(
+      "training_data/2022-08-14_flu_badtargdate.csv", lst_gs_flu, pop_path_flu,
+      js_def_flu1)), c("603", "606", "612"))
 
 })

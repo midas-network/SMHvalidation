@@ -439,5 +439,8 @@ tot <- rbind(US_base_df, al_base_df)
 # Write df:
 write.csv(tot, "tests/testthat/training_data/2022-08-14_flu_no_error.csv", row.names = FALSE)
 write.csv(tot[!(grepl("point", tot$type) & !grepl("time", tot$target)),], "tests/testthat/training_data/2022-08-14_flu_nopoint_noerror.csv", row.names = FALSE)
-
+write.csv(rbind(tot, dplyr::mutate(filter(US_base_df, grepl("death", target)), location = "02")), "tests/testthat/training_data/2022-08-14_flu_addloc.csv", row.names = FALSE)
+write.csv(dplyr::mutate(tot, age_group = "130-17"), "tests/testthat/training_data/2022-08-14_flu_missage.csv", row.names = FALSE)
+write.csv(dplyr::mutate(tot, age_group = "00_12"), "tests/testthat/training_data/2022-08-14_flu_badage.csv", row.names = FALSE)
+write.csv(dplyr::mutate(tot, target_end_date = ifelse(grepl("peak size", target), "2022-08-14", as.character(target_end_date))), "tests/testthat/training_data/2022-08-14_flu_badtargdate.csv", row.names = FALSE)
 
