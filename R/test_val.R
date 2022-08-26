@@ -190,7 +190,6 @@ test_val <- function(df, pop, last_lst_gs, js_def) {
   name_target <- names(purrr::keep(purrr::map(target_type, "required"),
                                    function(x) any(x %in% "point")))
   if (length(name_target) > 0) {
-    print("wrong")
     df2 <- dplyr::filter(df, grepl(paste(name_target, collapse = "|"), target))
     sel_group <- grep(
       "value|target_end_date|type|quantile|model_projection_date|scenario_name",
