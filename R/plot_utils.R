@@ -185,15 +185,26 @@ plot_projections <- function(data, st, projection_date, legend_rows=1, y_sqrt=FA
 
   projection_date <- lubridate::as_date(projection_date)
 
-  data %>%
+
+  plot <- data %>%
     dplyr::filter(scenario_name != "ground truth") %>%
     ggplot2::ggplot(ggplot2::aes(x = date)) +
     ggplot2::geom_ribbon(ggplot2::aes(ymin = low, ymax = high, fill = scenario_name), alpha = 0.20) +
     ggplot2::geom_line(ggplot2::aes(y = median, color = scenario_name), size=1.5, linetype=1) +
-    ggplot2::geom_line(ggplot2::aes(y = point, color = scenario_name), linetype=2) +
-    ggplot2::geom_vline(ggplot2::aes(xintercept=projection_date), color="grey", linetype=2, size=1.5) +
-    ggplot2::geom_point(data=data %>% dplyr::filter(pre_gs_end==TRUE), ggplot2::aes(y = value_gt), color="black") +
-    ggplot2::geom_point(data=data %>% dplyr::filter(pre_gs_end==FALSE), ggplot2::aes(y = value_gt), color="red") +
+    ggplot2::geom_vline(ggplot2::aes(xintercept=projection_date), color="grey", linetype=2, size=1.5)
+
+  if (any(grepl("point", colnames(data)))) {
+    plot <- plot +
+      ggplot2::geom_line(ggplot2::aes(y = point, color = scenario_name), linetype=2)
+  }
+
+  if (any(grepl("value_gt", colnames(data)))) {
+    plot <- plot +
+      ggplot2::geom_point(data=data %>% dplyr::filter(pre_gs_end==TRUE), ggplot2::aes(y = value_gt), color="black") +
+      ggplot2::geom_point(data=data %>% dplyr::filter(pre_gs_end==FALSE), ggplot2::aes(y = value_gt), color="red")
+  }
+
+  plot <- plot +
     ggplot2::scale_x_date(date_breaks = "1 month", date_labels = "%b %y") +
     ggplot2::scale_color_viridis_d("Scenario") +
     ggplot2::scale_fill_viridis_d("Scenario") +
@@ -203,7 +214,7 @@ plot_projections <- function(data, st, projection_date, legend_rows=1, y_sqrt=FA
                    axis.text.y = ggplot2::element_text(size=8)) +
     ggplot2::guides(fill=ggplot2::guide_legend(nrow=1,byrow=TRUE)) +
     ggplot2::xlab(NULL) +
-    ggplot2::coord_cartesian(#ylim=c(0, max(pltdat_fc %>% pull(incD_qhigh), na.rm=TRUE)*1.1),
+    ggplot2::coord_cartesian(
       xlim=c(projection_date - 7*3, lubridate::as_date(max(data$date)))) +
     ggplot2::facet_wrap(~outcome, ncol=1, scales = "free_y") +
     scale_y_funct(glue::glue("Weekly {ifelse(data$incid_cum=='inc', 'Incident', 'Cumulative')} Outcomes, {st}"))
@@ -255,16 +266,30 @@ make_state_plot_pdf <- function(proj_data, gs_data, team_model_name, projection_
     tidyr::separate(target, into = c("time_ahead", "time_unit", "A", "incid_cum", "outcome"), sep=" ") %>%
     dplyr::select(-A) %>%
     dplyr::rename(date = target_end_date) %>%
-    tibble::as_tibble() %>%
-    dplyr::bind_rows(gs_data %>% dplyr::rename(value_gt=value) %>%
-                       dplyr::mutate(date = lubridate::as_date(date), scenario_name="ground truth")) %>%
-    dplyr::select(scenario_id, scenario_name, location, incid_cum, outcome, date, quantile, value, value_gt, pre_gs_end) %>%
+    tibble::as_tibble()
+
+
+  if (!is.null(gs_data)) {
+    proj_data <- proj_data %>%
+      dplyr::bind_rows(gs_data %>% dplyr::rename(value_gt=value) %>%
+                         dplyr::mutate(date = lubridate::as_date(date),
+                                       scenario_name="ground truth")) %>%
+      dplyr::select(scenario_id, scenario_name, location, incid_cum, outcome, date, quantile, value, value_gt, pre_gs_end)
+  } else {
+    proj_data <- proj_data %>%
+      dplyr::select(scenario_id, scenario_name, location, incid_cum, outcome, date, quantile, value)
+  }
+
+  proj_data <- proj_data  %>%
     dplyr::left_join(reich_locs %>% dplyr::rename(state=abbreviation), by = "location") %>%
     dplyr::arrange(scenario_id, scenario_name, state, incid_cum, outcome, date)
 
   proj_plot_data <- proj_data %>%
-    tidyr::pivot_wider(names_from = quantile, values_from = value) %>%
-    dplyr::select(-`NA`)
+    tidyr::pivot_wider(names_from = quantile, values_from = value)
+
+  if ("NA" %in% colnames(proj_plot_data))
+    proj_plot_data <- dplyr::select(proj_plot_data, -`NA`)
+
 
   # Rename the quantiles
   colnames(proj_plot_data) <- gsub(plot_quantiles[1], "low", colnames(proj_plot_data))
@@ -273,86 +298,89 @@ make_state_plot_pdf <- function(proj_data, gs_data, team_model_name, projection_
 
 
   # Add calibration stats
-  proj_plot_data_calib <- proj_plot_data %>%
-    dplyr::filter(scenario_name!="ground truth" & date==(lubridate::as_date(projection_date)+6)) %>%
-    dplyr::select(-value_gt) %>%
-    dplyr::full_join(proj_plot_data %>%
-                       dplyr::filter(scenario_name=="ground truth", !is.na(value_gt), pre_gs_end) %>%
-                       dplyr::filter(date==max(date)) %>%
-                       dplyr::select(location, state, incid_cum, outcome, value_gt)) %>%
-    dplyr::mutate(diff_gt = round(median - value_gt),
-                  prctdiff_gt = round(diff_gt / value_gt,2),
-                  ratio_gt = round(median / value_gt,4),
-                  logratio_gt = log(ratio_gt))
+  if (!is.null(gs_data)) {
+      proj_plot_data_calib <- proj_plot_data %>%
+        dplyr::filter(scenario_name!="ground truth" & date==(lubridate::as_date(projection_date)+6)) %>%
+        dplyr::select(-value_gt) %>%
+        dplyr::full_join(proj_plot_data %>%
+                           dplyr::filter(scenario_name=="ground truth", !is.na(value_gt), pre_gs_end) %>%
+                           dplyr::filter(date==max(date)) %>%
+                           dplyr::select(location, state, incid_cum, outcome, value_gt)) %>%
+        dplyr::mutate(diff_gt = round(median - value_gt),
+                      prctdiff_gt = round(diff_gt / value_gt,2),
+                      ratio_gt = round(median / value_gt,4),
+                      logratio_gt = log(ratio_gt))
 
 
-  # Max differences
+      # Max differences
 
-  # Incident
-  proj_plot_data_calib_inc <- proj_plot_data_calib %>%
-    dplyr::filter(incid_cum=="inc") %>%
-    dplyr::filter(!((value_gt<=20 & median<=20))) %>%
-    #arrange(desc(abs(prctdiff_gt))) %>%
-    dplyr::arrange(desc(abs(logratio_gt))) %>%
-    dplyr::slice_head(n=30) %>%
-    dplyr::mutate(outcome = paste0('incid ', .$outcome), median = round(median)) %>%
-    dplyr::select(scenario_name, state, outcome, `ground truth`=value_gt, median, prctdiff_gt, ratio_gt, logratio_gt)
+      # Incident
+      proj_plot_data_calib_inc <- proj_plot_data_calib %>%
+        dplyr::filter(incid_cum=="inc") %>%
+        dplyr::filter(!((value_gt<=20 & median<=20))) %>%
+        #arrange(desc(abs(prctdiff_gt))) %>%
+        dplyr::arrange(desc(abs(logratio_gt))) %>%
+        dplyr::slice_head(n=30) %>%
+        dplyr::mutate(outcome = paste0('incid ', .$outcome), median = round(median)) %>%
+        dplyr::select(scenario_name, state, outcome, `ground truth`=value_gt, median, prctdiff_gt, ratio_gt, logratio_gt)
 
-  # cumulative - over estimated cum
-  proj_plot_data_calib_cum_pos <- proj_plot_data_calib %>%
-    dplyr::filter(prctdiff_gt>=0) %>%
-    dplyr::filter(incid_cum=="cum") %>%
-    dplyr::filter(!((value_gt<=20 & median<=20))) %>%
-    #arrange(desc(prctdiff_gt)) %>%
-    dplyr::arrange(desc(abs(logratio_gt))) %>%
-    dplyr::slice_head(n=20)%>%
-    dplyr::mutate(outcome = paste0('incid ', .$outcome), median = round(median)) %>%
-    dplyr::select(scenario_name, state, outcome, `ground truth`=value_gt, median, prctdiff_gt, ratio_gt, logratio_gt)
+      # cumulative - over estimated cum
+      proj_plot_data_calib_cum_pos <- proj_plot_data_calib %>%
+        dplyr::filter(prctdiff_gt>=0) %>%
+        dplyr::filter(incid_cum=="cum") %>%
+        dplyr::filter(!((value_gt<=20 & median<=20))) %>%
+        #arrange(desc(prctdiff_gt)) %>%
+        dplyr::arrange(desc(abs(logratio_gt))) %>%
+        dplyr::slice_head(n=20)%>%
+        dplyr::mutate(outcome = paste0('incid ', .$outcome), median = round(median)) %>%
+        dplyr::select(scenario_name, state, outcome, `ground truth`=value_gt, median, prctdiff_gt, ratio_gt, logratio_gt)
 
-  # cumulative - underestimated cum
-  proj_plot_data_calib_cum_neg <- proj_plot_data_calib %>%
-    dplyr::filter(prctdiff_gt<0) %>%
-    dplyr::filter(incid_cum=="cum") %>%
-    #arrange(desc(abs(prctdiff_gt))) %>%
-    dplyr::arrange(desc(abs(logratio_gt))) %>%
-    dplyr::slice_head(n=40) %>%
-    dplyr::mutate(outcome = paste0('incid ', .$outcome), median = round(median)) %>%
-    dplyr::select(scenario_name, state, outcome, `ground truth`=value_gt, median, prctdiff_gt, ratio_gt, logratio_gt)
+      # cumulative - underestimated cum
+      proj_plot_data_calib_cum_neg <- proj_plot_data_calib %>%
+        dplyr::filter(prctdiff_gt<0) %>%
+        dplyr::filter(incid_cum=="cum") %>%
+        #arrange(desc(abs(prctdiff_gt))) %>%
+        dplyr::arrange(desc(abs(logratio_gt))) %>%
+        dplyr::slice_head(n=40) %>%
+        dplyr::mutate(outcome = paste0('incid ', .$outcome), median = round(median)) %>%
+        dplyr::select(scenario_name, state, outcome, `ground truth`=value_gt, median, prctdiff_gt, ratio_gt, logratio_gt)
 
 
-  # TABLES
+      # TABLES
 
-  tab_inc_num <- print_table(data=proj_plot_data_calib_inc,
-                             tab_title = "Incident Outliers: [Wk1 Projected] minus [Wk0 Reported]",
-                             metric = "median",
-                             thresholds=NA,
-                             colors=NA)
-  tab_cum_num_pos <- print_table(data=proj_plot_data_calib_cum_pos,
-                                 tab_title = "Cumulative Overestimates: [Wk1 Projected] minus [Wk0 Reported]",
+      tab_inc_num <- print_table(data=proj_plot_data_calib_inc,
+                                 tab_title = "Incident Outliers: [Wk1 Projected] minus [Wk0 Reported]",
                                  metric = "median",
                                  thresholds=NA,
                                  colors=NA)
-  tab_cum_num_neg <- print_table(data=proj_plot_data_calib_cum_neg,
-                                 tab_title = "Cumulative Underestimates: [Wk1 Projected] minus [Wk0 Reported]",
-                                 metric = "median",
-                                 thresholds=NA,
-                                 colors=NA)
+      tab_cum_num_pos <- print_table(data=proj_plot_data_calib_cum_pos,
+                                     tab_title = "Cumulative Overestimates: [Wk1 Projected] minus [Wk0 Reported]",
+                                     metric = "median",
+                                     thresholds=NA,
+                                     colors=NA)
+      tab_cum_num_neg <- print_table(data=proj_plot_data_calib_cum_neg,
+                                     tab_title = "Cumulative Underestimates: [Wk1 Projected] minus [Wk0 Reported]",
+                                     metric = "median",
+                                     thresholds=NA,
+                                     colors=NA)
 
-  tab_inc_ratios <- print_table(data=proj_plot_data_calib_inc,
-                                tab_title = "Incident Outliers: [Wk1 Projected] / [Wk0 Reported]",
-                                metric = "ratio_gt",
-                                thresholds=c(0, .25, .5, 0.75, 1.333, 2, 4),
-                                colors=c("red", "orange", "yellow", NA, "yellow", "orange", "red"))
-  tab_cum_ratios_pos <- print_table(data=proj_plot_data_calib_cum_pos,
-                                    tab_title = "Cumulative Overestimates: [Wk1 Projected] / [Wk0 Reported]",
+      tab_inc_ratios <- print_table(data=proj_plot_data_calib_inc,
+                                    tab_title = "Incident Outliers: [Wk1 Projected] / [Wk0 Reported]",
                                     metric = "ratio_gt",
-                                    thresholds=c(1, 1.1, 1.25),
-                                    colors=c("yellow", "orange", "red"))
-  tab_cum_ratios_neg <- print_table(data=proj_plot_data_calib_cum_neg,
-                                    tab_title = "Cumulative Underestimates: [Wk1 Projected] / [Wk0 Reported]",
-                                    metric = "ratio_gt",
-                                    thresholds=c(0, .8, 0.91),
-                                    colors=c("red", "orange", "yellow"))
+                                    thresholds=c(0, .25, .5, 0.75, 1.333, 2, 4),
+                                    colors=c("red", "orange", "yellow", NA, "yellow", "orange", "red"))
+      tab_cum_ratios_pos <- print_table(data=proj_plot_data_calib_cum_pos,
+                                        tab_title = "Cumulative Overestimates: [Wk1 Projected] / [Wk0 Reported]",
+                                        metric = "ratio_gt",
+                                        thresholds=c(1, 1.1, 1.25),
+                                        colors=c("yellow", "orange", "red"))
+      tab_cum_ratios_neg <- print_table(data=proj_plot_data_calib_cum_neg,
+                                        tab_title = "Cumulative Underestimates: [Wk1 Projected] / [Wk0 Reported]",
+                                        metric = "ratio_gt",
+                                        thresholds=c(0, .8, 0.91),
+                                        colors=c("red", "orange", "yellow"))
+
+  }
 
   # Create PDF
 
@@ -372,23 +400,26 @@ make_state_plot_pdf <- function(proj_data, gs_data, team_model_name, projection_
   pdf(save_path, width=8.5, height=11)
 
   # Tables
-  gridExtra::grid.arrange(
-    grid::textGrob(paste0("MODEL PROJECTIONS:\n", team_model_name, "  --  ", projection_date),
-                   gp = grid::gpar(fontsize = 14, fontface="bold")),
-    tab_inc_ratios,
-    tab_cum_ratios_pos,
-    tab_cum_ratios_neg,
-    padding = unit(1, "line"),
-    nrow=4,
-    heights = c(0.5,3,2,2))
+  if (!is.null(gs_data)) {
+    gridExtra::grid.arrange(
+      grid::textGrob(paste0("MODEL PROJECTIONS:\n", team_model_name, "  --  ", projection_date),
+                     gp = grid::gpar(fontsize = 14, fontface="bold")),
+      tab_inc_ratios,
+      tab_cum_ratios_pos,
+      tab_cum_ratios_neg,
+      padding = unit(1, "line"),
+      nrow=4,
+      heights = c(0.5,3,2,2))
 
-  gridExtra::grid.arrange(
-    tab_inc_num,
-    tab_cum_num_pos,
-    tab_cum_num_neg,
-    padding = unit(1, "line"),
-    nrow=3,
-    heights = c(3,2,2))
+    gridExtra::grid.arrange(
+      tab_inc_num,
+      tab_cum_num_pos,
+      tab_cum_num_neg,
+      padding = unit(1, "line"),
+      nrow=3,
+      heights = c(3,2,2))
+  }
+
 
   # Curves
 
@@ -430,7 +461,8 @@ make_state_plot_pdf <- function(proj_data, gs_data, team_model_name, projection_
 #'
 #' @param path_proj dataframe, format as the Scenario Modeling Hub standard
 #' @param lst_gs, list of dataframe, observed data (advice to use the output
-#'    of the function `pull_gs_data()`)
+#'    of the function `pull_gs_data()`). If NULL, no compararison to observed
+#'    data will be done.
 #' @param save_path character vector, path to the saving folder for the PDF
 #'    output
 #' @param y_sqrt boolean, by default FALSE
@@ -448,21 +480,28 @@ generate_validation_plots <- function(path_proj, lst_gs, save_path=dirname(path_
   file_ <- basename(path_proj)
   info_ <- stringr::str_split(file_, pattern="_")[[1]]
   print(info_)
-  projection_date = lubridate::as_date(info_[1])
-  team_model_name = stringr::str_split(info_[2], pattern="[.]")[[1]][1]
+  projection_date <- lubridate::as_date(stringr::str_extract(file_, "[[:digit:]]{4}-[[:digit:]]{2}-[[:digit:]]{2}"))
+  team_model_name <- gsub("[[:digit:]]{4}-[[:digit:]]{2}-[[:digit:]]{2}(_|-)|(.csv|.zip|.gz|.pq)", "", file_)
   save_path <- file.path(save_path, paste0(projection_date, "_", team_model_name, "_plots.pdf"))
 
   # Ground Truth Data
   if (is.null(lst_gs)){
-    lst_gs <- pull_gs_data()
+    #lst_gs <- pull_gs_data()
+    gs_data <- NULL
+  } else {
+    gs_data <- suppressWarnings(format_gs_data(lst_gs, projection_date))
   }
-  gs_data <- suppressWarnings(format_gs_data(lst_gs, projection_date))
+
   # Projections
   proj_data <- suppressMessages(read_files(path_proj)) %>%
     dplyr::mutate_if(is.factor, as.character) %>%
     dplyr::mutate(target_end_date = lubridate::as_date(target_end_date),
                   model_projection_date = lubridate::as_date(model_projection_date)) %>%
     dplyr::filter(grepl("inc case|inc death|inc hosp|cum case|cum death|cum hosp", target))
+
+  if (any("age_group" %in% colnames(proj_data)))
+    proj_data <- dplyr::filter(proj_data, grepl("0-130", age_group))
+
   #remove artifact column
   if ("X" %in% colnames(proj_data)){
     proj_data <- proj_data %>% dplyr::select(-X)
