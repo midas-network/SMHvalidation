@@ -15,6 +15,8 @@ test_that("Test validation process", {
   js_def_0605 <- jsonlite::fromJSON("training_data/2022-06-05_metadata.json")
 
   js_def_flu1 <- jsonlite::fromJSON("training_data/2022-08-14_metadata.json")
+  js_def_flu1_sample <- jsonlite::fromJSON(
+    "training_data/2022-08-14_metadata-sample.json")
 
   extract_err_code <- function(expr) {
     test <- capture.output(try(suppressWarnings(expr), silent = TRUE))
@@ -175,6 +177,11 @@ test_that("Test validation process", {
       "training_data/2022-08-14_flu_nopoint_noerror.csv", lst_gs_flu,
       pop_path_flu, js_def_flu1),
     "End of validation check: all the validation checks were successfull")
+  testthat::expect_equal(
+    validate_submission(
+      "training_data/2022-08-14_flu_sample.csv", lst_gs_flu,
+      pop_path_flu, js_def_flu1_sample),
+    "End of validation check: all the validation checks were successfull")
 
   # Test additional location error -----
   testthat::expect_equal(
@@ -197,5 +204,9 @@ test_that("Test validation process", {
     extract_err_code(validate_submission(
       "training_data/2022-08-14_flu_badtargdate.csv", lst_gs_flu, pop_path_flu,
       js_def_flu1)), c("603", "606", "612"))
+
+  # Test sample ----
+
+
 
 })

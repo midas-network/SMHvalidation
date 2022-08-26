@@ -444,3 +444,52 @@ write.csv(dplyr::mutate(tot, age_group = "130-17"), "tests/testthat/training_dat
 write.csv(dplyr::mutate(tot, age_group = "00_12"), "tests/testthat/training_data/2022-08-14_flu_badage.csv", row.names = FALSE)
 write.csv(dplyr::mutate(tot, target_end_date = ifelse(grepl("peak size", target), "2022-08-14", as.character(target_end_date))), "tests/testthat/training_data/2022-08-14_flu_badtargdate.csv", row.names = FALSE)
 
+# Sample format
+
+
+req_target_list <- c(
+  target_list("inc death", req_quantiles = NA, req_loc = "US", req_type = NA,
+              opt_type = NA, req_agegroup = "0-130"),
+  target_list("inc hosp", req_quantiles = NA, req_type = NA, opt_type = NA,
+              req_agegroup = "0-130"))
+
+### For sample format
+target_name <- c("inc death", "inc hosp")
+sample <- seq(1, 100)
+scen_id <- c("A-2022-08-14", "B-2022-08-14", "C-2022-08-14", "D-2022-08-14")
+mproj_date <- as.Date("2022-08-14")
+target_num <- paste0(rep(1:42, length(target_name)), " wk ahead ",
+                     rep(target_name, each = 42))
+
+US_samp_df <- expand.grid(location =  c("US"),
+                          sample = sample,
+                          scenario_id = scen_id,
+                          model_projection_date = mproj_date,
+                          target = target_num,
+                          age_group = "0-130")  %>%
+  mutate(target_end_date = as.Date(model_projection_date) +
+           (as.numeric(gsub("[^[:digit:]]", "", target)) * 7) - 1,
+         scenario_name = case_when(
+           scenario_id == "A-2022-08-14" ~ "highVac_optImm",
+           scenario_id == "B-2022-08-14" ~ "highVac_pesImm",
+           scenario_id == "C-2022-08-14" ~ "lowVac_optImm",
+           scenario_id == "D-2022-08-14" ~ "lowVac_pesImm"),
+         value = case_when(
+           grepl(" wk .+ inc death", target) & sample == 1 ~ 12000 * (as.numeric(gsub("[^[:digit:]]", "", target))),
+           grepl(" wk .+ inc hosp", target) & sample == 1 ~ 150000 * (as.numeric(gsub("[^[:digit:]]", "", target)))),
+         value = ifelse(scenario_id == "B-2022-08-14", value * 1.05, value),
+         value = ifelse(scenario_id == "C-2022-08-14", value * 1.1, value),
+         value = ifelse(scenario_id == "D-2022-08-14", value * 1.15, value))
+
+lst_df <- split(US_samp_df, list(US_samp_df$location, US_samp_df$target, US_samp_df$scenario_id))
+US_samp_df <- lapply(lst_df, function(x) {
+  val <- runif(100, min = unique(na.omit(x$value)) - 100,
+               max = unique(na.omit(x$value)) + 100)
+  x$value <- val
+  x
+}) %>% bind_rows()
+
+
+write.csv(US_samp_df, "tests/testthat/training_data/2022-08-14_flu_sample.csv", row.names = FALSE)
+
+
