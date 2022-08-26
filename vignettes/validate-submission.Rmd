@@ -146,10 +146,22 @@ has been found.
 
 The submission will NOT be accepted and need correction before being accepted.
 
+## Example 4: Flu submission
+
+```{r test4}
+path_test <- system.file("extdata", "2022-08-14_team-flu.csv", package = "covid19SMHvalidation")
+pop_path <- "https://raw.githubusercontent.com/midas-network/flu-scenario-modeling-hub/main/data-locations/locations.csv"
+js_def <- system.file("extdata", "2022-08-14_metadata.json", package = "covid19SMHvalidation")
+js_def <- jsonlite::fromJSON(js_def)
+validate_submission(path_test, NULL, pop_path, js_def)
+```
+
 
 ## Plotting Projections
 
-The `covid19SMHvalidation` R package also contains plotting functionality to output a plot of each location and target, with all scenarios and observed data incorporated.
+The `covid19SMHvalidation` R package also contains plotting functionality to 
+output a plot of each location and target, with all scenarios and observed data 
+incorporated.
 
 ```{r proj_plots}
 path_test <- system.file("extdata", "2022-01-09_team-model.csv", package = "covid19SMHvalidation")
@@ -170,4 +182,18 @@ print(paste0("Saving pdf plots to ", pdf_path, "."))
 generate_validation_plots(path_proj=path_test, lst_gs=lst_gs, save_path=getwd(), y_sqrt = FALSE, plot_quantiles = c(0.025, 0.975))
 system(paste0('open "', pdf_path, '"'))
 ```
+
+An other example is available for FLU submission (not compared to observed 
+data, set the `lst_gs` parameter to `NULL`)
+
+```{r proj_plots3}
+path_test <- system.file("extdata", "2022-08-14_team-flu.csv", package = "covid19SMHvalidation")
+save_path <- getwd()
+pdf_path <- file.path(save_path, paste0("2022-08-14", "_", "team-flu", "_plots.pdf"))
+print(paste0("Saving pdf plots to ", pdf_path, "."))
+generate_validation_plots(path_proj=path_test, lst_gs=NULL, save_path=getwd(), y_sqrt = FALSE, plot_quantiles = c(0.025, 0.975))
+system(paste0('open "', pdf_path, '"'))
+```
+
+
 
