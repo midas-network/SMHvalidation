@@ -446,13 +446,6 @@ write.csv(dplyr::mutate(tot, target_end_date = ifelse(grepl("peak size", target)
 
 # Sample format
 
-
-req_target_list <- c(
-  target_list("inc death", req_quantiles = NA, req_loc = "US", req_type = NA,
-              opt_type = NA, req_agegroup = "0-130"),
-  target_list("inc hosp", req_quantiles = NA, req_type = NA, opt_type = NA,
-              req_agegroup = "0-130"))
-
 ### For sample format
 target_name <- c("inc death", "inc hosp")
 sample <- seq(1, 100)
@@ -491,5 +484,5 @@ US_samp_df <- lapply(lst_df, function(x) {
 
 
 write.csv(US_samp_df, "tests/testthat/training_data/2022-08-14_flu_sample.csv", row.names = FALSE)
-
+write.csv(dplyr::mutate(US_samp_df, sample = ifelse(sample > 98, 105, sample)), "tests/testthat/training_data/2022-08-14_flu_badsample.csv", row.names = FALSE)
 
