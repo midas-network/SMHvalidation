@@ -298,7 +298,7 @@ test_val <- function(df, pop, last_lst_gs, js_def) {
 
   # unique projection for each combination
   sel_group <- grep(
-    "value|target_end_date|type|model_projection_date|scenario_name",
+    "value|target_end_date|model_projection_date|scenario_name",
     js_def$column_names, invert = TRUE, value = TRUE)
   lst_df <-  split(df, as.list(df[,sel_group]), drop = TRUE)
   lst_df <- purrr::discard(lst_df, function(x) dim(x)[[1]] < 1)
@@ -334,7 +334,7 @@ test_val <- function(df, pop, last_lst_gs, js_def) {
                                                 quantile))
   }
   sel_group <- grep(
-    "value|target_end_date|type|model_projection_date|scenario_name|target$",
+    "value|target_end_date|model_projection_date|scenario_name|target$",
     names(df2), invert = TRUE, value = TRUE)
   lst_df <-  split(df2, as.list(df2[,sel_group]), drop = TRUE)
   lst_df <- purrr::discard(lst_df, function(x) dim(x)[[1]] < 2)

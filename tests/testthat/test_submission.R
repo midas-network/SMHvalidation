@@ -96,7 +96,7 @@ test_that("Test validation process", {
   testthat::expect_equal(
     extract_err_code(validate_submission(
       "training_data/2022-01-09_badpointquant.csv", lst_gs, pop_path, js_def)),
-    c("502", "510"))
+    c("502"))
   testthat::expect_equal(
     extract_err_code(validate_submission(
       "training_data/2022-01-09_negvalue.csv", lst_gs, pop_path, js_def)),

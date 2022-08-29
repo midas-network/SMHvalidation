@@ -35,7 +35,7 @@ test_column <- function(df, js_def) {
   # The number of the columns are corresponding to the expected format
   if (isFALSE(length(colnames(df)) == length(js_def$column_names))) {
     coldim_test <- paste0(
-      "\U000274c Error 102: The data frame should contains",
+      "\U000274c Error 102: The data frame should contains ",
       length(js_def$column_names), " columns, not ",
       length(colnames(df)), ". Please verify if one or multiple columns have ",
       "been added or are missing.")

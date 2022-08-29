@@ -30,7 +30,16 @@ run_all_validation <- function(df, start_date, path, pop, last_lst_gs,
                                number2location, js_def) {
   # Tests:
   out_col <- test_column(df, js_def)
+  # add missing age_group column for all the tests
+  if (any(!js_def$column_names %in% names(df))) {
+    if (js_def$column_names[!js_def$column_names %in%
+                            names(df)] == "age_group") {
+      df[, "age_group"] <- "0-130"
+    }
+  }
+  # select only required column for the other tests
   df <- df[, js_def$column_names]
+
   out_scen <- test_scenario(df,js_def)
   out_mpd <- test_modelprojdate(df, path, start_date)
   if (any(grepl("quantile", js_def$column_names))) {
