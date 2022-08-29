@@ -49,7 +49,7 @@ run_all_validation <- function(df, start_date, path, pop, last_lst_gs,
                         "runs for Quantiles information")
   }
   if (any(grepl("sample", js_def$column_names))) {
-    out_sample <- test_sample(df)
+    out_sample <- test_sample(df, js_def)
   } else {
     out_sample <- paste0("No 'sample' information required, no validation runs",
                          " for Sample information")

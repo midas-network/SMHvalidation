@@ -4,20 +4,25 @@
 \alias{test_sample}
 \title{Runs Validation Checks on the samplecolumn}
 \usage{
-test_sample(df)
+test_sample(df, js_def)
 }
 \arguments{
 \item{df}{data frame to test}
+
+\item{js_def}{list containing round definitions: number and names of columns,
+target names, ...}
 }
 \description{
 Validate Scenario Modeling Hub submissions: test if the  `sample` column
 contains the expected  value.
 }
 \details{
-This function contains 1 test:
+This function contains 2 tests:
 \itemize{
  \item{sample value: }{The submission should contain a sample column with
  value between 0 and 100.}
+  \item{unique samplee: }{The submission should contain a unique sample
+  identifier for each scenario/target/location (age_group) group.}
 }
 Function called in the `validate_submission()` function.
 }
