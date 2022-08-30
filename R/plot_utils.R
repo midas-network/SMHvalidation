@@ -461,7 +461,7 @@ make_state_plot_pdf <- function(proj_data, gs_data, team_model_name, projection_
 #'
 #' @param path_proj dataframe, format as the Scenario Modeling Hub standard
 #' @param lst_gs, list of dataframe, observed data (advice to use the output
-#'    of the function `pull_gs_data()`). If NULL, no compararison to observed
+#'    of the function `pull_gs_data()`). If NULL, no comparison to observed
 #'    data will be done.
 #' @param save_path character vector, path to the saving folder for the PDF
 #'    output

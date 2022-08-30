@@ -232,8 +232,8 @@ be automatically print on the validation but, please feel free to ignore it.
 
 |Code|Type|Checking Step|Test|
 |:--|:--|:-------|:----------------|
-|001|Error|Information extracted before running the validation, **if any issue, stop and will not run the validation**|`scen_info` parameter should either be: a path to a file containing the round and scenario information, or a data frame, or NULL. If NULL, the information will be automatically extracted from the Scenario Modeling Hub GitHub repository.|
-|002|Error|Information extracted before running the validation, **if any issue, stop and will not run the validation**|Cannot extract round number information from the files, test that the file name contains the expected date and the `scenario id` column contains the expected information.|
+|001 - [Deprecated for new `js_def` parameter]|Error|Information extracted before running the validation, **if any issue, stop and will not run the validation**|`scen_info` parameter should either be: a path to a file containing the round and scenario information, or a data frame, or NULL. If NULL, the information will be automatically extracted from the Scenario Modeling Hub GitHub repository.|
+|002 - [Deprecated for new `js_def` parameter]|Error|Information extracted before running the validation, **if any issue, stop and will not run the validation**|Cannot extract round number information from the files, test that the file name contains the expected date and the `scenario id` column contains the expected information.|
 |101|Error|Run in `test_column()` function |No column name is misspelled or does not correspond to the expected column names.|
 |102|Error|Run in `test_column()` function |The data frame should contain the expected number of columns.|
 |103|Error|Run in `test_column()` function , if no error 101 but error 102 appears, **stop and will not run the validation**|No column name is misspelled or does not correspond to the expected column names. An additional unexpected column will stop the rest of the validation.|
