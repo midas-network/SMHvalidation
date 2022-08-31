@@ -52,16 +52,23 @@ with `?validate_submission()` for example.
 
 #### Usage
 
-To test a submission file, it's necessary to provide 2 argurments:
+To test a submission file, it's necessary to provide 4 arguments:
 
  * the path of the file to test (CSV, ZIP or GZ file format)
  * a named list of data frame containing the observed data. We highly recommend 
  to use the output of the pull_gs_data() function. The list should have the 
  same format: each data frame should be named with the corresponding `covidcast` 
- signal except "hospitalization" instead of "confirmed_admissions_covid_1d".
+ signal except "hospitalization" instead of "confirmed_admissions_covid_1d". If
+ `NULL` no comparison to observed data will be done
+ * a path to a CSV file containing locationand population size information 
+ * a list containing the round information (column names, targets information, 
+ etc.)
+ 
 
 ```{r}
 lst_gs <- pull_gs_data()
+pop_path <- "https://raw.githubusercontent.com/midas-network/covid19-scenario-modeling-hub/master/data-locations/locations.csv"
+js_def <- jsonlite::fromJSON("PATH/TO/ROUND/METADATA.json")
 validate_submission("PATH/TO/SUBMISSION", lst_gs)
 ```
 
@@ -69,12 +76,12 @@ As a warning:
 
   * The vast majority of submissions done in 2021 will returns an error on the 
 model_projection_date column as the rules and tests on this column have been 
-made and put in place only since 2022 (round 12).
+made and put in place only since 2022 (COVID-19 - round 12).
 
   * Also the cumulative observed data for the location 39 has been corrected 
-  after round 12 publication so all the submissions might have an error saying:
-  `"Error: Some value(s) are inferior than the last oberved cumulative death 
-count. Please check location(s): 39 "`
+  after COVID-19 round 12 publication so all the submissions might have an error
+  saying: `"Error: Some value(s) are inferior than the last observed cumulative 
+  death count. Please check location(s): 39 "`
 
 These 2 errors can be ignored.
 
@@ -82,6 +89,8 @@ These 2 errors can be ignored.
 
 For more information, please feel free to look at the documentation of the 
 function (`?pull_gs_data`)
+
+Currently, the function only pull COVID-19 data. 
 
 #### Description
 
