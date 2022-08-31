@@ -69,7 +69,7 @@ To test a submission file, it's necessary to provide 4 arguments:
 lst_gs <- pull_gs_data()
 pop_path <- "https://raw.githubusercontent.com/midas-network/covid19-scenario-modeling-hub/master/data-locations/locations.csv"
 js_def <- jsonlite::fromJSON("PATH/TO/ROUND/METADATA.json")
-validate_submission("PATH/TO/SUBMISSION", lst_gs)
+validate_submission("PATH/TO/SUBMISSION", lst_gs, pop_path, js_def)
 ```
 
 As a warning:
