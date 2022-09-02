@@ -280,7 +280,7 @@ be automatically print on the validation but, please feel free to ignore it.
 |801|Error|Run in `test_agegroup()` function|The submission should contain a column `age_group` with values defined as `<AGEMIN>-<AGEMAX>`.|
 |802|Error|Run in `test_agegroup()` function|Each age_group value corresponds to the expected value.|
 |803|Error|Run in `test_agegroup()` function|`<AGEMIN>` cannot be equal or greater than `<AGEMAX>`|
-|804|Error|Run in `test_agegroup()` function|The submission either contain one age group  `0-130` for each scenario/target/location/quantile group|
+|804|Error|Run in `test_agegroup()` function|The submission should at least contain one age group  `0-130` for each scenario/target/location/quantile group|
 |805|Warning|Run in `test_agegroup()` function| When multiple age groups are provided for the same scenario/target/location/quantile group, the multiple age groups are adding to `0-130`|
 |806|Error|Run in `test_agegroup()` function|For the target requiring only specific age group(s), no additional age group is provided in the submission file|
 |901|Error|Run in `test_sample()` function|The column 'sample' contains only integer value between `1` and `100` (included)|
