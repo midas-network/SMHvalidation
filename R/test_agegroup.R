@@ -38,10 +38,10 @@ test_agegroup <- function(df, js_def) {
                          invert = TRUE))) > 0) {
     age_writ <- paste0(
       "\U000274c Error 801: The `age_group` column should contain value ",
-      "written: '<AGEMIN>-<AGEMAX>', one or more 'age_group' value(s) is",
-      "not corresponding in the submission file, please verify: ",
-      unique(grep("\\d{1,2}-\\d{1,3}", df$age_group, value = TRUE,
-                  invert = TRUE)), ".")
+      "written: '<AGEMIN>-<AGEMAX>', one or more 'age_group' value(s) is ",
+      "not corresponding in the submission file, please verify: '",
+      paste(unique(grep("\\d{1,2}-\\d{1,3}", df$age_group, value = TRUE,
+                  invert = TRUE)), collapse = "', '"), "'.")
   } else {
     age_writ <- NA
   }
@@ -50,7 +50,7 @@ test_agegroup <- function(df, js_def) {
   # GitHub Repository
   age <- dplyr::distinct(dplyr::select(df, age_group))
 
-  if (is.na(age_writ)) {
+  if (all(is.na(age_writ))) {
     age <- tidyr::separate(age, age_group, c("min", "max"), sep = "-",
                            remove = FALSE)
 
