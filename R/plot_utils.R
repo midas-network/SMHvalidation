@@ -277,10 +277,6 @@ make_state_plot_pdf <- function(proj_data, gs_data, team_model_name,
                                 plot_quantiles = c(0.025, 0.975),
                                 y_sqrt = FALSE){
 
-  git_path <- "https://raw.githubusercontent.com/midas-network/"
-  smh_locs <- readr::read_csv(paste0(git_path,
-    "covid19-scenario-modeling-hub/master/data-locations/locations.csv"))
-
   # Projections - Clean up and merge
   proj_data <- proj_data %>%
     dplyr::mutate(location = stringr::str_pad(location, 2, "left", "0")) %>%
@@ -308,8 +304,7 @@ make_state_plot_pdf <- function(proj_data, gs_data, team_model_name,
   }
 
   proj_data <- proj_data  %>%
-    dplyr::left_join(smh_locs %>% dplyr::rename(state=abbreviation),
-                     by = "location") %>%
+    dplyr::mutate(state = number2abbr[as.character(location)]) %>%
     dplyr::arrange(scenario_id, scenario_name, state, incid_cum, outcome, date)
 
   proj_plot_data <- proj_data %>%
