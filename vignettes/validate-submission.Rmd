@@ -92,7 +92,7 @@ in the corresponding SMH round.
 Before running the function, we will prepare the required and optional parameter
 as explained above:
 
-```{r prerequisite}
+```{r prerequisite, message=FALSE, warning=FALSE}
 lst_gs <- pull_gs_data()
 pop_path <- "https://raw.githubusercontent.com/midas-network/covid19-scenario-modeling-hub/master/data-locations/locations.csv"
 js_def <- system.file("extdata", "2022-01-09_metadata.json", package = "covid19SMHvalidation")
