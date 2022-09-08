@@ -52,7 +52,7 @@ format_gs_data <- function(lst_gs, projection_date) {
 #' @importFrom grid gpar rectGrob
 #' @importFrom tidyselect all_of
 print_table <- function(
-    data=proj_plot_data_calib_cum,
+    data = proj_plot_data_calib_cum,
     tab_title = "Top Outliers: Percent difference from ground truth, Cumulative",
     metric = "prctdiff_gt", #"median",
     thresholds=c(-Inf, -.20, -.06, 0),
@@ -292,9 +292,11 @@ make_state_plot_pdf <- function(proj_data, gs_data, team_model_name,
 
   if (!is.null(gs_data)) {
     proj_data <- proj_data %>%
-      dplyr::bind_rows(gs_data %>% dplyr::rename(value_gt=value) %>%
+      dplyr::bind_rows(gs_data %>% dplyr::rename(value_gt = value) %>%
                          dplyr::mutate(date = lubridate::as_date(date),
-                                       scenario_name="ground truth")) %>%
+                                       scenario_name = "ground truth") %>%
+                         dplyr::filter(date <= max(proj_data$date,
+                                                   na.rm = TRUE))) %>%
       dplyr::select(scenario_id, scenario_name, location, incid_cum, outcome,
                     date, quantile, value, value_gt, pre_gs_end)
   } else {
