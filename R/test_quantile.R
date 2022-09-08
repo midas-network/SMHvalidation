@@ -111,15 +111,15 @@ test_quantiles <- function(df, js_def) {
     group <- paste(names(unique(x[, sel_group])), ":", unique(x[, sel_group]),
                    collapse = ", ")
     dfstl <- dplyr::filter(x, grepl("quantile", type))
-    if (length(unique(dfstl$value)) == 1) {
-      if (unique(dfstl$value) != 0) {
-        qval_test_tot <- paste0(
-          "\U000274c Error 405: All the quantiles seem to be ",
-          "equal to a unique value for the group: ", group)
-      } else {
-        qval_test_tot <- NA
-      }
-    } else {
+   # if (length(unique(dfstl$value)) == 1) {
+   #   if (unique(dfstl$value) != 0) {
+   #     qval_test_tot <- paste0(
+   #       "\U000274c Error 405: All the quantiles seem to be ",
+   #       "equal to a unique value for the group: ", group)
+   #   } else {
+   #     qval_test_tot <- NA
+   #   }
+   # } else {
       sel_quantile <- sort(unique(dfstl$quantile))
       qval_test_tot <- NULL
       for (i in 1:(length(sel_quantile) - 1)) {
@@ -146,7 +146,7 @@ test_quantiles <- function(df, js_def) {
         qval_test <- unique(qval_test)
         qval_test_tot <- unique(c(qval_test_tot, qval_test))
       }
-    }
+    #}
     qval_test_tot <- unique(na.omit(qval_test_tot))
     if (length(qval_test_tot) == 0) qval_test_tot <- NA
     return(qval_test_tot)

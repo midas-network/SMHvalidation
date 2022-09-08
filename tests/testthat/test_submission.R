@@ -116,15 +116,15 @@ test_that("Test validation process", {
   testthat::expect_equal(
     extract_err_code(validate_submission(
       "training_data/2022-01-09_lowcumcase.csv", lst_gs, pop_path, js_def)),
-    c("405", "508"))
+    c("508")) # "405"
   testthat::expect_equal(
     extract_err_code(validate_submission(
       "training_data/2022-01-09_lowcumdeath.csv", lst_gs, pop_path, js_def)),
-    c("405", "509"))
+    c("509")) # "405"
   testthat::expect_equal(
     extract_err_code(validate_submission(
       "training_data/2022-01-09_uniquevalue.csv", lst_gs, pop_path, js_def)),
-    c("405", "505"))
+    c("505")) # "405"
   testthat::expect_equal(
     extract_err_code(validate_submission(
       "training_data/2022-01-09_missingrow.csv", lst_gs, pop_path, js_def)),
@@ -164,7 +164,7 @@ test_that("Test validation process", {
   testthat::expect_equal(
     extract_err_code(validate_submission(
       "training_data/2021-11-14_no0location.zip", lst_gs, pop_path,
-      js_def_1114)), c("405", "509", "702"))
+      js_def_1114)), c("509", "702")) # "405"
 
   ### Tests on FLU ###
   testthat::expect_equal(
