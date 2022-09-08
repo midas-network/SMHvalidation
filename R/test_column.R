@@ -27,7 +27,8 @@ test_column <- function(df, js_def) {
       names(df)) %in% sort(js_def$column_names))]
     colnames_test <- paste0(
       "\U000274c Error 101: At least one column name is misspelled or does not",
-      " correspond to the expected column names. The column(s) ", fail_col,
+      " correspond to the expected column names. The column(s) ",
+      paste(fail_col, collapse = ", "),
       " do(es) not correspond to the standard")
   } else {
     colnames_test <- NA
@@ -44,7 +45,8 @@ test_column <- function(df, js_def) {
     if (!is.na(colnames_test)) {
       err_message3 <- paste0("\U000274c Error 103: ",
         "At least one column name is misspelled or does not correspond to ",
-        "the expected column names. The column(s) ", fail_col,
+        "the expected column names. The column(s) ", paste(fail_col,
+                                                           collapse = ", "),
         " do(es) not correspond to the standard. The rest of the validation ",
         "checks cannot be done if the columns names are not in the expected ",
         "standard format")

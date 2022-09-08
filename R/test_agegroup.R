@@ -38,7 +38,7 @@ test_agegroup <- function(df, js_def) {
                          invert = TRUE))) > 0) {
     age_writ <- paste0(
       "\U000274c Error 801: The `age_group` column should contain value ",
-      "written: '<AGEMIN>-<AGEMAX>', one or more 'age_group' value(s) is ",
+      "written: 'AGEMIN-AGEMAX', one or more 'age_group' value(s) is ",
       "not corresponding in the submission file, please verify: '",
       paste(unique(grep("\\d{1,2}-\\d{1,3}", df$age_group, value = TRUE,
                   invert = TRUE)), collapse = "', '"), "'.")
@@ -56,8 +56,9 @@ test_agegroup <- function(df, js_def) {
 
     if (isFALSE(all(age$min %in% js_def$ages$age_min))) {
       age_min <- paste0(
-        "\U000274c Error 802: The `age_group` column contains unexpected value: ",
-        age$min[!(age$min %in% js_def$ages$age_min)], ". <AGEMIN> can only be: ",
+        "\U000274c Error 802: The `age_group` column contains unexpected ",
+        "value: '", paste(age$min[!(age$min %in% js_def$ages$age_min)],
+                          collapse = "', '"),  "'. 'AGEMIN' can only be: ",
         paste(js_def$ages$age_min, collapse = ', '), ".")
     } else {
       age_min <- NA
@@ -65,8 +66,9 @@ test_agegroup <- function(df, js_def) {
 
     if (isFALSE(all(age$max %in% js_def$ages$age_max))) {
       age_max <- paste0(
-        "\U000274c Error 802: The `age_group` column contains unexpected value: ",
-        age$max[!(age$max %in% js_def$ages$age_max)], ". <AGEMAX> can only be: ",
+        "\U000274c Error 802: The `age_group` column contains unexpected ",
+        "value: '", paste(age$max[!(age$max %in% js_def$ages$age_max)],
+                          collapse = "', '"), "'. 'AGEMAX' can only be: ",
         paste(js_def$ages$age_max, collapse = ', '), ".")
     } else {
       age_max <- NA
@@ -79,9 +81,9 @@ test_agegroup <- function(df, js_def) {
       dplyr::filter(diff <= 0)
     if (dim(age_test)[1] > 0) {
       age_val <- paste0(
-        "\U000274c Error 803: <AGEMIN> cannot be equal or greater than <AGEMAX>",
-        ". Please verify the age_group: ",
-        paste(unique(age_test$age_group),  collapse = ", "), ".")
+        "\U000274c Error 803: AGEMIN cannot be equal or greater than AGEMAX",
+        ". Please verify the age_group: ", paste(unique(age_test$age_group),
+                                                 collapse = ", "), ".")
     } else {
       age_val <- NA
     }

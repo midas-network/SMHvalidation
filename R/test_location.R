@@ -37,7 +37,7 @@ test_location <- function(df, number2location, js_def) {
       location_test <- paste0(
         "\U000274c Error 701: Some locations codes are not corresponding to ",
         "any known location: '", paste(unique(df$location)[is.na(
-          number2location[unique(df$location)])], collapse = ", "), "'.")
+          number2location[unique(df$location)])], collapse = "', '"), "'.")
     } else {
       # is missing the trailing 0
       location_test <- paste0(
