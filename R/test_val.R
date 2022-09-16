@@ -186,6 +186,12 @@ test_val <- function(df, pop, last_lst_gs, js_def) {
     return(unique(pointuniq_test))
   })
 
+  if (length(unique(na.omit(unlist(pointuniq_test)))) > 200) {
+    pointuniq_test <- paste0(
+      "\U0001f7e1 Warning 505: Multiples location/target/scenario groups have ",
+      "a unique value for the whole projection period. Please verify.")
+  }
+
   # Each required group of scenario/location/target has 1 unique point value
   name_target <- names(purrr::keep(purrr::map(target_type, "required"),
                                    function(x) any(x %in% "point")))
@@ -322,44 +328,50 @@ test_val <- function(df, pop, last_lst_gs, js_def) {
   # Cumulative values are not decreasing
   target_sel <- grep("cum |peak time hosp",
                      names(js_def$targets$required), value = TRUE)
-  df2 <- dplyr::filter(df, grepl(paste(target_sel, collapse = "|"), target))
-  ## automatic fix location to avoid issue and error message
-  df2 <- dplyr::filter(df2, !is.na(value))
-  df2 <- dplyr::mutate(
-    df2, location = ifelse(nchar(location) == 1, paste0("0", location),
-                           location),
-    target_name = gsub(".+ wk ahead ", "", target))
-  if (any(grepl("quantile", colnames(df2)))) {
-    df2 <- dplyr::mutate(df2, quantile = ifelse(is.na(quantile), "point",
-                                                quantile))
-  }
-  sel_group <- grep(
-    "value|target_end_date|model_projection_date|scenario_name|target$",
-    names(df2), invert = TRUE, value = TRUE)
-  lst_df <-  split(df2, as.list(df2[,sel_group]), drop = TRUE)
-  lst_df <- purrr::discard(lst_df, function(x) dim(x)[[1]] < 2)
-  valcum_test <- lapply(seq_along(lst_df), function(x) {
-    group <- paste(names(unique(lst_df[[x]][, sel_group])), ":",
-                   unique(lst_df[[x]][, sel_group]),
-                   collapse = ", ")
-    val_test_tot <- NULL
-    lst_df[[x]] <- dplyr::arrange(lst_df[[x]], target_end_date)
-    for (i in 1:(dim(lst_df[[x]])[1] - 1)) {
-      n_val <- lst_df[[x]]$value[i]
-      n1_val <- lst_df[[x]]$value[i + 1]
-      if (n1_val < n_val) {
-        val_test <- paste0(
-          "\U000274c Error 511: The cumulative value of the target ",
-          lst_df[[x]]$target[i + 1], ", is lower than the previous week target",
-          ", please verify the group: ", group)
-      } else {
-        val_test <- NA
-      }
-      val_test <- unique(val_test)
-      val_test_tot <- unique(c(val_test_tot, val_test))
+  if(length(target_sel) > 0) {
+    df2 <- dplyr::filter(df, grepl(paste(target_sel, collapse = "|"), target))
+    ## automatic fix location to avoid issue and error message
+    df2 <- dplyr::filter(df2, !is.na(value))
+    df2 <- dplyr::mutate(
+      df2, location = ifelse(nchar(location) == 1, paste0("0", location),
+                             location),
+      target_name = gsub(".+ wk ahead ", "", target))
+    if (any(grepl("quantile", colnames(df2)))) {
+      df2 <- dplyr::mutate(df2, quantile = ifelse(is.na(quantile), "point",
+                                                  quantile))
     }
-    return(val_test_tot)
-  })
+    sel_group <- grep(
+      "value|target_end_date|model_projection_date|scenario_name|target$",
+      names(df2), invert = TRUE, value = TRUE)
+    lst_df <-  split(df2, as.list(df2[,sel_group]), drop = TRUE)
+    lst_df <- purrr::discard(lst_df, function(x) dim(x)[[1]] < 2)
+    valcum_test <- lapply(seq_along(lst_df), function(x) {
+      group <- paste(names(unique(lst_df[[x]][, sel_group])), ":",
+                     unique(lst_df[[x]][, sel_group]),
+                     collapse = ", ")
+      val_test_tot <- NULL
+      lst_df[[x]] <- dplyr::arrange(lst_df[[x]], target_end_date)
+      for (i in 1:(dim(lst_df[[x]])[1] - 1)) {
+        n_val <- lst_df[[x]]$value[i]
+        n1_val <- lst_df[[x]]$value[i + 1]
+        if (n1_val < n_val) {
+          val_test <- paste0(
+            "\U000274c Error 511: The cumulative value of the target ",
+            lst_df[[x]]$target[i + 1], ", is lower than the previous week ",
+            "target, please verify the group: ", group)
+        } else {
+          val_test <- NA
+        }
+        val_test <- unique(val_test)
+        val_test_tot <- unique(c(val_test_tot, val_test))
+      }
+      return(val_test_tot)
+    })
+  } else {
+    valcum_test <- NA
+  }
+
+
   if (length(na.omit(unlist(valcum_test))) > 100) {
     valcum_test <- unique(na.omit(unlist(valcum_test))) %>%
       gsub(" quantile : (\\d?(\\.\\d+)?|point),", "", .) %>% unique()

@@ -209,7 +209,7 @@ test_that("Test validation process", {
   testthat::expect_equal(
     extract_err_code(validate_submission(
       "training_data/2022-08-14_flu_badsample.csv", lst_gs_flu, pop_path_flu,
-      js_def_flu1_sample)), c("901", "902", "510", "511"))
+      js_def_flu1_sample)), c("901", "902", "510"))
 
 
 })
