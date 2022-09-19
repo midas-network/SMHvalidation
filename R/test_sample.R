@@ -24,8 +24,8 @@ test_sample <- function(df, js_def) {
   test_df <- dplyr::filter(df, sample < 1 | sample > 100)
   if (dim(test_df)[1] > 0 | any(grepl("\\.", df$sample))) {
     sample_value <-  paste0(
-      "\U000274c Error 901: The column 'sample' contains integer value between",
-      " 1 and 100 (included), please verify.")
+      "\U000274c Error 901: The column 'sample' should contains integer values ",
+      "between 1 and 100 (included), please verify.")
   } else {
     sample_value <- NA
   }
