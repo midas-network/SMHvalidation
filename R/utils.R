@@ -28,7 +28,7 @@ read_files <- function(path) {
     file_name <- gzfile(path)
     df <- read.csv(file_name, sep = ",", na.strings = c("", "NA", "NaN"))
   }
-  if (grepl(".pqt$", basename(path))) {
+  if (grepl(".pqt$|.parquet$", basename(path))) {
     df <- arrow::read_parquet(path, as_data_frame = TRUE)
   }
   if (any("location"%in% names(df))) df$location <- as.character(df$location)
