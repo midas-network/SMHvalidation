@@ -186,7 +186,7 @@ test_val <- function(df, pop, last_lst_gs, js_def) {
     return(unique(pointuniq_test))
   })
 
-  if (length(unique(na.omit(unlist(pointuniq_test)))) > 200) {
+  if (length(unique(na.omit(unlist(pointuniq_test)))) > 500) {
     pointuniq_test <- paste0(
       "\U0001f7e1 Warning 505: Multiples location/target/scenario groups have ",
       "a unique value for the whole projection period. Please verify.")
