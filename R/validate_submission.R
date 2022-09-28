@@ -91,7 +91,7 @@ run_all_validation <- function(df, start_date, path, pop, last_lst_gs,
               "verify the information above")
     }
   } else {
-    print("End of validation check: all the validation checks were successfull")
+    print("End of validation check: all the validation checks were successful")
   }
 }
 
