@@ -30,7 +30,7 @@ test_that("Test validation process", {
   testthat::expect_equal(
     validate_submission(
       "training_data/2022-01-09_no_error.csv", lst_gs, pop_path, js_def),
-    "End of validation check: all the validation checks were successfull")
+    "End of validation check: all the validation checks were successful")
 
   # Test columns error -----
   testthat::expect_equal(
@@ -171,17 +171,17 @@ test_that("Test validation process", {
     validate_submission(
       "training_data/2022-08-14_flu_no_error.csv", lst_gs_flu, pop_path_flu,
       js_def_flu1),
-    "End of validation check: all the validation checks were successfull")
+    "End of validation check: all the validation checks were successful")
   testthat::expect_equal(
     validate_submission(
       "training_data/2022-08-14_flu_nopoint_noerror.csv", lst_gs_flu,
       pop_path_flu, js_def_flu1),
-    "End of validation check: all the validation checks were successfull")
+    "End of validation check: all the validation checks were successful")
   testthat::expect_equal(
     validate_submission(
       "training_data/2022-08-14_flu_sample.csv", lst_gs_flu,
       pop_path_flu, js_def_flu1_sample),
-    "End of validation check: all the validation checks were successfull")
+    "End of validation check: all the validation checks were successful")
 
   # Test additional location error -----
   testthat::expect_equal(
