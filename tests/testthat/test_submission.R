@@ -7,16 +7,15 @@ test_that("Test validation process", {
   pop_path_flu <- "https://raw.githubusercontent.com/midas-network/flu-scenario-modeling-hub/main/data-locations/locations.csv"
 
   js_def <- "training_data/2022-01-09_metadata.json"
-  js_def <- jsonlite::fromJSON(js_def)
+ # js_def <- jsonlite::fromJSON(js_def)
 
-  js_def_0815 <- jsonlite::fromJSON("training_data/2021-08-15_metadata.json")
-  js_def_1114 <- jsonlite::fromJSON("training_data/2021-11-14_metadata.json")
-  js_def_0313 <- jsonlite::fromJSON("training_data/2022-03-13_metadata.json")
-  js_def_0605 <- jsonlite::fromJSON("training_data/2022-06-05_metadata.json")
+  js_def_0815 <- "training_data/2021-08-15_metadata.json"#jsonlite::fromJSON("training_data/2021-08-15_metadata.json")
+  js_def_1114 <- "training_data/2021-11-14_metadata.json"#jsonlite::fromJSON("training_data/2021-11-14_metadata.json")
+  js_def_0313 <- "training_data/2022-03-13_metadata.json"#jsonlite::fromJSON("training_data/2022-03-13_metadata.json")
+  js_def_0605 <- "training_data/2022-06-05_metadata.json"#jsonlite::fromJSON("training_data/2022-06-05_metadata.json")
 
-  js_def_flu1 <- jsonlite::fromJSON("training_data/2022-08-14_metadata.json")
-  js_def_flu1_sample <- jsonlite::fromJSON(
-    "training_data/2022-08-14_metadata-sample.json")
+  js_def_flu1 <- "training_data/2022-08-14_metadata.json"#jsonlite::fromJSON("training_data/2022-08-14_metadata.json")
+  js_def_flu1_sample <- "training_data/2022-08-14_metadata-sample.json"#jsonlite::fromJSON("training_data/2022-08-14_metadata-sample.json")
 
   extract_err_code <- function(expr) {
     test <- capture.output(try(suppressWarnings(expr), silent = TRUE))

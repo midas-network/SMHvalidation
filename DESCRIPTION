@@ -34,6 +34,7 @@ Imports: arrow,
          grid,
          gridExtra,
          gtable,
+         jsonlite,
          lubridate, 
          purrr, 
          readr,
@@ -43,7 +44,6 @@ Imports: arrow,
          tidyr,
          tidyselect
 Suggests:
-    jsonlite,
     knitr,
     rmarkdown,
     testthat (>= 3.0.0)

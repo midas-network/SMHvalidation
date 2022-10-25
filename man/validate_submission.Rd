@@ -18,8 +18,8 @@ frame should be named with the corresponding covidcast signal except
 \item{pop_path}{path to a table containing the population size of each
 geographical entities by FIPS (in a column "location") and by location name.}
 
-\item{js_def}{list containing round definitions: names of columns,
-target names, ...}
+\item{js_def}{path to JSON file containing round definitions: names of
+columns, target names, ...}
 }
 \description{
 Runs all the different validation checks functions (test_column,
@@ -41,7 +41,7 @@ The function accepts submission in CSV, ZIP or GZ file formats.
 
 lst_gs <- pull_gs_data()
 pop_path <- "PATH/TO/data-locations/locations.csv"
-js_def <- jsonlite::fromJSON("PATH/TO/covid.json")
+js_def <- "PATH/TO/covid.json"
 
 validate_submission("PATH/SUBMISSION", lst_gs, pop_path, js_def)
 
@@ -49,7 +49,7 @@ validate_submission("PATH/SUBMISSION", lst_gs, pop_path, js_def)
 
 lst_gs <- NULL
 pop_path <- "PATH/TO/data-locations/locations.csv"
-js_def <- jsonlite::fromJSON("PATH/TO/flu.json")
+js_def <- "PATH/TO/flu.json"
 
 validate_submission("PATH/SUBMISSION", lst_gs, pop_path, js_def)
 

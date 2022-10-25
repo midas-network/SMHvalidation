@@ -112,8 +112,8 @@ run_all_validation <- function(df, start_date, path, pop, last_lst_gs,
 #' "hospitalization" instead of "confirmed_admissions_covid_1d".
 #'@param pop_path path to a table containing the population size of each
 #'  geographical entities by FIPS (in a column "location") and by location name.
-#'@param js_def list containing round definitions: names of columns,
-#' target names, ...
+#'@param js_def path to JSON file containing round definitions: names of
+#'  columns, target names, ...
 #'
 #'@details For more information on all tests run on the submission, please refer
 #' to the documentation of each "test_*" function. A vignette with all the
@@ -123,6 +123,7 @@ run_all_validation <- function(df, start_date, path, pop, last_lst_gs,
 #'
 #' @importFrom dplyr mutate select %>% mutate_if
 #' @importFrom stats setNames
+#' @importFrom jsonlite fromJSON
 #'
 #'@examples
 #' \dontrun{
@@ -130,7 +131,7 @@ run_all_validation <- function(df, start_date, path, pop, last_lst_gs,
 #'
 #' lst_gs <- pull_gs_data()
 #' pop_path <- "PATH/TO/data-locations/locations.csv"
-#' js_def <- jsonlite::fromJSON("PATH/TO/covid.json")
+#' js_def <- "PATH/TO/covid.json"
 #'
 #' validate_submission("PATH/SUBMISSION", lst_gs, pop_path, js_def)
 #'
@@ -138,7 +139,7 @@ run_all_validation <- function(df, start_date, path, pop, last_lst_gs,
 #'
 #' lst_gs <- NULL
 #' pop_path <- "PATH/TO/data-locations/locations.csv"
-#' js_def <- jsonlite::fromJSON("PATH/TO/flu.json")
+#' js_def <- "PATH/TO/flu.json"
 #'
 #' validate_submission("PATH/SUBMISSION", lst_gs, pop_path, js_def)
 #'
@@ -161,6 +162,9 @@ validate_submission <- function(path,
   # Pull population data and prepare location hash vector
   pop <- read_files(pop_path)
   number2location <- setNames(pop$location_name, pop$location)
+
+  # Read JSON file
+  js_def <- jsonlite::fromJSON(js_def)
 
   # Print message --------
   print(paste0("Run validation on file: ", basename(path)))
