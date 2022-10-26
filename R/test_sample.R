@@ -20,16 +20,37 @@
 #'@importFrom dplyr filter
 #'@export
 test_sample <- function(df, js_def) {
-  # - sample column should be an integer between 0 and 100,
+  # - sample column should be an integer
+  # Function from ?is.integer() function documentation
+  is.wholenumber <-
+    function(x, tol = .Machine$double.eps^0.5)  abs(x - round(x)) < tol
+
+  if (any(!is.wholenumber(df$sample))) {
+    sample_type <-  paste0(
+      "\U000274c Error 903: The column 'sample' should contains integer values",
+      " only. Please verify")
+  } else {
+    sample_type <- NA
+  }
+
+  # - sample column contain value from 1 to 100 (warning if under 100 or over
+  # 100)
   test_df <- dplyr::filter(df, sample < 1 | sample > 100)
   if (dim(test_df)[1] > 0 | any(grepl("\\.", df$sample))) {
     sample_value <-  paste0(
-      "\U000274c Error 901: The column 'sample' should contains integer values ",
-      "between 1 and 100 (included), please verify.")
+      "\U0001f7e1 Warning 901: The column 'sample' should contains integer",
+      " values between 1 and 100 (included), please verify.")
   } else {
     sample_value <- NA
   }
 
+  if (max(df$sample) < 100) {
+    sample_value <- c(
+      sample_value,
+      paste0("\U0001f7e1 Warning 901: The column 'sample' contains less ",
+             "`sample` then expected. Up to 100 'samples' for each scenario/",
+             "target/location(/age_group) can be submitted."))
+  }
 
   sel_group <- grep(
     "value|target_end_date|model_projection_date|scenario_name",
@@ -53,7 +74,8 @@ test_sample <- function(df, js_def) {
       gsub(" target : \\d{1,2} wk ahead ", " target: ", .) %>% unique
   }
 
-  test_sample <- unique(na.omit(c(sample_value, unlist(sample_unique))))
+  test_sample <- unique(na.omit(c(sample_value, unlist(sample_unique),
+                                  sample_type)))
   if (length(test_sample) == 0)
     test_sample <- "No errors or warnings found on Sample"
 
