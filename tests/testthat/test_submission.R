@@ -67,7 +67,7 @@ test_that("Test validation process", {
   testthat::expect_equal(
     extract_err_code(validate_submission(
       "training_data/2022-01-09_mpd_format.csv", lst_gs, pop_path, js_def)),
-    c("301", "303", "304"))
+    c("003"))
 
   # Test quantile error -----
   testthat::expect_equal(

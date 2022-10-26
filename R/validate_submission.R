@@ -121,7 +121,7 @@ run_all_validation <- function(df, start_date, path, pop, last_lst_gs,
 #' \cr\cr
 #' The function accepts submission in CSV, ZIP or GZ file formats.
 #'
-#' @importFrom dplyr mutate select %>% mutate_if
+#' @importFrom dplyr mutate select %>% mutate_all
 #' @importFrom stats setNames
 #' @importFrom jsonlite fromJSON
 #'
@@ -173,6 +173,17 @@ validate_submission <- function(path,
   # Read file
   df <- read_files(path) %>%
     dplyr::mutate_if(is.factor, as.character)
+
+  # test date format
+  if (any(is.na(as.Date(na.omit(unlist(dplyr::mutate_all(
+    df[, grepl("date", names(df))], as.character))), "%Y-%m-%d")))) {
+    err003 <- paste0(
+      "\U000274c Error 003: The columns containing date information should be
+      in a  should be in a date format `YYYY-MM-DD`. Please verify")
+    cat(err003)
+    stop(" The submission contains am issue, the validation was not run, please",
+         " see information above.")
+  }
 
   # Prepare information per round
   start_date <- as.Date(js_def$first_week_ahead)
