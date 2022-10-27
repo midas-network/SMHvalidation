@@ -50,7 +50,7 @@ vignette [Validation Checks](validation-checks.html).
 
 #### Parameters
 
-The function requires 2 parameters:
+The function requires multiple parameters:
 
 * `path`: path to the submission files. The package contains 3 examples files 
 that can be used to test the function. There paths can be accessed by using: 
@@ -62,25 +62,16 @@ that can be used to test the function. There paths can be accessed by using:
 * `lst_gs`: named list of data frame containing the observed data. 
 We highly recommend to use the output of the `pull_gs_data()` function as input.
 This function will generate the output in the expected format with the expected 
-data. For more information, please do `?pull_gs_data()`.
-
-The function contains also 2 optional parameters:
-
+data. For more information, please do `?pull_gs_data()`. This parameter can be 
+set to `NULL` is no observed data comparison is required. 
 * `pop_path`: path to a table containing the population size of each 
 geographical entities by FIPS (in a column "location") and by location name. 
-By default, path to the locations file in the 
+For example, path to the locations file in the 
 [COVID19 Scenario Modeling Hub GitHub repository](https://github.com/midas-network/covid19-scenario-modeling-hub/blob/master/data-locations/locations.csv)
-* `scen_info`: character vector (path leading to a csv file) or data frame, 
-containing the round and scenario information in the same output format as the 
-function `scen_round_info()`. Please see `?sceb_round_info()` for more 
-information. If the `scen_info' parameter` is set to NULL, the information is
-extracted from the multiples README from the SMH GitHub repository by using the 
-GitHub API. Just as a warning, the number of call is limited to 60 per hour. 
-If you plan to use the `validate_submission()` function multiple times in a 
-short time frame, we advise use to store the scenario information in a data 
-frame by doing `df_scen_info <- scen_round_info()` for example, and setting the 
-`scen_info` parameter to `scen_info = df_scen_info`. That's what we will do in
-this vignette. 
+* `js_def`: list containing the round specific and scenario information. It 
+should be in the same output format as the function `json_metadata()` in the
+package `ScenarioModelingHub.data`. Some examples are also available in this 
+package.
 
 #### Output
 
@@ -101,16 +92,18 @@ in the corresponding SMH round.
 Before running the function, we will prepare the required and optional parameter
 as explained above:
 
-```{r prerequisite}
+```{r prerequisite, message=FALSE, warning=FALSE}
 lst_gs <- pull_gs_data()
-df_scen_info <- scen_round_info()
+pop_path <- "https://raw.githubusercontent.com/midas-network/covid19-scenario-modeling-hub/master/data-locations/locations.csv"
+js_def <- system.file("extdata", "2022-01-09_metadata.json", package = "covid19SMHvalidation")
+#js_def <- jsonlite::fromJSON(js_def)
 ```
 
-To look at the structure of these two objects:
+To look at the structure of `lst_gs` and `js_def`:
 
 ```{r str}
 str(lst_gs)
-str(df_scen_info)
+str(js_def)
 ```
 
 ## Example 1: No issues
@@ -119,7 +112,7 @@ We can now run the `validate_submission()` function on a first example file.
 
 ```{r test1}
 path_test <- system.file("extdata", "2022-01-09_team-model.csv", package = "covid19SMHvalidation")
-validate_submission(path_test, lst_gs, scen_info = df_scen_info)
+validate_submission(path_test, lst_gs, pop_path, js_def)
 ```
 
 The function returns a simple message stating that no issues has been found.
@@ -128,7 +121,9 @@ The function returns a simple message stating that no issues has been found.
 
 ```{r test2}
 path_test <- system.file("extdata", "2021-08-15_team-model.gz", package = "covid19SMHvalidation")
-validate_submission(path_test, lst_gs, scen_info = df_scen_info)
+js_def <- system.file("extdata", "2021-08-15_metadata.json", package = "covid19SMHvalidation")
+#js_def <- jsonlite::fromJSON(js_def)
+validate_submission(path_test, lst_gs, pop_path, js_def)
 ```
 
 The function returns a warning message stating that one or multiple issues 
@@ -141,7 +136,9 @@ in the submission is correct.
 
 ```{r test3, error=TRUE}
 path_test <- system.file("extdata", "2021-11-14_team-model.zip", package = "covid19SMHvalidation")
-validate_submission(path_test, lst_gs, scen_info = df_scen_info)
+js_def <- system.file("extdata", "2021-11-14_metadata.json", package = "covid19SMHvalidation")
+#js_def <- jsonlite::fromJSON(js_def)
+validate_submission(path_test, lst_gs, pop_path, js_def)
 ```
 
 The function returns an error message stating that one or multiple issues 
@@ -149,10 +146,22 @@ has been found.
 
 The submission will NOT be accepted and need correction before being accepted.
 
+## Example 4: Flu submission
+
+```{r test4}
+path_test <- system.file("extdata", "2022-08-14_team-flu.csv", package = "covid19SMHvalidation")
+pop_path <- "https://raw.githubusercontent.com/midas-network/flu-scenario-modeling-hub/main/data-locations/locations.csv"
+js_def <- system.file("extdata", "2022-08-14_metadata.json", package = "covid19SMHvalidation")
+#js_def <- jsonlite::fromJSON(js_def)
+validate_submission(path_test, NULL, pop_path, js_def)
+```
+
 
 ## Plotting Projections
 
-The `covid19SMHvalidation` R package also contains plotting functionality to output a plot of each location and target, with all scenarios and observed data incorporated.
+The `covid19SMHvalidation` R package also contains plotting functionality to 
+output a plot of each location and target, with all scenarios and observed data 
+incorporated.
 
 ```{r proj_plots}
 path_test <- system.file("extdata", "2022-01-09_team-model.csv", package = "covid19SMHvalidation")
@@ -173,4 +182,18 @@ print(paste0("Saving pdf plots to ", pdf_path, "."))
 generate_validation_plots(path_proj=path_test, lst_gs=lst_gs, save_path=getwd(), y_sqrt = FALSE, plot_quantiles = c(0.025, 0.975))
 system(paste0('open "', pdf_path, '"'))
 ```
+
+An other example is available for FLU submission (not compared to observed 
+data, set the `lst_gs` parameter to `NULL`)
+
+```{r proj_plots3}
+path_test <- system.file("extdata", "2022-08-14_team-flu.csv", package = "covid19SMHvalidation")
+save_path <- getwd()
+pdf_path <- file.path(save_path, paste0("2022-08-14", "_", "team-flu", "_plots.pdf"))
+print(paste0("Saving pdf plots to ", pdf_path, "."))
+generate_validation_plots(path_proj=path_test, lst_gs=NULL, save_path=getwd(), y_sqrt = FALSE, plot_quantiles = c(0.025, 0.975))
+system(paste0('open "', pdf_path, '"'))
+```
+
+
 

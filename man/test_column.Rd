@@ -4,10 +4,13 @@
 \alias{test_column}
 \title{Runs Validation Checks on Columns names and number}
 \usage{
-test_column(df)
+test_column(df, js_def)
 }
 \arguments{
 \item{df}{data frame to test}
+
+\item{js_def}{list containing round definitions: number and names of columns,
+target names, ...}
 }
 \description{
 Validate Scenario Modeling Hub submissions: names and number of columns.
@@ -16,11 +19,11 @@ Validate Scenario Modeling Hub submissions: names and number of columns.
 This function contains 2 tests:
 \itemize{
  \item{Name: }{The names of the columns are corresponding to the expected
- names: "model_projection_date", "scenario_name", "scenario_id", "target",
- "target_end_date", "location", "type", "quantile", "value". If one column
- is misspelled or is missing, the validation will stop here with an error
- message and no other tests will be perform on the submission.}
- \item{Number: }{The submission should contains 9 columns.}
+ column names. If one column is misspelled or is missing, the validation
+ will stop here with an error message and no other tests will be perform on
+ the submission.}
+ \item{Number: }{The submission should contains the expected number of
+ columns.}
 }
 Function called in the `validate_submission()` function.
 }

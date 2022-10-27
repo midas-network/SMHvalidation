@@ -7,13 +7,6 @@
 #' were successful.
 #'
 #'@param df data frame to test
-#'@param round numeric corresponding to the current round number
-#'@param scenario_smname named vector containing the scenario ID as name and the
-#' corresponding abbreviated name as value (example: name: "A-2020-12-22",
-#'  value: "optimistic")
-#'@param scenario_sel named vector containing the round number as name in a
-#' "roundX" format and the corresponding scenario ID as value (example:
-#'  name: "round1", value: "A-2020-12-22")
 #'@param path character vector path of the file being tested
 #'@param start_date corresponds to the "1 wk ahead" target in the projection
 #'  file
@@ -24,6 +17,8 @@
 #'@param last_lst_gs list of data frame, named with the corresponding target and
 #'  containing the last avaible week of observed data  before start of the
 #'  projection
+#'@param js_def list containing round definitions: names of columns,
+#' target names, ...
 #'
 #'@details Internal function called in the `validation_submission()` function. For
 #' more information on all tests run on the submission, please refer to the
@@ -31,32 +26,62 @@
 #' might be created later on too.
 #'
 #' @noRd
-run_all_validation <- function(df, round, start_date, path, pop,
-                               last_lst_gs, scenario_smname,
-                               scenario_sel, number2location) {
+run_all_validation <- function(df, start_date, path, pop, last_lst_gs,
+                               number2location, js_def) {
   # Tests:
-  out_col <- test_column(df)
-  out_scen <- test_scenario(df, round, scenario_smname, scenario_sel)
+  out_col <- test_column(df, js_def)
+  # add missing age_group column for all the tests
+  if (any(!js_def$column_names %in% names(df))) {
+    if (js_def$column_names[!js_def$column_names %in%
+                            names(df)] == "age_group") {
+      df[, "age_group"] <- "0-130"
+    }
+  }
+  # select only required column for the other tests
+  df <- df[, js_def$column_names]
+
+  out_scen <- test_scenario(df,js_def)
   out_mpd <- test_modelprojdate(df, path, start_date)
-  out_quant <- test_quantiles(df, round)
-  out_val <- test_val(df, pop, last_lst_gs)
-  out_target <- test_target(df, start_date, round)
-  out_loc <- test_location(df, number2location)
+  if (any(grepl("quantile", js_def$column_names))) {
+    out_quant <- test_quantiles(df, js_def)
+  } else {
+    out_quant <- paste0("No 'quantile' information required, no validation ",
+                        "runs for Quantiles information")
+  }
+  if (any(grepl("sample", js_def$column_names))) {
+    out_sample <- test_sample(df, js_def)
+  } else {
+    out_sample <- paste0("No 'sample' information required, no validation runs",
+                         " for Sample information")
+  }
+  out_val <- test_val(df, pop, last_lst_gs, js_def)
+  out_target <- test_target(df, start_date, js_def)
+  out_loc <- test_location(df, number2location, js_def)
+  if (any(grepl("age_group", js_def$column_names))) {
+    out_agegroup <- test_agegroup(df, js_def)
+  } else {
+    out_agegroup <- paste0("No 'age_group' information required, no validation",
+                           " runs for age group information")
+  }
   # Report:
   test_report <- paste(
     "\n ## Columns: \n\n", paste(out_col, collapse = "\n"),
     "\n\n## Scenarios: \n\n", paste(out_scen, collapse = "\n"), "\n\n",
     "## Model Projection Date Column:  \n\n", paste(out_mpd, collapse = "\n"),
     "\n\n## Quantiles: \n\n", paste(out_quant, collapse = "\n"),
+    "\n\n## Sample: \n\n", paste(out_sample, collapse = "\n"),
     "\n\n## Value and Type Columns: \n\n", paste(out_val, collapse = "\n"),
     "\n\n## Target Columns: \n\n", paste(out_target, collapse = "\n"),
     "\n\n## Locations: \n\n", paste(out_loc, collapse = "\n"),
+    "\n\n## Age Group: \n\n", paste(out_agegroup, collapse = "\n"),
     "\n\n")
   #Output:
-  if (!(all(grepl("^No error", c(out_col, out_scen, out_mpd, out_quant,
-                                 out_val, out_target, out_loc))))) {
+  if (!(all(grepl("^No error|^No .+ required",
+                  c(out_col, out_scen, out_mpd, out_quant, out_val, out_target,
+                    out_loc, out_sample, out_agegroup))))) {
     if (any(grepl("\U000274c Error", c(out_col, out_scen, out_mpd, out_quant,
-                                       out_val, out_target, out_loc)))) {
+                                       out_val, out_target, out_loc, out_sample,
+                                       out_agegroup)))) {
       cat(test_report)
       stop(" The submission contains one or multiple issues, please see ",
            "information above")
@@ -66,65 +91,64 @@ run_all_validation <- function(df, round, start_date, path, pop,
               "verify the information above")
     }
   } else {
-    print("End of validation check: all the validation checks were successfull")
+    print("End of validation check: all the validation checks were successful")
   }
 }
 
 
-
 #' Validate SMH (Scenario Modeling Hub) Submissions
-#'
 #'
 #' Runs all the different validation checks functions (test_column,
 #' test_scenario, test_modelprojdate, test_quantiles, test_val, test_target,
-#' test_location) on a Scenario Modeling Hub (SMH) submissions and prints
-#' information about the results of each tests on the submission: warning(s),
-#' error(s) or if all the tests were successful.
+#' test_location, test_sample, test_agegroup) on a Scenario Modeling Hub (SMH)
+#' submissions and prints information about the results of each tests on the
+#' submission: warning(s), error(s) or message if all the tests were successful.
 #'
 #'@param path path to the submissions file to test
 #'@param lst_gs named list of data frame containing the
-#' observed data. We highly recommend to use the output of the pull_gs_data()
-#' function. The list should have the same format: each data frame should be
-#' named with the corresponding covidcast signal except "hospitalization"
-#' instead of "confirmed_admissions_covid_1d".
+#' observed data. For COVID-19, we highly recommend to use the output of the
+#' pull_gs_data() function. The list should have the same format: each data
+#' frame should be named with the corresponding covidcast signal except
+#' "hospitalization" instead of "confirmed_admissions_covid_1d".
 #'@param pop_path path to a table containing the population size of each
 #'  geographical entities by FIPS (in a column "location") and by location name.
-#'  By default, NULL, will use the path to the locations file in the COVID19
-#'  Scenario Modeling Hub GitHub repository
-#'@param scen_info NULL, character vector (path leading to a csv file) or data
-#'  frame, containing, the round and scenario information in the same output
-#'  format as the function `scen_round_info()`. Please see documentation for
-#'  more information. The default is NULL. If NULL, the information will be
-#'  directly and automatically extracted from the Scenario Modeling Hub GitHub
-#'  repository.
+#'@param js_def path to JSON file containing round definitions: names of
+#'  columns, target names, ...
 #'
 #'@details For more information on all tests run on the submission, please refer
 #' to the documentation of each "test_*" function. A vignette with all the
 #' information might be created later on too.
 #' \cr\cr
 #' The function accepts submission in CSV, ZIP or GZ file formats.
-#' \cr\cr
-#' If the `scen_info` parameter is set to NULL, the information is extracted
-#' from the multiple README from the Scenario Modeling Hub GitHub repository by
-#' using the GitHub API. Just as a warning, the number of call is limited to
-#' 60 per hour. If you plan to use the `validate_submission()` function multiple
-#' times in a short time frame, we advise use to store the scenario information
-#' in a data frame by doing `df_scen_info <-  scen_round_info()` for example,
-#' and setting the `scen_info` parameter to `scen_info = df_scen_info`.
 #'
-#' @importFrom dplyr mutate select %>% mutate_if
+#' @importFrom dplyr mutate select %>% mutate_all
 #' @importFrom stats setNames
+#' @importFrom jsonlite fromJSON
 #'
 #'@examples
 #' \dontrun{
+#' # FOR COVID-19 SMH Submission
+#'
 #' lst_gs <- pull_gs_data()
-#' validate_submission("PATH/TO/SUBMISSION", lst_gs)
+#' pop_path <- "PATH/TO/data-locations/locations.csv"
+#' js_def <- "PATH/TO/covid.json"
+#'
+#' validate_submission("PATH/SUBMISSION", lst_gs, pop_path, js_def)
+#'
+#' # FOR FLU SMH Submission
+#'
+#' lst_gs <- NULL
+#' pop_path <- "PATH/TO/data-locations/locations.csv"
+#' js_def <- "PATH/TO/flu.json"
+#'
+#' validate_submission("PATH/SUBMISSION", lst_gs, pop_path, js_def)
+#'
 #' }
 #'@export
 validate_submission <- function(path,
                                 lst_gs,
-                                pop_path = NULL,
-                                scen_info = NULL) {
+                                pop_path,
+                                js_def) {
 
   # Prerequisite --------
   # Load gold standard data
@@ -134,39 +158,13 @@ validate_submission <- function(path,
       dplyr::select(time_value, value, location = fips, target_name)
   }) %>%
     setNames(names(lst_gs))
+
   # Pull population data and prepare location hash vector
-  if (is.null(pop_path)) {
-    pop_path <- paste0(
-      "https://raw.githubusercontent.com/midas-network/",
-      "covid19-scenario-modeling-hub/master/data-locations/locations.csv")
-  }
   pop <- read_files(pop_path)
   number2location <- setNames(pop$location_name, pop$location)
-  # Pull Scenario data and prepare scenario hash vector
-  if (is.null(scen_info)) {
-    scen_df <- scen_round_info()
-  } else {
-    if (is.vector(scen_info) & is.character(scen_info) &
-        length(scen_info) == 1) {
-      scen_df <- read_files(scen_info)
-    } else if (is.data.frame(scen_info)) {
-      scen_df <- scen_info
-    } else {
-      scen_df <- NULL
-      err_message <- paste0(
-        "\U000274c Error 001: `scen_info` parameter should either be: a path ",
-        "to a file containing the round and scenario information, or a data ",
-        "frame, or NULL. If NULL, the information will be automatically ",
-        "extracted from the Scenario Modeling Hub GitHub repository.\n")
-     cat(err_message)
-     stop("The submission contains one or multiple issues, please see ",
-           "information above")
-    }
-  }
 
-
-  scenario_smname <- setNames(scen_df$scenario_name, scen_df$scenario_id)
-  scenario_sel <- setNames(scen_df$scenario_id, scen_df$round)
+  # Read JSON file
+  js_def <- jsonlite::fromJSON(js_def)
 
   # Print message --------
   print(paste0("Run validation on file: ", basename(path)))
@@ -175,28 +173,21 @@ validate_submission <- function(path,
   # Read file
   df <- read_files(path) %>%
     dplyr::mutate_if(is.factor, as.character)
-  # Extract round information
-  round <- as.numeric(
-    gsub("[^[:digit:]]", "", unique(scen_df[which(
-      scen_df$first_week_ahead == as.Date(basename(path)) + 6), "round",
-      TRUE])))
-  if (length(round) == 0) {
-    round <- as.numeric(gsub("[^[:digit:]]", "", unique(scen_df[which(
-      scen_df$scenario_id %in% unique(df$scenario_id)), "round"])))
+
+  # test date format
+  if (any(is.na(as.Date(na.omit(unlist(dplyr::mutate_all(
+    df[, grepl("date", names(df))], as.character))), "%Y-%m-%d")))) {
+    err003 <- paste0(
+      "\U000274c Error 003: The columns containing date information should be
+      in a  should be in a date format `YYYY-MM-DD`. Please verify")
+    cat(err003)
+    stop(" The submission contains am issue, the validation was not run, please",
+         " see information above.")
   }
-  if (length(round) == 0) {
-    err_message2 <- paste0(
-      "\U000274c Error 002: Cannot extract round number information from the ",
-      "files, please verify that the file name contains the expected date and ",
-      "the `scenario id` column contains the expected information. If the ",
-      "problem persists please leave a message tagging '@LucieContamin'.")
-    cat(err_message2)
-    stop("The submission contains one or multiple issues, please see ",
-         "information above")
-  }
-  # Extract start_date information
-  start_date <- as.Date(unique(scen_df[which(
-    scen_df$round == paste0("round", round)), "first_week_ahead", TRUE]))
+
+  # Prepare information per round
+  start_date <- as.Date(js_def$first_week_ahead)
+
   # Extract week 0 or week -1 of observed data
   last_week_gs <-  lapply(lst_gs, function(x) {
     lastw_df <- dplyr::filter(x, time_value < start_date) %>%
@@ -205,10 +196,8 @@ validate_submission <- function(path,
   })
 
   # Run tests --------
-  run_all_validation(df, round, start_date, path = path, pop = pop,
+  run_all_validation(df, start_date = start_date, path = path, pop = pop,
                      last_lst_gs = last_week_gs,
-                     scenario_smname = scenario_smname,
-                     scenario_sel = scenario_sel,
-                     number2location = number2location)
+                     number2location = number2location, js_def = js_def)
 }
 

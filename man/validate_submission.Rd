@@ -4,35 +4,29 @@
 \alias{validate_submission}
 \title{Validate SMH (Scenario Modeling Hub) Submissions}
 \usage{
-validate_submission(path, lst_gs, pop_path = NULL, scen_info = NULL)
+validate_submission(path, lst_gs, pop_path, js_def)
 }
 \arguments{
 \item{path}{path to the submissions file to test}
 
 \item{lst_gs}{named list of data frame containing the
-observed data. We highly recommend to use the output of the pull_gs_data()
-function. The list should have the same format: each data frame should be
-named with the corresponding covidcast signal except "hospitalization"
-instead of "confirmed_admissions_covid_1d".}
+observed data. For COVID-19, we highly recommend to use the output of the
+pull_gs_data() function. The list should have the same format: each data
+frame should be named with the corresponding covidcast signal except
+"hospitalization" instead of "confirmed_admissions_covid_1d".}
 
 \item{pop_path}{path to a table containing the population size of each
-geographical entities by FIPS (in a column "location") and by location name.
-By default, NULL, will use the path to the locations file in the COVID19
-Scenario Modeling Hub GitHub repository}
+geographical entities by FIPS (in a column "location") and by location name.}
 
-\item{scen_info}{NULL, character vector (path leading to a csv file) or data
-frame, containing, the round and scenario information in the same output
-format as the function `scen_round_info()`. Please see documentation for
-more information. The default is NULL. If NULL, the information will be
-directly and automatically extracted from the Scenario Modeling Hub GitHub
-repository.}
+\item{js_def}{path to JSON file containing round definitions: names of
+columns, target names, ...}
 }
 \description{
 Runs all the different validation checks functions (test_column,
 test_scenario, test_modelprojdate, test_quantiles, test_val, test_target,
-test_location) on a Scenario Modeling Hub (SMH) submissions and prints
-information about the results of each tests on the submission: warning(s),
-error(s) or if all the tests were successful.
+test_location, test_sample, test_agegroup) on a Scenario Modeling Hub (SMH)
+submissions and prints information about the results of each tests on the
+submission: warning(s), error(s) or message if all the tests were successful.
 }
 \details{
 For more information on all tests run on the submission, please refer
@@ -40,18 +34,24 @@ to the documentation of each "test_*" function. A vignette with all the
 information might be created later on too.
 \cr\cr
 The function accepts submission in CSV, ZIP or GZ file formats.
-\cr\cr
-If the `scen_info` parameter is set to NULL, the information is extracted
-from the multiple README from the Scenario Modeling Hub GitHub repository by
-using the GitHub API. Just as a warning, the number of call is limited to
-60 per hour. If you plan to use the `validate_submission()` function multiple
-times in a short time frame, we advise use to store the scenario information
-in a data frame by doing `df_scen_info <-  scen_round_info()` for example,
-and setting the `scen_info` parameter to `scen_info = df_scen_info`.
 }
 \examples{
 \dontrun{
+# FOR COVID-19 SMH Submission
+
 lst_gs <- pull_gs_data()
-validate_submission("PATH/TO/SUBMISSION", lst_gs)
+pop_path <- "PATH/TO/data-locations/locations.csv"
+js_def <- "PATH/TO/covid.json"
+
+validate_submission("PATH/SUBMISSION", lst_gs, pop_path, js_def)
+
+# FOR FLU SMH Submission
+
+lst_gs <- NULL
+pop_path <- "PATH/TO/data-locations/locations.csv"
+js_def <- "PATH/TO/flu.json"
+
+validate_submission("PATH/SUBMISSION", lst_gs, pop_path, js_def)
+
 }
 }

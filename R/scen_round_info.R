@@ -10,6 +10,11 @@
 #'
 #' @param repo_path character vector, relative path of the COVID-19 scenario
 #' model hub (i.e "midas-network/covid19-scenario-modeling-hub/")
+#' @param branch character, name of the branch to extract information from. By
+#' default "master"
+#' @param add_readme data frame of 4 columns: files (NA),
+#'   url ("https""//LINK/README") and round ("round1") to manually add README
+#'   path information in the output. By default, NULL (does not add anything)
 #'
 #' @importFrom gh gh
 #' @importFrom dplyr tibble filter mutate %>%
@@ -19,9 +24,11 @@
 #' scenario_path_round("midas-network/covid19-scenario-modeling-hub/")
 #'
 #' @noRd
-scenario_path_round <- function(repo_path) {
+scenario_path_round <- function(repo_path, branch = "master",
+                                add_readme = NULL) {
   # Extract path of each round README
-  tree <- gh::gh(paste0("GET /repos/", repo_path, "git/trees/master?recursive=1"))
+  tree <- gh::gh(paste0("GET /repos/", repo_path, "git/trees/", branch,
+                        "?recursive=1"))
   tree_readme <- tibble(files =  unlist(purrr::map(tree$tree, "path"))) %>%
     filter(grepl("README", files), grepl(".md$", files), grepl("round", files),
            !grepl("1_and_2", files), !grepl("resources", files)) %>%
@@ -29,24 +36,27 @@ scenario_path_round <- function(repo_path) {
                         "master/", files),
            round = tolower(gsub("previous-rounds/README_|\\.md", "", files,
                                 ignore.case = TRUE)))
-  # Manually add information for the first 3 rounds
-  first_readme <- data.frame(
-    files = NA,
-    url = c(
-      "https://raw.githubusercontent.com/midas-network/covid19-scenario-modeling-hub/6dc683b9710c3a7eee6fa40d2986d0d79c0c918f/README.md",
-      "https://raw.githubusercontent.com/midas-network/covid19-scenario-modeling-hub/a88188d964543ae06885d499eecaba8e34ee68f9/README.md",
-      "https://raw.githubusercontent.com/midas-network/covid19-scenario-modeling-hub/52263c2086d8ef2d59c92b0a72d0d5c521290917/README.md"
-    ),
-    round = c("round1", "round2", "round3")
-  )
+
   # Add last round and binds all the information together
-  readme <- bind_rows(tree_readme, first_readme) %>%
-    mutate(round_number = as.numeric(gsub("[^[:digit:]]", "", round))) %>%
-    add_row(round_number = max(.$round_number) + 1,
-            round = paste0("round", max(.$round_number) + 1),
-            url = paste0("https://raw.githubusercontent.com/", repo_path,
-                         "master/", "README.md")) %>%
-    select(-files)
+  readme <- bind_rows(tree_readme, add_readme)
+
+  if (dim(readme)[1] == 0) {
+    readme <- data.frame(
+      url = paste0("https://raw.githubusercontent.com/", repo_path, branch,
+                   "/", "README.md"),
+      round = "round1",
+      round_number = 1
+    )
+  } else {
+    readme <- mutate(
+      readme,
+      round_number = as.numeric(gsub("[^[:digit:]]", "", round))) %>%
+      add_row(round_number = max(.$round_number) + 1,
+              round = paste0("round", max(.$round_number) + 1),
+              url = paste0("https://raw.githubusercontent.com/", repo_path,
+                           "master/", "README.md"))   %>%
+      select(-files)
+  }
   return(readme)
 }
 
@@ -60,21 +70,46 @@ scenario_path_round <- function(repo_path) {
 #'
 #' @param repo_path character vector, relative path of the COVID-19 scenario
 #' model hub (i.e "midas-network/covid19-scenario-modeling-hub/")
+#' @param branch character, name of the branch to extract information from. By
+#' default "master"
+#' @param add_readme data frame of 4 columns: files (NA),
+#'  url ("https""//LINK/README") and round ("round1") to manually add README
+#'  path information in the output. By default, NULL (does not add anything)
 #'
 #' @importFrom utils read.delim
 #' @importFrom stringr str_extract
 #' @importFrom dplyr bind_rows %>% add_row
 #' @importFrom purrr map
 #'
+#' @details For the four first rounds of COVID-19, the SMH README are slightly
+#' different and required the use of the "add_readme" parameters or it will
+#' returns an error. Please see the examples
+#'
 #' @examples
-#' scen_round_info()
+#' # For COVID-19
+#' repo_path <- "https://raw.githubusercontent.com/midas-network/covid19-scenario-modeling-hub/"
+#' scen_round_info(add_readme =  data.frame(
+#'   files = NA,
+#'   url = c(
+#'     paste0(repo_path, "6dc683b9710c3a7eee6fa40d2986d0d79c0c918f/README.md"),
+#'     paste0(repo_path, "a88188d964543ae06885d499eecaba8e34ee68f9/README.md"),
+#'     paste0(repo_path, "52263c2086d8ef2d59c92b0a72d0d5c521290917/README.md")
+#'   ),
+#'   round = c("round1", "round2", "round3")
+#' )
+#')
+#'
+#'# For FLU
+#'scen_round_info(repo_path = "midas-network/flu-scenario-modeling-hub/",
+#'                branch = "main")
 #'
 #'@export
 scen_round_info <- function(
-  repo_path = "midas-network/covid19-scenario-modeling-hub/") {
+  repo_path = "midas-network/covid19-scenario-modeling-hub/", branch = "master",
+  add_readme = NULL) {
 
-
-  df <- scenario_path_round(repo_path)
+  df <- scenario_path_round(repo_path, branch = branch,
+                            add_readme = add_readme)
 
   scen_round_info <- lapply(seq_len(dim(df)[1]), function(x) {
     # Read README
@@ -86,14 +121,14 @@ scen_round_info <- function(
       stringr::str_extract("[:alpha:]+ \\d+, \\d\\d\\d\\d") %>%
       as.Date("%B %d, %Y") + 6
     # extract scenario id and name depending on the format of the
-    # README (change after round 4)
-    if (df[x, "round_number", TRUE] %in% c(1, 2, 3, 4)) {
-      scenario_id <- scenario[which(grepl("Scenario id", scenario[,1])),] %>%
-        stringr::str_extract(".-\\d{4}-\\d{2}-\\d{2}")
-      scenario_name <- scenario[which(grepl("Scenario name",
-                                            scenario[,1])),] %>%
-        stringr::str_extract("\\`.+\\`")
-    } else {
+    # README (change after round 4 for COVID SMH repo)
+    if (!is.null(add_readme) & (df[x, "round_number", TRUE] %in% c(1, 2, 3, 4))) {
+        scenario_id <- scenario[which(grepl("Scenario id", scenario[,1])),] %>%
+          stringr::str_extract(".-\\d{4}-\\d{2}-\\d{2}")
+        scenario_name <- scenario[which(grepl("Scenario name",
+                                              scenario[,1])),] %>%
+          stringr::str_extract("\\`.+\\`")
+      }  else {
       table_info <- scenario[grep("\\|", scenario[,1]), 1] %>% strsplit("\\|")
       scenario_id <- table_info %>%
         unlist() %>% .[grep(".-\\d{4}-\\d{2}-\\d{2}", .)] %>% trimws()

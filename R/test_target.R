@@ -5,16 +5,15 @@
 #' and value.
 #'
 #'@param df data frame to test
-#'@param round numeric corresponding to the current round number
 #'@param start_date corresponds to the "1 wk ahead" target in the projection
 #'  file
+#'@param js_def list containing round definitions: number and names of columns,
+#' target names, ...
 #'
-#'@details  This function contains 7 tests:
+#'@details  This function contains 9 tests:
 #'\itemize{
 #'  \item{Target name: }{The target should correspond to the target name as
-#'  expressed in the SMH Github: "inc death", "inc case", "cum death",
-#'  "cum case", "inc hosp", "cum hosp". Starting round 14, an optional target
-#'  is also possible "inc inf". }
+#'  expressed in the SMH Github. }
 #'  \item{Target number: }{The submission file contains projection for all
 #'  required targets. It is accepted to submit only a subset of target but
 #'  a warning message will be return (only if a required target is missing.}
@@ -29,8 +28,8 @@
 #'   accepted, but will return a warning message and might not be included
 #'   in the Ensembles}
 #'  \item{Week projected: }{The submission file contains projection for all
-#'  expected weeks for each target, location, scenario and quantiles
-#'  combination.}
+#'  expected weeks for each target, location, scenario (age_group) and quantiles
+#'  or sample combination.}
 #'  \item{Starting date: }{The 1 week ahead of the `target_end_date` starts on
 #'  the expected date (end of the epiweek of the starting projection date).}
 #'  \item{Correct date: }{Each target_end_date corresponds to the expected date
@@ -38,24 +37,22 @@
 #'  \item{Target value: }{For the round 14s and 15, and for the optional target
 #'  "prop X", the associated value with this target should be between 0 and 1
 #'  and should be noted with quantile = NA and type = "point".}
+#'  \item{NA target}{The projection contains NA for all "target_end_date"
+#'  for the target requiring no time series information. }
 #' }
 #' Function called in the `validate_submission()` function.
 #'
 #'@importFrom stats na.omit
 #'@importFrom dplyr %>% mutate filter
-#'@importFrom lubridate wday as.period
+#'@importFrom lubridate wday as.period period
+#'@importFrom purrr map keep
 #'@export
-test_target <- function(df, start_date, round) {
+test_target <- function(df, start_date, js_def) {
   # Prerequisite
-  target_req <- c("inc death", "inc case", "cum death", "cum case",
-                    "inc hosp", "cum hosp")
-  if (round > 13) {
-    target_opt <- c("inc inf")
-    if (round %in% c(14, 15)) target_opt <- c(target_opt, "prop X")
-  }  else {
-    target_opt <- NULL
-  }
+  target_req <- names(js_def$targets$required)
+  target_opt <- names(js_def$targets$optional)
   target_names <- c(target_req, target_opt)
+
   # - target names (should be the same as in the GitHub)
   if (isFALSE(all(gsub(".+ wk ahead ", "", df$target) %in% target_names))) {
     targetname_test <-  paste0(
@@ -68,11 +65,12 @@ test_target <- function(df, start_date, round) {
   } else {
     targetname_test <- NA
   }
+
   # - the submission contains all the targets. It is also accepted
   # to submit projections for only certain target (for example: only cases, etc.)
   df_req_target <- grep(paste(target_req, collapse = "|"), unique(
     gsub(".+ wk ahead ", "", df$target)), value = TRUE)
-  if (length(df_req_target) < 6) {
+  if (length(df_req_target) < length(target_req)) {
     targetnum_test <- paste0(
       "\U0001f7e1 Warning 602: The data frame does not contain projections",
       " for '", target_req[!target_req %in% df_req_target],
@@ -80,35 +78,10 @@ test_target <- function(df, start_date, round) {
   }  else {
     targetnum_test <- NA
   }
-  # Only if the submission contains target prop X (value should be between 0, 1)
-  if (round %in% c(14, 15)) {
-    df_propx <- dplyr::filter(df, grepl("prop", target))
-    if (dim(df_propx)[1] > 0) {
-      test_propx <- dplyr::filter(df_propx, value > 1 | value < 0)
-      if (dim(test_propx)[1] > 0) {
-        propx_test <- paste0(
-          "\U0001f7e1 Warning Error 610: At least one of the value associated ",
-          "with the optional target 'prop X' is not between 0 and 1.")
-      } else {
-        propx_test <- NA
-      }
-    if (isFALSE(all(is.na(df_propx$quantile)) & all(df_propx$type == "point"))) {
-      propx_format_test <- paste0(
-        "\U0001f7e1 Warning 611: The optional target 'prop X' should contains ",
-        "only mean estimates, noted with quantile = NA and type = 'point'.")
-    } else {
-      propx_format_test <- NA
-    }
-    } else {
-      propx_test <- NA
-      propx_format_test <- NA
-    }
-  } else {
-    propx_test <- NA
-    propx_format_test <- NA
-  }
+
   # - target_end_date corresponds to the end of the epiweek (Saturday)
-  if (isFALSE(all(unique(df$target_end_date) %>% lubridate::wday() %in% 7))) {
+  if (isFALSE(all(unique(na.omit(df$target_end_date)) %>%
+                  lubridate::wday() %in% 7))) {
     targetday_test <- paste0(
       "\U000274c Error 603: The target_end_date should correspond to the end of ",
       "the epiweek (Saturday). For example, if the 1st week projection is on ",
@@ -117,61 +90,56 @@ test_target <- function(df, start_date, round) {
   } else {
     targetday_test <- NA
   }
+
   # - target_end_date projects for the expected number of weeks or more
   #  (if a team submit more we will still accept it)
-  if (round > 9) {
-    if (round %in%  c(11, 12)) {
-      n_target_week <- 12 # minimum number of projected week accepted
-      max_week <- 12 # maximum number of projected week accepted
-    } else if (round == 10) {
-      n_target_week <- 26 # minimum number of projected week accepted
-      max_week <- 52 # maximum number of projected week accepted
-    } else if (round == 15) {
-      n_target_week <- 40 # minimum number of projected week accepted
-      max_week <- 40 # maximum number of projected week accepted
-    } else {
-      n_target_week <- 52 # minimum number of projected week accepted
-      max_week <- 52 # maximum number of projected week accepted
-    }
+  n_target_week <- length(js_def$horizons$required)
+  max_week <- length(unique(c(js_def$horizons$required,
+                              js_def$horizons$optional)))
+  if (isFALSE(length(unique(na.omit(df$target_end_date))) >= n_target_week)) {
+    targetweek_test <- paste0(
+      "\U0001f7e1 Warning 605: The projections should contains at least ",
+      n_target_week, " weeks of projection. The data frame contains only: ",
+      length(unique(df$target_end_date)), " week(s). The projection might ",
+      "not be included in the Ensembles.")
   } else {
-    n_target_week <- 13 # minimum number of projected week accepted
-    max_week <- 26 # maximum number of projected week accepted
-  }
-  if (isFALSE(length(unique(df$target_end_date)) >= n_target_week)) {
-    if (round < 13) {
-      targetweek_test <- paste0(
-        "\U000274c Error 604: The projections should contains at least ",
-        n_target_week, " weeks of projection. The data frame contains only: ",
-        length(unique(df$target_end_date)), " week(s).")
-    } else {
-      targetweek_test <- paste0(
-        "\U0001f7e1 Warning 605: The projections should contains at least ",
-        n_target_week, " weeks of projection. The data frame contains only: ",
-        length(unique(df$target_end_date)), " week(s). The projection might ",
-        "not be included in the Ensembles.")
-    }
-  } else {
-    if (isTRUE(length(unique(df$target_end_date)) > max_week)) {
+    if (isTRUE(length(unique(na.omit(df$target_end_date))) > max_week)) {
       targetweek_test <- paste0(
         "\U0001f7e1 Warning 606: The projection contains more projected week ",
         "than expected.")
     } else {
       targetweek_test <- NA
     }}
+
+  # targets information for the horizon
+  horizon_target <- purrr::map(c(js_def$targets$required,
+                                 js_def$targets$optional), "horizons")
+  horizon_target <- purrr::discard(horizon_target, is.null)
+
   # - all target weeks are present (1,2,3, etc.) by target, scenario, location,
-  # quantile
-  df2 <-  dplyr::mutate(df, target_name = gsub(".+ wk ahead ", "", df$target),
-                        quantile = ifelse(type == "point", "point", quantile))
-  lst_df <- split(df2, list(df2$scenario_id, df2$location, df2$quantile,
-                            df2$target_name))
+  # quantile for the target(s) requiring it
+  hor_target <- names(purrr::keep(purrr::map(horizon_target, "required"),
+                                  function(x) x %in% "all"))
+
+  df2 <- dplyr::filter(df, grepl(paste(hor_target, collapse = "|"), target))
+  df2 <- dplyr::mutate(
+    df2, target_name = gsub(".+ wk ahead ", "", target))
+  if (any(grepl("quantile", colnames(df2)))) {
+    df2 <- dplyr::mutate(df2, quantile = ifelse(is.na(quantile), "point",
+                                                quantile))
+  }
+  sel_group <- grep(
+    "value|target_end_date|type|model_projection_date|scenario_name|target$",
+    names(df2), invert = TRUE, value = TRUE)
+  lst_df <-  split(df2, as.list(df2[,sel_group]), drop = TRUE)
   targetwnum_test <- lapply(lst_df, function(x) {
-    if (isFALSE(all(sort(as.numeric(unique(gsub("[^[:digit:]]", "",
-                                                x$target)))) ==
-                    seq_len(length(unique(x$target_end_date)))))) {
-      group <- paste0("target: ", unique(x$target_name), ", location: ",
-                      unique(x$location), ", quantile: ",
-                      gsub("point", NA, unique(x$quantile)),
-                      ", scenario: ",unique(x$scenario_id))
+    if  (isFALSE(all(
+      sort(as.numeric(unique(gsub("[^[:digit:]]", "", x$target)))) ==
+      seq_len(length(unique(x$target_end_date))))) |
+      (isFALSE(length(unique(
+        gsub("[^[:digit:]]", "", x$target))) >= n_target_week))) {
+      group <- paste(names(unique(x[, sel_group])), ":", unique(x[, sel_group]),
+                     collapse = ", ")
       targetwnum_test <- paste0(
         "\U000274c Error 607: At least one target week is missing in the time ",
         "series. Please verify: ", group)
@@ -179,6 +147,43 @@ test_target <- function(df, start_date, round) {
       targetwnum_test <- NA
     }
   })
+  if (length(unique(na.omit(unlist(targetwnum_test)))) > 100) {
+    targetwnum_test <- unique(gsub(
+      "age_group : \\d{1,3}-\\d{1,3}(, )?|quantile : (point|\\d(\\.\\d{1,4})?)(, )?",
+      "", unlist(targetwnum_test)))
+  }
+
+  # - all target weeks are NA by target, scenario, location, quantile/sample
+  # for the target(s) requiring it
+  na_target <- names(purrr::keep(purrr::map(horizon_target, "required"),
+                                 function(x) is.na(x)))
+  if (length(na_target) > 0) {
+    df2 <- dplyr::filter(df, grepl(paste(na_target, collapse = "|"), target))
+    df2 <-  dplyr::mutate(df2, target_name = target)
+    if (any(grepl("quantile", colnames(df2)))) {
+      df2 <- dplyr::mutate(df2, quantile = ifelse(is.na(quantile), "point",
+                                                  quantile))
+    }
+    sel_group <- grep(
+      "value|target_end_date|type|model_projection_date|scenario_name|target$",
+      names(df2), invert = TRUE, value = TRUE)
+    lst_df <-  split(df2, as.list(df2[,sel_group]), drop = TRUE)
+    targetwna_test <- lapply(lst_df, function(x) {
+      if (isFALSE(all(is.na(x$target_end_date)))) {
+        group <- paste(names(unique(x[, sel_group])), ":", unique(x[, sel_group]),
+                       collapse = ", ")
+        targetwna_test <- paste0(
+          "\U000274c Error 612: The 'target_end_date' should be equal to NA for ",
+          "the target. Please verify: ", group)
+      } else {
+        targetwna_test <- NA
+      }
+    })
+  } else {
+    targetwna_test <- NA
+  }
+
+
   # - start on the good start date
   if (isFALSE(unique(dplyr::filter(df, grepl("^1 wk ahead", target))
                      [, "target_end_date", TRUE]) == as.Date(start_date))) {
@@ -189,7 +194,8 @@ test_target <- function(df, start_date, round) {
   } else {
     targetstart_test <- NA
   }
-  # - contains all the correct time date
+
+    # - contains all the correct time date
   df2 <- df %>% dplyr::mutate(start_date_t = as.Date(target_end_date) -
                                 lubridate::as.period(as.numeric(gsub(
                                   "[^[:digit:]]", "", target)), "week") + 7) %>%
@@ -209,8 +215,9 @@ test_target <- function(df, start_date, round) {
 
   target_test <- na.omit(c(targetname_test,  targetnum_test, targetday_test,
                            targetweek_test, unlist(targetwnum_test),
-                           targetstart_test, targetalldate_test, propx_test,
-                           propx_format_test))
+                           unlist(targetwna_test),
+                           targetstart_test, targetalldate_test))
+  target_test <- unique(target_test)
   if (length(target_test) == 0)
     target_test <- paste0("No errors or warnings found in target and ",
                           "target_end_date columns")

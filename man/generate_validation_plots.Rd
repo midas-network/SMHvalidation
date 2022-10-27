@@ -16,7 +16,8 @@ generate_validation_plots(
 \item{path_proj}{dataframe, format as the Scenario Modeling Hub standard}
 
 \item{lst_gs, }{list of dataframe, observed data (advice to use the output
-of the function `pull_gs_data()`)}
+of the function `pull_gs_data()`). If NULL, no comparison to observed
+data will be done.}
 
 \item{save_path}{character vector, path to the saving folder for the PDF
 output}
