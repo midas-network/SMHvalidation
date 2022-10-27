@@ -1,7 +1,7 @@
 Package: covid19SMHvalidation
 TType: Package
 Title: COVID-19 Scenario Modeling Hub Validations & Visualizations
-Version: 0.1.0.9001
+Version: 0.0.0.9100
 Authors@R: 
      c(person(given = "Lucie", 
             family = "Contamin", 
