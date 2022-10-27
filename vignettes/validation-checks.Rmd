@@ -18,7 +18,7 @@ knitr::opts_chunk$set(
 )
 ```
 
-The `covid19SMHvalidation` R package contains functions to pull COVID-19
+The `SMHvalidation` R package contains functions to pull COVID-19
 data from the R package `covidcast` (output in the Scenario Modeling Hub
 (SMH) standard format), and functions to validate and visualize Scenario
 Modeling Hub submission.

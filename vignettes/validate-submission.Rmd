@@ -14,7 +14,7 @@ knitr::opts_chunk$set(
 )
 ```
 
-The `covid19SMHvalidation` R package contains functions to pull data from the 
+The `SMHvalidation` R package contains functions to pull data from the 
 R package covidcast (output in the Scenario Modeling Hub (SMH) standard format),
 to validate and visualize Scenario Modeling Hub submission.
 
@@ -29,10 +29,10 @@ In this vignette, we will show how to use the validation function:
  case the submission file will have to be updated to be include in the \
  corresponding SMH round. 
 
-We will start by loading `covid19SMHvalidation`:
+We will start by loading `SMHvalidation`:
 
 ```{r setup}
-library(covid19SMHvalidation)
+library(SMHvalidation)
 ```
 
 ## `validate_submission()`
@@ -54,7 +54,7 @@ The function requires multiple parameters:
 
 * `path`: path to the submission files. The package contains 3 examples files 
 that can be used to test the function. There paths can be accessed by using: 
-`system.file("extdata", "FILENAME", package = "covid19SMHvalidation")`. the
+`system.file("extdata", "FILENAME", package = "SMHvalidation")`. the
 3 filenames (+ quick descriptions) are:
     * "2022-01-09_team-model.csv" : should returns no issues
     * "2021-08-15_team-model.gz" : should returns multiple warnings
@@ -95,7 +95,7 @@ as explained above:
 ```{r prerequisite, message=FALSE, warning=FALSE}
 lst_gs <- pull_gs_data()
 pop_path <- "https://raw.githubusercontent.com/midas-network/covid19-scenario-modeling-hub/master/data-locations/locations.csv"
-js_def <- system.file("extdata", "2022-01-09_metadata.json", package = "covid19SMHvalidation")
+js_def <- system.file("extdata", "2022-01-09_metadata.json", package = "SMHvalidation")
 #js_def <- jsonlite::fromJSON(js_def)
 ```
 
@@ -111,7 +111,7 @@ str(js_def)
 We can now run the `validate_submission()` function on a first example file.
 
 ```{r test1}
-path_test <- system.file("extdata", "2022-01-09_team-model.csv", package = "covid19SMHvalidation")
+path_test <- system.file("extdata", "2022-01-09_team-model.csv", package = "SMHvalidation")
 validate_submission(path_test, lst_gs, pop_path, js_def)
 ```
 
@@ -120,8 +120,8 @@ The function returns a simple message stating that no issues has been found.
 ## Example 2: Warnings
 
 ```{r test2}
-path_test <- system.file("extdata", "2021-08-15_team-model.gz", package = "covid19SMHvalidation")
-js_def <- system.file("extdata", "2021-08-15_metadata.json", package = "covid19SMHvalidation")
+path_test <- system.file("extdata", "2021-08-15_team-model.gz", package = "SMHvalidation")
+js_def <- system.file("extdata", "2021-08-15_metadata.json", package = "SMHvalidation")
 #js_def <- jsonlite::fromJSON(js_def)
 validate_submission(path_test, lst_gs, pop_path, js_def)
 ```
@@ -135,8 +135,8 @@ in the submission is correct.
 ## Example 3: Warnings & Error
 
 ```{r test3, error=TRUE}
-path_test <- system.file("extdata", "2021-11-14_team-model.zip", package = "covid19SMHvalidation")
-js_def <- system.file("extdata", "2021-11-14_metadata.json", package = "covid19SMHvalidation")
+path_test <- system.file("extdata", "2021-11-14_team-model.zip", package = "SMHvalidation")
+js_def <- system.file("extdata", "2021-11-14_metadata.json", package = "SMHvalidation")
 #js_def <- jsonlite::fromJSON(js_def)
 validate_submission(path_test, lst_gs, pop_path, js_def)
 ```
@@ -149,9 +149,9 @@ The submission will NOT be accepted and need correction before being accepted.
 ## Example 4: Flu submission
 
 ```{r test4}
-path_test <- system.file("extdata", "2022-08-14_team-flu.csv", package = "covid19SMHvalidation")
+path_test <- system.file("extdata", "2022-08-14_team-flu.csv", package = "SMHvalidation")
 pop_path <- "https://raw.githubusercontent.com/midas-network/flu-scenario-modeling-hub/main/data-locations/locations.csv"
-js_def <- system.file("extdata", "2022-08-14_metadata.json", package = "covid19SMHvalidation")
+js_def <- system.file("extdata", "2022-08-14_metadata.json", package = "SMHvalidation")
 #js_def <- jsonlite::fromJSON(js_def)
 validate_submission(path_test, NULL, pop_path, js_def)
 ```
@@ -159,12 +159,12 @@ validate_submission(path_test, NULL, pop_path, js_def)
 
 ## Plotting Projections
 
-The `covid19SMHvalidation` R package also contains plotting functionality to 
+The `SMHvalidation` R package also contains plotting functionality to 
 output a plot of each location and target, with all scenarios and observed data 
 incorporated.
 
 ```{r proj_plots}
-path_test <- system.file("extdata", "2022-01-09_team-model.csv", package = "covid19SMHvalidation")
+path_test <- system.file("extdata", "2022-01-09_team-model.csv", package = "SMHvalidation")
 save_path <- getwd()
 pdf_path <- file.path(save_path, paste0("2022-01-09", "_", "team-model", "_plots.pdf"))
 print(paste0("Saving pdf plots to ", pdf_path, "."))
@@ -175,7 +175,7 @@ system(paste0('open "', pdf_path, '"'))
 Try another file type (CSV, GZ, and ZIP files format are accepted currently)
 
 ```{r proj_plots2}
-path_test <- system.file("extdata", "2021-08-15_team-model.gz", package = "covid19SMHvalidation")
+path_test <- system.file("extdata", "2021-08-15_team-model.gz", package = "SMHvalidation")
 save_path <- getwd()
 pdf_path <- file.path(save_path, paste0("2021-08-15", "_", "team-model", "_plots.pdf"))
 print(paste0("Saving pdf plots to ", pdf_path, "."))
@@ -187,7 +187,7 @@ An other example is available for FLU submission (not compared to observed
 data, set the `lst_gs` parameter to `NULL`)
 
 ```{r proj_plots3}
-path_test <- system.file("extdata", "2022-08-14_team-flu.csv", package = "covid19SMHvalidation")
+path_test <- system.file("extdata", "2022-08-14_team-flu.csv", package = "SMHvalidation")
 save_path <- getwd()
 pdf_path <- file.path(save_path, paste0("2022-08-14", "_", "team-flu", "_plots.pdf"))
 print(paste0("Saving pdf plots to ", pdf_path, "."))

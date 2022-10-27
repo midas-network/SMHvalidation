@@ -1,6 +1,6 @@
-Package: covid19SMHvalidation
+Package: SMHvalidation
 TType: Package
-Title: COVID-19 Scenario Modeling Hub Validations & Visualizations
+Title: Scenario Modeling Hub Validations & Visualizations
 Version: 0.0.0.9100
 Authors@R: 
      c(person(given = "Lucie", 
@@ -13,9 +13,9 @@ Authors@R:
             role = c("aut"), 
             email = "", 
             comment = ""),
-      person(given = "COVID19 Scenario Modeling Hub Coordination Team",
+      person(given = "Scenario Modeling Hub Coordination Team",
              role = "aut"))
-Description: The COVID-19 Scenario Modeling Hub Validations package contains functions for validation and visualization scenario modeling hub submissions.
+Description: The Scenario Modeling Hub Validations package contains functions for validation and visualization scenario modeling hub submissions.
 License: MIT + file LICENSE
 Encoding: UTF-8
 LazyData: true

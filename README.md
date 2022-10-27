@@ -1,3 +1,8 @@
+---
+editor_options: 
+  markdown: 
+    wrap: 72
+---
 
 <!-- badges: start -->
 
@@ -6,7 +11,7 @@ experimental](https://img.shields.io/badge/lifecycle-experimental-orange.svg)](h
 
 <!-- badges: end -->
 
-# covid19SMHvalidation
+# SMHvalidation
 
 R package containing functions to pull data from the R package
 `covidcast` (output in the Scenario Modeling Hub (SMH) standard format),
@@ -23,7 +28,7 @@ follow the next steps:
 
 ```{r}
 install.packages("remotes")
-remotes::install_github("midas-network/covid19SMHvalidation", 
+remotes::install_github("midas-network/SMHvalidation", 
                         build_vignettes = TRUE, 
                         dependencies = TRUE,
                         ref = "main") 
@@ -33,7 +38,7 @@ or it can be manually installed by directly cloning/forking/downloading
 the package from GitHub.
 
 ```{r}
-library(covid19SMHvalidation)
+library(SMHvalidation)
 ```
 
 ## Validate submission:
@@ -101,7 +106,7 @@ Currently, the function only pull COVID-19 data.
 
 #### Description
 
-The `covid19SMHvalidation` package contains the function
+The `SMHvalidation` package contains the function
 `pull_gs_data()` that download and compile data to output weekly data on
 cumulative and incidence number of cases and deaths, and hospitalization
 incidence:

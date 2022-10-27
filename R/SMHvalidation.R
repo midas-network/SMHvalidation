@@ -11,10 +11,10 @@ utils::globalVariables(c("type", "target", "target_end_date", "start_date_t",
                          "ratio_gt", "state value_gt", "value_gt", "state",
                          "ground truth", "X", "age_group"))
 
-#' covid19SMHvalidation: COVID-19 Scenario Modeling Hub Validations & Visualizations
+#' SMHvalidation: Scenario Modeling Hub Validations & Visualizations
 #'
-#' The COVID-19 Scenario Modeling Hub Validations package contains functions for validation and visualization scenario modeling hub submissions.
+#' The Scenario Modeling Hub Validations package contains functions for validation and visualization scenario modeling hub submissions.
 #'
 #' @docType package
-#' @name covid19SMHvalidation
+#' @name SMHvalidation
 NULL

@@ -1,4 +1,4 @@
 library(testthat)
-library(covid19SMHvalidation)
+library(SMHvalidation)
 
-test_check("covid19SMHvalidation")
+test_check("SMHvalidation")
