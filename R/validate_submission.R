@@ -179,7 +179,7 @@ validate_submission <- function(path,
     df[, grepl("date", names(df))], as.character))), "%Y-%m-%d")))) {
     err003 <- paste0(
       "\U000274c Error 003: The columns containing date information should be
-      in a  should be in a date format `YYYY-MM-DD`. Please verify")
+      in a date format `YYYY-MM-DD`. Please verify")
     cat(err003)
     stop(" The submission contains am issue, the validation was not run, please",
          " see information above.")
