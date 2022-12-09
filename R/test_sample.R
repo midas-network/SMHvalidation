@@ -25,7 +25,7 @@ test_sample <- function(df, js_def) {
   is.wholenumber <-
     function(x, tol = .Machine$double.eps^0.5)  abs(x - round(x)) < tol
 
-  if (any(!is.wholenumber(df$sample))) {
+  if (isTRUE(all(is.wholenumber(df$sample)))) {
     sample_type <-  paste0(
       "\U000274c Error 903: The column 'sample' should contains integer values",
       " only. Please verify")

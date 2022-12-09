@@ -176,7 +176,7 @@ validate_submission <- function(path,
 
   # test date format
   if (any(is.na(as.Date(na.omit(unlist(dplyr::mutate_all(
-    df[, grepl("date", names(df))], as.character))), "%Y-%m-%d")))) {
+    df[, grepl("date", names(df)), FALSE], as.character))), "%Y-%m-%d")))) {
     err003 <- paste0(
       "\U000274c Error 003: The columns containing date information should be
       in a date format `YYYY-MM-DD`. Please verify")
