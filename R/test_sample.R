@@ -11,8 +11,10 @@
 #'\itemize{
 #'  \item{sample value: }{The submission should contain a sample column with
 #'  value between 0 and 100.}
-#'   \item{unique samplee: }{The submission should contain a unique sample
+#'   \item{unique sample: }{The submission should contain a unique sample
 #'   identifier for each scenario/target/location (age_group) group.}
+#'    \item{sample integer: }{The submission should contain a sample column with
+#'  integer only.}
 #' }
 #' Function called in the `validate_submission()` function.
 #'
@@ -25,7 +27,7 @@ test_sample <- function(df, js_def) {
   is.wholenumber <-
     function(x, tol = .Machine$double.eps^0.5)  abs(x - round(x)) < tol
 
-  if (isTRUE(all(is.wholenumber(df$sample)))) {
+  if (isFALSE(all(is.wholenumber(df$sample)))) {
     sample_type <-  paste0(
       "\U000274c Error 903: The column 'sample' should contains integer values",
       " only. Please verify")
