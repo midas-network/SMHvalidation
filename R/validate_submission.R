@@ -28,41 +28,60 @@
 #' @noRd
 run_all_validation <- function(df, start_date, path, pop, last_lst_gs,
                                number2location, js_def) {
-  # Tests:
-  out_col <- test_column(df, js_def)
-  # add missing age_group column for all the tests
-  if (any(!js_def$column_names %in% names(df))) {
-    if (js_def$column_names[!js_def$column_names %in%
-                            names(df)] == "age_group") {
-      df[, "age_group"] <- "0-130"
-    }
-  }
-  # select only required column for the other tests
-  df <- df[, js_def$column_names]
+  ### Prerequisite
+  model_task <- js_def$model_tasks[[1]]
+  task_ids <- model_task$task_ids
+  req_colnames <-  c(names(task_ids), "type", "type_id", "value")
 
+  ### Tests:
+
+  # Test on column information (name and number)
+  out_col <- test_column(df, req_colnames)
+  # update to stop if any missing column
+  #if (any(!req_colnames %in% names(df))) {
+  #  if (req_colnames[!req_colnames %in% names(df)] == "age_group") {
+  #    df[, "age_group"] <- "0-130"
+  #  }
+  #}
+  # select only required column for the other tests
+  df <- df[, req_colnames]
+
+  # Test on Scenario information
   out_scen <- test_scenario(df,js_def)
+
+  # Test origin date information
   out_mpd <- test_modelprojdate(df, path, start_date)
-  if (any(grepl("quantile", js_def$column_names))) {
+
+  # Test by type
+  if (any(grepl("quantile", df$type))) {
     out_quant <- test_quantiles(df, js_def)
   } else {
     out_quant <- paste0("No 'quantile' information required, no validation ",
                         "runs for Quantiles information")
   }
-  if (any(grepl("sample", js_def$column_names))) {
+  if (any(grepl("sample", df$type))) {
     out_sample <- test_sample(df, js_def)
   } else {
     out_sample <- paste0("No 'sample' information required, no validation runs",
                          " for Sample information")
-  }
+
+  # Test on value
   out_val <- test_val(df, pop, last_lst_gs, js_def)
+
+  # Test on targets information
   out_target <- test_target(df, start_date, js_def)
+
+  # Test on location information
   out_loc <- test_location(df, number2location, js_def)
-  if (any(grepl("age_group", js_def$column_names))) {
+
+  # Test for additional column
+  if (any(grepl("age_group", names(df)))) {
     out_agegroup <- test_agegroup(df, js_def)
   } else {
     out_agegroup <- paste0("No 'age_group' information required, no validation",
                            " runs for age group information")
   }
+
   # Report:
   test_report <- paste(
     "\n ## Columns: \n\n", paste(out_col, collapse = "\n"),
@@ -75,7 +94,8 @@ run_all_validation <- function(df, start_date, path, pop, last_lst_gs,
     "\n\n## Locations: \n\n", paste(out_loc, collapse = "\n"),
     "\n\n## Age Group: \n\n", paste(out_agegroup, collapse = "\n"),
     "\n\n")
-  #Output:
+
+  # Output:
   if (!(all(grepl("^No error|^No .+ required",
                   c(out_col, out_scen, out_mpd, out_quant, out_val, out_target,
                     out_loc, out_sample, out_agegroup))))) {
@@ -181,22 +201,34 @@ validate_submission <- function(path,
       "\U000274c Error 003: The columns containing date information should be
       in a date format `YYYY-MM-DD`. Please verify")
     cat(err003)
-    stop(" The submission contains am issue, the validation was not run, please",
+    stop(" The submission contains an issue, the validation was not run, please",
          " see information above.")
   }
 
-  # Prepare information per round
-  start_date <- as.Date(js_def$first_week_ahead)
+  # Select the associated round (add error message if no match)
+  js_def <- js_def$rounds[unlist(purrr::map(
+    js_def, "round_id") == unique(df$origin_date))]
+
+  if (length(js_def) < 1) {
+    err004 <- paste0(
+      "\U000274c Error 004: The origin_date in the submission file was not ",
+      "associated with any task_ids round. Please verify the date information",
+      " in the origin_date column corresponds to the expected value.")
+    cat(err004)
+    stop(" The submission contains an issue, the validation was not run, please",
+         " see information above.")
+  }
 
   # Extract week 0 or week -1 of observed data
   last_week_gs <-  lapply(lst_gs, function(x) {
-    lastw_df <- dplyr::filter(x, time_value < start_date) %>%
+    lastw_df <- dplyr::filter(x, time_value < as.Date(js_def$round_id) + 6) %>%
       dplyr::filter(time_value == max(time_value)) %>%
       dplyr::select(last_value = value, location, target_name)
   })
 
   # Run tests --------
-  run_all_validation(df, start_date = start_date, path = path, pop = pop,
+  run_all_validation(df, start_date = as.Date(js_def$round_id) + 6,
+                     path = path, pop = pop,
                      last_lst_gs = last_week_gs,
                      number2location = number2location, js_def = js_def)
 }

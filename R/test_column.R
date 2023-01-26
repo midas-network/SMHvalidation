@@ -19,12 +19,12 @@
 #'
 #'@importFrom stats na.omit
 #'
-test_column <- function(df, js_def) {
+test_column <- function(df, req_colnames) {
   # The name of the columns are corresponding to the expected format
   if (isFALSE(
-    all(sort(names(df)) %in% sort(js_def$column_names)))) {
+    all(sort(names(df)) %in% sort(req_colnames)))) {
     fail_col <- sort(names(df))[!(sort(
-      names(df)) %in% sort(js_def$column_names))]
+      names(df)) %in% sort(req_colnames))]
     colnames_test <- paste0(
       "\U000274c Error 101: At least one column name is misspelled or does not",
       " correspond to the expected column names. The column(s) ",
@@ -34,10 +34,10 @@ test_column <- function(df, js_def) {
     colnames_test <- NA
   }
   # The number of the columns are corresponding to the expected format
-  if (isFALSE(length(colnames(df)) == length(js_def$column_names))) {
+  if (isFALSE(length(colnames(df)) == length(req_colnames))) {
     coldim_test <- paste0(
       "\U000274c Error 102: The data frame should contains ",
-      length(js_def$column_names), " columns, not ",
+      length(req_colnames), " columns, not ",
       length(colnames(df)), ". Please verify if one or multiple columns have ",
       "been added or are missing.")
   } else {
