@@ -38,11 +38,11 @@ run_all_validation <- function(df, start_date, path, pop, last_lst_gs,
   # Test on column information (name and number)
   out_col <- test_column(df, req_colnames)
   # update to stop if any missing column
-  #if (any(!req_colnames %in% names(df))) {
-  #  if (req_colnames[!req_colnames %in% names(df)] == "age_group") {
-  #    df[, "age_group"] <- "0-130"
-  #  }
-  #}
+  if (length(colnames(df)) < length(req_colnames)) {
+    cat(out_col)
+    stop(" The submission contains an issue, the validation was not run, please",
+         " see information above.")
+  }
   # select only required column for the other tests
   df <- df[, req_colnames]
 
@@ -64,6 +64,7 @@ run_all_validation <- function(df, start_date, path, pop, last_lst_gs,
   } else {
     out_sample <- paste0("No 'sample' information required, no validation runs",
                          " for Sample information")
+  }
 
   # Test on value
   out_val <- test_val(df, pop, last_lst_gs, js_def)
@@ -207,7 +208,7 @@ validate_submission <- function(path,
 
   # Select the associated round (add error message if no match)
   js_def <- js_def$rounds[unlist(purrr::map(
-    js_def, "round_id") == unique(df$origin_date))]
+    js_def, "round_id") == df$origin_date[[1]])]
 
   if (length(js_def) < 1) {
     err004 <- paste0(
@@ -225,6 +226,10 @@ validate_submission <- function(path,
       dplyr::filter(time_value == max(time_value)) %>%
       dplyr::select(last_value = value, location, target_name)
   })
+
+  # Garbage collection for memory usage
+  gc()
+
 
   # Run tests --------
   run_all_validation(df, start_date = as.Date(js_def$round_id) + 6,
