@@ -58,10 +58,11 @@ test_sample <- function(df, task_ids) {
 
   # - sample id should be unique for each group (task_ids)
   sel_group <- c(names(task_ids), "type", "type_id")
-  df_test <- df_sample %>% group_by(across({{ sel_group }})) %>%
-    summarise(n = n()) %>% filter(n > 1)
+  df_test <- data.table::data.table(df_sample)
+  df_test <- df_test[,.N, by = sel_group]
+  df_test <- df_test[N > 1]
   if (dim(df_test)[1] > 0) {
-    err_groups <- df_test %>% dplyr::select(-value) %>% dplyr::distinct() %>%
+    err_groups <- df_test %>% dplyr::select(-N) %>% dplyr::distinct() %>%
       tidyr::unite("group", dplyr::everything(), sep = ", ") %>% unlist()
      sample_unique <- paste0(
         "\U000274c Error 902: Each scenario/target/location (age_group) group ",
