@@ -4,10 +4,9 @@
 #' contains the expected  value.
 #'
 #'@param df data frame to test
-#'@param js_def list containing round definitions: number and names of columns,
-#' target names, ...
+#'@param task_ids data.frame containing round information for each id columns
 #'
-#'@details  This function contains 2 tests:
+#'@details  This function contains 3 tests:
 #'\itemize{
 #'  \item{sample value: }{The submission should contain a sample column with
 #'  value between 0 and 100.}
@@ -21,13 +20,16 @@
 #'@importFrom stats na.omit
 #'@importFrom dplyr filter
 #'@export
-test_sample <- function(df, js_def) {
+test_sample <- function(df, task_ids) {
+  # prerequisite
+  df_sample <- dplyr::filter(df, type %in% "sample")
+  vector_sample <- unlist(distinct(df_sample[ ,"type_id", FALSE]))
   # - sample column should be an integer
   # Function from ?is.integer() function documentation
   is.wholenumber <-
     function(x, tol = .Machine$double.eps^0.5)  abs(x - round(x)) < tol
 
-  if (isFALSE(all(is.wholenumber(df$sample)))) {
+  if (isFALSE(all(is.wholenumber(vector_sample)))) {
     sample_type <-  paste0(
       "\U000274c Error 903: The column 'sample' should contains integer values",
       " only. Please verify")
@@ -37,16 +39,16 @@ test_sample <- function(df, js_def) {
 
   # - sample column contain value from 1 to 100 (warning if under 100 or over
   # 100)
-  test_df <- dplyr::filter(df, sample < 1 | sample > 100)
-  if (dim(test_df)[1] > 0 | any(grepl("\\.", df$sample))) {
+  test_df <- dplyr::filter(df_sample, type_id < 1 | type_id > 100)
+  if (dim(test_df)[1] > 0 | any(grepl(
+    "\\.", unlist(distinct(df[ ,"type_id", FALSE]))))) {
     sample_value <-  paste0(
       "\U0001f7e1 Warning 901: The column 'sample' should contains integer",
       " values between 1 and 100 (included), please verify.")
   } else {
     sample_value <- NA
   }
-
-  if (max(df$sample) < 100) {
+  if (max(vector_sample) < 100) {
     sample_value <- c(
       sample_value,
       paste0("\U0001f7e1 Warning 901: The column 'sample' contains less ",
@@ -54,28 +56,28 @@ test_sample <- function(df, js_def) {
              "target/location(/age_group) can be submitted."))
   }
 
-  sel_group <- grep(
-    "value|target_end_date|model_projection_date|scenario_name",
-    js_def$column_names, invert = TRUE, value = TRUE)
-  lst_df <-  split(df, as.list(df[,sel_group]), drop = TRUE)
-  lst_df <- purrr::discard(lst_df, function(x) dim(x)[[1]] < 1)
-  lst_df_test <- purrr::discard(lst_df, function(x) dim(x)[[1]] < 2)
-  if (length(lst_df_test) > 0) {
-    sample_unique <- lapply(lst_df_test, function(x) {
-      group <- paste(names(unique(x[, sel_group])), ":", unique(x[, sel_group]),
-                     collapse = ", ")
-      sample_unique <-  paste0(
+  # - sample id should be unique for each group (task_ids)
+  sel_group <- c(names(task_ids), "type", "type_id")
+  df_test <- df_sample %>% group_by(across({{ sel_group }})) %>%
+    summarise(n = n()) %>% filter(n > 1)
+  if (dim(df_test)[1] > 0) {
+    err_groups <- df_test %>% dplyr::select(-value) %>% dplyr::distinct() %>%
+      tidyr::unite("group", dplyr::everything(), sep = ", ") %>% unlist()
+     sample_unique <- paste0(
         "\U000274c Error 902: Each scenario/target/location (age_group) group ",
-        "should have an unique sample identifier, please verify: ", group)
-    })
+        "should have an unique sample identifier, please verify: ", err_groups)
   } else {
     sample_unique <- NA
   }
   if (length(na.omit(unlist(sample_unique))) > 100) {
-    sample_unique <- unique(na.omit(unlist(sample_unique))) %>%
-      gsub(" target : \\d{1,2} wk ahead ", " target: ", .) %>% unique
+    sample_unique <- paste0(unique(unlist(purrr::map(strsplit(
+      sample_unique, "please verify: "), 1))), length(sample_unique),
+      " unique groups have been idenfied with this issue. For example: ",
+      paste("group: ", head(purrr::map(strsplit(sample_unique, "verify: "), 2),
+                            3), collapse = "; "), "; etc.")
   }
 
+  # - result output
   test_sample <- unique(na.omit(c(sample_value, unlist(sample_unique),
                                   sample_type)))
   if (length(test_sample) == 0)

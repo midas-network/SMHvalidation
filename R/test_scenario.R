@@ -6,32 +6,26 @@
 #' associated with each others.
 #'
 #'@param df data frame to test
-#'@param js_def list containing round definitions: number and names of columns,
-#' target names, ...
+#'@param task_ids data.frame containing round information for each id columns
 #'
-#'@details  This function contains 3 tests:
+#'@details  This function contains 1 tests:
 #'\itemize{
-#'  \item{Scenario Name: }{The names of the scenarios are correctly spelled and
-#'  correspond to the scenario name of the corresponding round.}
 #'  \item{Scenario ID: }{The IDs of the scenarios are correctly spelled and
 #'  correspond to the scenario IDs of the corresponding round.}
-#'  \item{Correspondance Name and ID: }{The names and ID of the scenarios are
-#'  correctly matching (scenario ID A = scenario name A)}
 #' }
 #' Function called in the `validate_submission()` function.
 #'
 #'@importFrom stats na.omit
 #'@importFrom dplyr select filter %>% distinct
-#'@importFrom purrr map
-#'@importFrom tidyr unite
 #'@export
-test_scenario <- function(df, js_def) {
+test_scenario <- function(df, task_ids) {
   # Prerequisite
   scenario_id <- unique(na.omit(unlist(task_ids$scenario_id)))
 
   # test scenario id are correctly spelled and correspond to the expected
   # values
-  if (isFALSE(all(df$scenario_id %in% scenario_id))) {
+  if (isFALSE(all(df %>% select(scenario_id) %>%  distinct() %>% unlist() %in%
+                  scenario_id))) {
     scenid_test <-  paste0(
       "\U000274c Error 202: At least 1 of the 'scenario_id' do(es) not ",
       "correspond: '", unique(df$scenario_id[!df$scenario_id %in% scenario_id]),

@@ -47,20 +47,20 @@ run_all_validation <- function(df, start_date, path, pop, last_lst_gs,
   df <- df[, req_colnames]
 
   # Test on Scenario information
-  out_scen <- test_scenario(df,js_def)
+  out_scen <- test_scenario(df, task_ids)
 
   # Test origin date information
   out_ord <- test_origindate(df, path, start_date)
 
   # Test by type
-  if (any(grepl("quantile", df$type))) {
+  if (any(grepl("quantile", unlist(distinct(df[ ,"type", FALSE]))))) {
     out_quant <- test_quantiles(df, js_def)
   } else {
     out_quant <- paste0("No 'quantile' information required, no validation ",
                         "runs for Quantiles information")
   }
-  if (any(grepl("sample", df$type))) {
-    out_sample <- test_sample(df, js_def)
+  if (any(grepl("sample", unlist(distinct(df[ ,"type", FALSE]))))) {
+    out_sample <- test_sample(df, task_ids)
   } else {
     out_sample <- paste0("No 'sample' information required, no validation runs",
                          " for Sample information")
@@ -226,10 +226,6 @@ validate_submission <- function(path,
       dplyr::filter(time_value == max(time_value)) %>%
       dplyr::select(last_value = value, location, target_name)
   })
-
-  # Garbage collection for memory usage
-  gc()
-
 
   # Run tests --------
   run_all_validation(df, start_date = as.Date(js_def$round_id) + 6,

@@ -3,8 +3,7 @@
 #' Validate Scenario Modeling Hub submissions: names and number of columns.
 #'
 #'@param df data frame to test
-#'@param js_def list containing round definitions: number and names of columns,
-#' target names, ...
+#'@param req_colname vector of required column names
 #'
 #'@details  This function contains 2 tests:
 #'\itemize{

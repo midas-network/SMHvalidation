@@ -8,7 +8,7 @@
 #'
 #'@param df data frame to test
 #'@param path character vector path of the file being tested
-#'@param start_date corresponds to the "1 wk ahead" target in the projection
+#'@param start_date corresponds to the first week horizon in the projection
 #'  file
 #'
 #'@details  This function contains 4 tests:
@@ -29,7 +29,8 @@
 #'@importFrom stringr str_extract
 #'@export
 test_origindate <- function(df, path, start_date) {
-  vector_date <- unique(df$origin_date)
+  # Prerequisite
+  vector_date <- df %>% select(origin_date) %>% distinct() %>% unlist()
   # Test the format of the column: should be a date
   if (any(is.na(as.Date(vector_date, "%Y-%m-%d")))) {
     ordate_test <- paste0(
@@ -49,8 +50,8 @@ test_origindate <- function(df, path, start_date) {
   }
   # The origin_date value should correspond to the name of the file
   if (isFALSE(all(as.Date(
-    stringr::str_extract(basename(path),
-                         "[[:digit:]]{4}-[[:digit:]]{2}-[[:digit:]]{2}")) ==
+    stringr::str_extract(
+      basename(path), "[[:digit:]]{4}-[[:digit:]]{2}-[[:digit:]]{2}")) ==
     vector_date))) {
     ordname_test <- paste0(
       "\U000274c Error 303: 'origin_date' is not corresponding to ",
@@ -60,7 +61,7 @@ test_origindate <- function(df, path, start_date) {
     ordname_test <- NA
   }
   # The origin_date should correspond to the projection starting date
-  if (isFALSE(all(c(vector_date, "2023-01-03") == start_date - 6))) {
+  if (isFALSE(all(vector_date == start_date - 6))) {
     ordvalue_test <- paste0(
       "\U000274c Error 304: 'origin_date' should correspond to the ",
       "projection starting date, as written in the README available on GitHub.")
