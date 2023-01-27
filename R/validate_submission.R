@@ -50,7 +50,7 @@ run_all_validation <- function(df, start_date, path, pop, last_lst_gs,
   out_scen <- test_scenario(df,js_def)
 
   # Test origin date information
-  out_mpd <- test_modelprojdate(df, path, start_date)
+  out_ord <- test_origindate(df, path, start_date)
 
   # Test by type
   if (any(grepl("quantile", df$type))) {
@@ -86,8 +86,8 @@ run_all_validation <- function(df, start_date, path, pop, last_lst_gs,
   # Report:
   test_report <- paste(
     "\n ## Columns: \n\n", paste(out_col, collapse = "\n"),
-    "\n\n## Scenarios: \n\n", paste(out_scen, collapse = "\n"), "\n\n",
-    "## Model Projection Date Column:  \n\n", paste(out_mpd, collapse = "\n"),
+    "\n\n## Scenarios: \n\n", paste(out_scen, collapse = "\n"),
+    "\n\n## Origin Date Column:  \n\n", paste(out_ord, collapse = "\n"),
     "\n\n## Quantiles: \n\n", paste(out_quant, collapse = "\n"),
     "\n\n## Sample: \n\n", paste(out_sample, collapse = "\n"),
     "\n\n## Value and Type Columns: \n\n", paste(out_val, collapse = "\n"),
@@ -98,9 +98,9 @@ run_all_validation <- function(df, start_date, path, pop, last_lst_gs,
 
   # Output:
   if (!(all(grepl("^No error|^No .+ required",
-                  c(out_col, out_scen, out_mpd, out_quant, out_val, out_target,
+                  c(out_col, out_scen, out_ord, out_quant, out_val, out_target,
                     out_loc, out_sample, out_agegroup))))) {
-    if (any(grepl("\U000274c Error", c(out_col, out_scen, out_mpd, out_quant,
+    if (any(grepl("\U000274c Error", c(out_col, out_scen, out_ord, out_quant,
                                        out_val, out_target, out_loc, out_sample,
                                        out_agegroup)))) {
       cat(test_report)
