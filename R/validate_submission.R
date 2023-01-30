@@ -55,19 +55,13 @@ run_all_validation <- function(df, start_date, path, pop, last_lst_gs,
   # Test by type
   if (any(grepl("quantile", unlist(distinct(df[ ,"type", FALSE]))))) {
     out_quant <- test_quantiles(df, js_def)
-  } else {
-    out_quant <- paste0("No 'quantile' information required, no validation ",
-                        "runs for Quantiles information")
   }
   if (any(grepl("sample", unlist(distinct(df[ ,"type", FALSE]))))) {
     out_sample <- test_sample(df, task_ids)
-  } else {
-    out_sample <- paste0("No 'sample' information required, no validation runs",
-                         " for Sample information")
   }
 
   # Test on value
-  out_val <- test_val(df, pop, last_lst_gs, js_def)
+  out_val <- test_val(df, pop, last_lst_gs, model_task)
 
   # Test on targets information
   out_target <- test_target(df, start_date, js_def)
@@ -78,9 +72,6 @@ run_all_validation <- function(df, start_date, path, pop, last_lst_gs,
   # Test for additional column
   if (any(grepl("age_group", names(df)))) {
     out_agegroup <- test_agegroup(df, js_def)
-  } else {
-    out_agegroup <- paste0("No 'age_group' information required, no validation",
-                           " runs for age group information")
   }
 
   # Report:
@@ -88,21 +79,27 @@ run_all_validation <- function(df, start_date, path, pop, last_lst_gs,
     "\n ## Columns: \n\n", paste(out_col, collapse = "\n"),
     "\n\n## Scenarios: \n\n", paste(out_scen, collapse = "\n"),
     "\n\n## Origin Date Column:  \n\n", paste(out_ord, collapse = "\n"),
-    "\n\n## Quantiles: \n\n", paste(out_quant, collapse = "\n"),
-    "\n\n## Sample: \n\n", paste(out_sample, collapse = "\n"),
     "\n\n## Value and Type Columns: \n\n", paste(out_val, collapse = "\n"),
     "\n\n## Target Columns: \n\n", paste(out_target, collapse = "\n"),
-    "\n\n## Locations: \n\n", paste(out_loc, collapse = "\n"),
-    "\n\n## Age Group: \n\n", paste(out_agegroup, collapse = "\n"),
-    "\n\n")
+    "\n\n## Locations: \n\n", paste(out_loc, collapse = "\n"))
+  if (any(grepl("sample", unlist(distinct(df[ ,"type", FALSE]))))) {
+    test_report <- paste(
+      test_report, "\n\n## Sample: \n\n", paste(out_sample, collapse = "\n"))
+  }
+  if (any(grepl("quantile", unlist(distinct(df[ ,"type", FALSE]))))) {
+    test_report <- paste(
+      test_report, "\n\n## Quantiles: \n\n", paste(out_quant, collapse = "\n"))
+  }
+  if (any(grepl("age_group", names(df)))) {
+    test_report <- paste(
+      test_report,
+      "\n\n## Age Group: \n\n", paste(out_agegroup, collapse = "\n"))
+  }
+  test_report <- paste0(test_report, "\n\n")
 
   # Output:
-  if (!(all(grepl("^No error|^No .+ required",
-                  c(out_col, out_scen, out_ord, out_quant, out_val, out_target,
-                    out_loc, out_sample, out_agegroup))))) {
-    if (any(grepl("\U000274c Error", c(out_col, out_scen, out_ord, out_quant,
-                                       out_val, out_target, out_loc, out_sample,
-                                       out_agegroup)))) {
+  if (!(all(grepl("^No error|^No .+ required", test_report)))) {
+    if (any(grepl("\U000274c Error", test_report))) {
       cat(test_report)
       stop(" The submission contains one or multiple issues, please see ",
            "information above")
@@ -197,7 +194,8 @@ validate_submission <- function(path,
 
   # test date format
   if (any(is.na(as.Date(na.omit(unlist(dplyr::mutate_all(
-    df[, grepl("date", names(df)), FALSE], as.character))), "%Y-%m-%d")))) {
+    dplyr::distinct(df[, grepl("date", names(df)), FALSE]), as.character))),
+    "%Y-%m-%d")))) {
     err003 <- paste0(
       "\U000274c Error 003: The columns containing date information should be
       in a date format `YYYY-MM-DD`. Please verify")
