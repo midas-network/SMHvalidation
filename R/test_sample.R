@@ -73,9 +73,9 @@ test_sample <- function(df, task_ids) {
   if (length(na.omit(unlist(sample_unique))) > 100) {
     sample_unique <- paste0(unique(unlist(purrr::map(strsplit(
       sample_unique, "please verify: "), 1))), length(sample_unique),
-      " unique groups have been identified with this issue. For example: ",
+      " unique groups have been identified with this issue. For example: \n",
       paste("group: ", head(purrr::map(strsplit(sample_unique, "verify: "), 2),
-                            3), collapse = "; "), "; etc.")
+                            3), collapse = "; \n"), "; \netc.")
   }
 
   # - result output
