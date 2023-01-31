@@ -37,18 +37,23 @@ test_sample <- function(df, task_ids) {
     sample_type <- NA
   }
 
-  # - sample column contain value from 1 to 100 (warning if under 100 or over
-  # 100)
-  test_df <- dplyr::filter(df_sample, type_id < 1 | type_id > 100)
+  # - sample type_id column contains the expected value
+  exp_sample <- as.numeric(unique(na.omit(c(
+    model_task$output_types$sample$type_id$required[[1]],
+    model_task$output_types$sample$type_id$optional[[1]]))))
+  test_df <- dplyr::filter(df_sample,  type_id < min(exp_sample) |
+                             type_id > max(exp_sample))
   if (dim(test_df)[1] > 0 | any(grepl(
     "\\.", unlist(distinct(df[ ,"type_id", FALSE]))))) {
     sample_value <-  paste0(
       "\U0001f7e1 Warning 901: The column 'sample' should contains integer",
-      " values between 1 and 100 (included), please verify.")
+      " values between ", min(exp_sample), " and ", max(exp_sample),
+      " (included), please verify.")
   } else {
     sample_value <- NA
   }
-  if (max(vector_sample) < 100) {
+  if (max(vector_sample) < max(
+    model_task$output_types$sample$type_id$required[[1]])) {
     sample_value <- c(
       sample_value,
       paste0("\U0001f7e1 Warning 901: The column 'sample' contains less ",
@@ -65,8 +70,9 @@ test_sample <- function(df, task_ids) {
     err_groups <- df_test %>% dplyr::select(-N) %>% dplyr::distinct() %>%
       tidyr::unite("group", dplyr::everything(), sep = ", ") %>% unlist()
      sample_unique <- paste0(
-        "\U000274c Error 902: Each scenario/target/location (age_group) group ",
-        "should have an unique sample identifier, please verify: ", err_groups)
+        "\U000274c Error 902: Each scenario/target/location (age_group, etc.)",
+        " group should have an unique sample identifier, please verify: ",
+        err_groups)
   } else {
     sample_unique <- NA
   }
