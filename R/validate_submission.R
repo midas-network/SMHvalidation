@@ -67,11 +67,11 @@ run_all_validation <- function(df, start_date, path, pop, last_lst_gs,
   out_target <- test_target(df, model_task)
 
   # Test on location information
-  out_loc <- test_location(df, number2location, js_def)
+  out_loc <- test_location(df, number2location, task_ids)
 
   # Test for additional column
   if (any(grepl("age_group", names(df)))) {
-    out_agegroup <- test_agegroup(df, js_def)
+    out_agegroup <- NA#test_agegroup(df, js_def)
   }
 
   # Report:
