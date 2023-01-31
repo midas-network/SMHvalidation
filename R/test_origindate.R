@@ -8,8 +8,6 @@
 #'
 #'@param df data frame to test
 #'@param path character vector path of the file being tested
-#'@param start_date corresponds to the first week horizon in the projection
-#'  file
 #'
 #'@details  This function contains 4 tests:
 #'\itemize{
@@ -28,7 +26,7 @@
 #'@importFrom stats na.omit
 #'@importFrom stringr str_extract
 #'@export
-test_origindate <- function(df, path, start_date) {
+test_origindate <- function(df, path) {
   # Prerequisite
   vector_date <- df %>% select(origin_date) %>% distinct() %>% unlist()
   # Test the format of the column: should be a date
@@ -56,20 +54,12 @@ test_origindate <- function(df, path, start_date) {
     ordname_test <- paste0(
       "\U000274c Error 303: 'origin_date' is not corresponding to ",
       "the name in the file, the 'origin_date' date value and the ",
-      "date in the filename should correspond to: '", start_date - 6, "'.")
+      "date in the filename should correspond to: '", vector_date, "'.")
   } else {
     ordname_test <- NA
   }
-  # The origin_date should correspond to the projection starting date
-  if (isFALSE(all(vector_date == start_date - 6))) {
-    ordvalue_test <- paste0(
-      "\U000274c Error 304: 'origin_date' should correspond to the ",
-      "projection starting date, as written in the README available on GitHub.")
-  } else {
-    ordvalue_test <- NA
-  }
 
-  ord_test <- na.omit(c(ordate_test, ordone_test, ordname_test, ordvalue_test))
+  ord_test <- na.omit(c(ordate_test, ordone_test, ordname_test))
   ord_test <- unique(ord_test)
   if (length(ord_test) == 0)
     ord_test  <- paste0("No errors or warnings found on the column ",

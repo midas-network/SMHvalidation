@@ -8,8 +8,6 @@
 #'
 #'@param df data frame to test
 #'@param path character vector path of the file being tested
-#'@param start_date corresponds to the "1 wk ahead" target in the projection
-#'  file
 #'@param pop data frame containing the population size of each geographical
 #'  entities by fips (in a column "location")
 #'@param number2location named vector containing the FIPS as name and the
@@ -26,7 +24,7 @@
 #' might be created later on too.
 #'
 #' @noRd
-run_all_validation <- function(df, start_date, path, pop, last_lst_gs,
+run_all_validation <- function(df, path, pop, last_lst_gs,
                                number2location, js_def) {
   ### Prerequisite
   model_task <- js_def$model_tasks[[1]]
@@ -50,7 +48,7 @@ run_all_validation <- function(df, start_date, path, pop, last_lst_gs,
   out_scen <- test_scenario(df, task_ids)
 
   # Test origin date information
-  out_ord <- test_origindate(df, path, start_date)
+  out_ord <- test_origindate(df, path)
 
   # Test by type
   if (any(grepl("quantile", unlist(distinct(df[ ,"type", FALSE]))))) {
@@ -137,9 +135,10 @@ run_all_validation <- function(df, start_date, path, pop, last_lst_gs,
 #' to the documentation of each "test_*" function. A vignette with all the
 #' information might be created later on too.
 #' \cr\cr
-#' The function accepts submission in CSV, ZIP or GZ file formats.
+#' The function accepts submission in CSV, ZIP, PQT or PARQUET or GZ file
+#' formats.
 #'
-#' @importFrom dplyr mutate select %>% mutate_all
+#' @importFrom dplyr mutate select %>% mutate_all distinct
 #' @importFrom stats setNames
 #' @importFrom jsonlite fromJSON
 #'
@@ -149,7 +148,7 @@ run_all_validation <- function(df, start_date, path, pop, last_lst_gs,
 #'
 #' lst_gs <- pull_gs_data()
 #' pop_path <- "PATH/TO/data-locations/locations.csv"
-#' js_def <- "PATH/TO/covid.json"
+#' js_def <- "PATH/TO/covid_tasks.json"
 #'
 #' validate_submission("PATH/SUBMISSION", lst_gs, pop_path, js_def)
 #'
@@ -157,7 +156,7 @@ run_all_validation <- function(df, start_date, path, pop, last_lst_gs,
 #'
 #' lst_gs <- NULL
 #' pop_path <- "PATH/TO/data-locations/locations.csv"
-#' js_def <- "PATH/TO/flu.json"
+#' js_def <- "PATH/TO/flu_tasks.json"
 #'
 #' validate_submission("PATH/SUBMISSION", lst_gs, pop_path, js_def)
 #'
@@ -200,8 +199,8 @@ validate_submission <- function(path,
       "\U000274c Error 003: The columns containing date information should be
       in a date format `YYYY-MM-DD`. Please verify")
     cat(err003)
-    stop(" The submission contains an issue, the validation was not run, please",
-         " see information above.")
+    stop(" The submission contains an issue, the validation was not run, ",
+         "please see information above.")
   }
 
   # Select the associated round (add error message if no match)
@@ -214,8 +213,8 @@ validate_submission <- function(path,
       "associated with any task_ids round. Please verify the date information",
       " in the origin_date column corresponds to the expected value.")
     cat(err004)
-    stop(" The submission contains an issue, the validation was not run, please",
-         " see information above.")
+    stop(" The submission contains an issue, the validation was not run, ",
+         "please see information above.")
   }
 
   # Extract week 0 or week -1 of observed data
@@ -226,8 +225,7 @@ validate_submission <- function(path,
   })
 
   # Run tests --------
-  run_all_validation(df, start_date = as.Date(js_def$round_id) + 6,
-                     path = path, pop = pop,
+  run_all_validation(df, path = path, pop = pop,
                      last_lst_gs = last_week_gs,
                      number2location = number2location, js_def = js_def)
 }
