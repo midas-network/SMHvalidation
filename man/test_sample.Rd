@@ -4,12 +4,13 @@
 \alias{test_sample}
 \title{Runs Validation Checks on the samplecolumn}
 \usage{
-test_sample(df, task_ids)
+test_sample(df, model_task)
 }
 \arguments{
 \item{df}{data frame to test}
 
-\item{task_ids}{data.frame containing round information for each id columns}
+\item{model_task}{data.frame containing round information for each id columns
+and model output (type, format, etc.)}
 }
 \description{
 Validate Scenario Modeling Hub submissions: test if the  `sample` column

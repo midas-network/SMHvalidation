@@ -4,7 +4,8 @@
 #' contains the expected  value.
 #'
 #'@param df data frame to test
-#'@param task_ids data.frame containing round information for each id columns
+#'@param model_task data.frame containing round information for each id columns
+#' and model output (type, format, etc.)
 #'
 #'@details  This function contains 3 tests:
 #'\itemize{
@@ -20,10 +21,11 @@
 #'@importFrom stats na.omit
 #'@importFrom dplyr filter
 #'@export
-test_sample <- function(df, task_ids) {
+test_sample <- function(df, model_task) {
   # prerequisite
   df_sample <- dplyr::filter(df, type %in% "sample")
   vector_sample <- unlist(distinct(df_sample[ ,"type_id", FALSE]))
+  task_ids <- model_task$task_ids
   # - sample column should be an integer
   # Function from ?is.integer() function documentation
   is.wholenumber <-
