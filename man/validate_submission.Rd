@@ -4,10 +4,13 @@
 \alias{validate_submission}
 \title{Validate SMH (Scenario Modeling Hub) Submissions}
 \usage{
-validate_submission(path, lst_gs, pop_path, js_def)
+validate_submission(path, js_def, lst_gs, pop_path)
 }
 \arguments{
 \item{path}{path to the submissions file to test}
+
+\item{js_def}{path to JSON file containing round definitions: names of
+columns, target names, ...}
 
 \item{lst_gs}{named list of data frame containing the
 observed data. For COVID-19, we highly recommend to use the output of the
@@ -17,9 +20,6 @@ frame should be named with the corresponding covidcast signal except
 
 \item{pop_path}{path to a table containing the population size of each
 geographical entities by FIPS (in a column "location") and by location name.}
-
-\item{js_def}{path to JSON file containing round definitions: names of
-columns, target names, ...}
 }
 \description{
 Runs all the different validation checks functions (test_column,
@@ -33,7 +33,8 @@ For more information on all tests run on the submission, please refer
 to the documentation of each "test_*" function. A vignette with all the
 information might be created later on too.
 \cr\cr
-The function accepts submission in CSV, ZIP or GZ file formats.
+The function accepts submission in CSV, ZIP, PQT or PARQUET or GZ file
+formats.
 }
 \examples{
 \dontrun{
@@ -41,17 +42,17 @@ The function accepts submission in CSV, ZIP or GZ file formats.
 
 lst_gs <- pull_gs_data()
 pop_path <- "PATH/TO/data-locations/locations.csv"
-js_def <- "PATH/TO/covid.json"
+js_def <- "PATH/TO/covid_tasks.json"
 
-validate_submission("PATH/SUBMISSION", lst_gs, pop_path, js_def)
+validate_submission("PATH/SUBMISSION", js_def, lst_gs, pop_path)
 
 # FOR FLU SMH Submission
 
 lst_gs <- NULL
 pop_path <- "PATH/TO/data-locations/locations.csv"
-js_def <- "PATH/TO/flu.json"
+js_def <- "PATH/TO/flu_tasks.json"
 
-validate_submission("PATH/SUBMISSION", lst_gs, pop_path, js_def)
+validate_submission("PATH/SUBMISSION", js_def, lst_gs, pop_path)
 
 }
 }

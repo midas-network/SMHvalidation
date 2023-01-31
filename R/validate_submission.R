@@ -55,7 +55,7 @@ run_all_validation <- function(df, path, pop, last_lst_gs,
     out_quant <- NA#test_quantiles(df, js_def)
   }
   if (any(grepl("sample", unlist(distinct(df[ ,"type", FALSE]))))) {
-    out_sample <- test_sample(df, task_ids)
+    out_sample <- test_sample(df, model_task)
   }
 
   # Test on value
@@ -121,6 +121,8 @@ run_all_validation <- function(df, path, pop, last_lst_gs,
 #' submission: warning(s), error(s) or message if all the tests were successful.
 #'
 #'@param path path to the submissions file to test
+#' @param js_def path to JSON file containing round definitions: names of
+#'  columns, target names, ...
 #'@param lst_gs named list of data frame containing the
 #' observed data. For COVID-19, we highly recommend to use the output of the
 #' pull_gs_data() function. The list should have the same format: each data
@@ -128,8 +130,6 @@ run_all_validation <- function(df, path, pop, last_lst_gs,
 #' "hospitalization" instead of "confirmed_admissions_covid_1d".
 #'@param pop_path path to a table containing the population size of each
 #'  geographical entities by FIPS (in a column "location") and by location name.
-#'@param js_def path to JSON file containing round definitions: names of
-#'  columns, target names, ...
 #'
 #'@details For more information on all tests run on the submission, please refer
 #' to the documentation of each "test_*" function. A vignette with all the
@@ -150,7 +150,7 @@ run_all_validation <- function(df, path, pop, last_lst_gs,
 #' pop_path <- "PATH/TO/data-locations/locations.csv"
 #' js_def <- "PATH/TO/covid_tasks.json"
 #'
-#' validate_submission("PATH/SUBMISSION", lst_gs, pop_path, js_def)
+#' validate_submission("PATH/SUBMISSION", js_def, lst_gs, pop_path)
 #'
 #' # FOR FLU SMH Submission
 #'
@@ -158,14 +158,11 @@ run_all_validation <- function(df, path, pop, last_lst_gs,
 #' pop_path <- "PATH/TO/data-locations/locations.csv"
 #' js_def <- "PATH/TO/flu_tasks.json"
 #'
-#' validate_submission("PATH/SUBMISSION", lst_gs, pop_path, js_def)
+#' validate_submission("PATH/SUBMISSION", js_def, lst_gs, pop_path)
 #'
 #' }
 #'@export
-validate_submission <- function(path,
-                                lst_gs,
-                                pop_path,
-                                js_def) {
+validate_submission <- function(path, js_def, lst_gs, pop_path) {
 
   # Prerequisite --------
   # Load gold standard data

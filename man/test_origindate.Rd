@@ -4,15 +4,12 @@
 \alias{test_origindate}
 \title{Runs Validation Checks on the Origin Date column}
 \usage{
-test_origindate(df, path, start_date)
+test_origindate(df, path)
 }
 \arguments{
 \item{df}{data frame to test}
 
 \item{path}{character vector path of the file being tested}
-
-\item{start_date}{corresponds to the first week horizon in the projection
-file}
 }
 \description{
 Validate Scenario Modeling Hub submissions: test if the

@@ -28,8 +28,9 @@ test_scenario <- function(df, task_ids) {
                   scenario_id))) {
     scenid_test <-  paste0(
       "\U000274c Error 202: At least 1 of the 'scenario_id' do(es) not ",
-      "correspond: '", unique(df$scenario_id[!df$scenario_id %in% scenario_id]),
-      "'. The scenarios ids for this round are: '",
+      "correspond: '",
+      paste(unique(df$scenario_id[!df$scenario_id %in% scenario_id]),
+            collapse = ", "), "'. The scenarios ids for this round are: '",
       paste(scenario_id, collapse = ", "), "'. Please verify.")
   } else {
     scenid_test <- NA
