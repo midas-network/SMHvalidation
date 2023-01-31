@@ -4,13 +4,12 @@
 \alias{test_column}
 \title{Runs Validation Checks on Columns names and number}
 \usage{
-test_column(df, js_def)
+test_column(df, req_colnames)
 }
 \arguments{
 \item{df}{data frame to test}
 
-\item{js_def}{list containing round definitions: number and names of columns,
-target names, ...}
+\item{req_colname}{vector of required column names}
 }
 \description{
 Validate Scenario Modeling Hub submissions: names and number of columns.

@@ -4,7 +4,7 @@
 \alias{test_val}
 \title{Runs Validation Checks on the Projection value and type point columns}
 \usage{
-test_val(df, pop, last_lst_gs, js_def)
+test_val(df, pop, last_lst_gs, model_task)
 }
 \arguments{
 \item{df}{data frame to test}
@@ -16,29 +16,21 @@ entities by fips (in a column "location")}
 containing the last avaible week of observed data  before start of the
 projection}
 
-\item{js_def}{list containing round definitions: number and names of columns,
-target names, ...}
+\item{model_task}{data.frame containing round information for each id columns
+and model output (type, format, etc.)}
 }
 \description{
 Validate Scenario Modeling Hub submissions: test if the
 `value` and `type` columns contain the expected information and value.
 }
 \details{
-This function contains 12 tests:
+This function contains 9 tests:
 \itemize{
- \item{Type: }{The projection contains "point" value noted as `type` =
- "point" when required.}
- \item{Quantile: }{The projection contains "point" value noted as `quantile`
- = NA.}
- \item{Number of Point: }{The projection contains X point value, X = number
- of targets * number of scenarios * number of locations (only when all
- required targets required point projections for all scenarios, locations,
- etc.)}
- \item{Value: }{All `value` have the expected value (for example,
- ">= 0" or in between 0 and 1)}
+ \item{Required type: }{All the required type output are present in the
+   submission file}
+ \item{Value: }{All `value` have the expected format (for example, double
+      greater than 0, etc.)}
  \item{Numeric Value: }{All `value` are numeric, `NA` are not accepted)}
- \item{Unique Point: }{In the projection, each group of
- scenario/location/target has 1 unique point value (for the required targets)}
  \item{Unique value: }{For each target/scenario/location group (except
  locations 66 (Guam), 69 (Northern Mariana Island), 60 (American Samoa),
  74 (US. Minor Outlying Islands)), the whole time frame projection does not
@@ -58,10 +50,10 @@ This function contains 12 tests:
  projected cumulative death counts value should not be lower than the week
  0 (or week -1, depending on availability on the time of submission) of the
  observed cumulative deaths}
- \item{Unique Projections: }{In the submission, each
- quantile/target/scenario/location combination has one unique value
- projected. (For example: only 1 value for quantile 0.5, location US,
- target 1 wk ahead inc case and scenario A).}
+ \item{Unique Projections: }{In the submission, each group
+ quantile or sample/horizon/target/scenario/location combination has one
+ unique value projected. (For example: only 1 value for quantile 0.5,
+ location US, target 1 wk ahead inc case and scenario A).}
  \item{Cumulative Projections: }{In the submission, each
  quantile/target name/scenario/location combination for the cumulative target
  only, has projected values that increase or stay the same with time.}

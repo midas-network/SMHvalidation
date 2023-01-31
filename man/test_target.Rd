@@ -4,16 +4,16 @@
 \alias{test_target}
 \title{Runs Validation Checks on the Target and target_end_date columns}
 \usage{
-test_target(df, start_date, js_def)
+test_target(df, model_task)
 }
 \arguments{
 \item{df}{data frame to test}
 
+\item{model_task}{data.frame containing round information for each id columns
+and model output (type, format, etc.)}
+
 \item{start_date}{corresponds to the "1 wk ahead" target in the projection
 file}
-
-\item{js_def}{list containing round definitions: number and names of columns,
-target names, ...}
 }
 \description{
 Validate Scenario Modeling Hub submissions: test if the
@@ -21,15 +21,13 @@ Validate Scenario Modeling Hub submissions: test if the
 and value.
 }
 \details{
-This function contains 9 tests:
+This function contains 5 tests:
 \itemize{
  \item{Target name: }{The target should correspond to the target name as
  expressed in the SMH Github. }
  \item{Target number: }{The submission file contains projection for all
  required targets. It is accepted to submit only a subset of target but
  a warning message will be return (only if a required target is missing.}
- \item{End of week: }{The date in the "target_end_date" column should always
- correspond to the end of the epiweek (Saturday).}
  \item{Number of week projected: }{The submission file contains projections
  for the expected number of weeks or more. If a team submits more week than
  expected, a warning message will be returned, but the submission will be
@@ -41,14 +39,7 @@ This function contains 9 tests:
  \item{Week projected: }{The submission file contains projection for all
  expected weeks for each target, location, scenario (age_group) and quantiles
  or sample combination.}
- \item{Starting date: }{The 1 week ahead of the `target_end_date` starts on
- the expected date (end of the epiweek of the starting projection date).}
- \item{Correct date: }{Each target_end_date corresponds to the expected date
-  for example if 1 wk ahead = 2022-01-15, than 2 wk ahead = 2022-01-22.}
- \item{Target value: }{For the round 14s and 15, and for the optional target
- "prop X", the associated value with this target should be between 0 and 1
- and should be noted with quantile = NA and type = "point".}
- \item{NA target}{The projection contains NA for all "target_end_date"
+ \item{NA target}{The projection contains NA for all "horizon"
  for the target requiring no time series information. }
 }
 Function called in the `validate_submission()` function.
