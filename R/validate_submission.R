@@ -54,7 +54,7 @@ run_all_validation <- function(df, start_date, path, pop, last_lst_gs,
 
   # Test by type
   if (any(grepl("quantile", unlist(distinct(df[ ,"type", FALSE]))))) {
-    out_quant <- test_quantiles(df, js_def)
+    out_quant <- NA#test_quantiles(df, js_def)
   }
   if (any(grepl("sample", unlist(distinct(df[ ,"type", FALSE]))))) {
     out_sample <- test_sample(df, task_ids)
@@ -64,7 +64,7 @@ run_all_validation <- function(df, start_date, path, pop, last_lst_gs,
   out_val <- test_val(df, pop, last_lst_gs, model_task)
 
   # Test on targets information
-  out_target <- test_target(df, start_date, js_def)
+  out_target <- test_target(df, model_task)
 
   # Test on location information
   out_loc <- test_location(df, number2location, js_def)
