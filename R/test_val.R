@@ -66,16 +66,6 @@ test_val <- function(df, pop, last_lst_gs, model_task) {
   }
   df <- data.table::data.table(df)
 
-  # - required type(s) are present in the submission file
-  if (!all(req_type %in% unique(df[, type]))) {
-    type_test <- paste0(
-            "\U000274c Error 511: The data frame is missing at least one ",
-            "required output. The submission file should contains information",
-            " output in the type: ", paste(req_type, collapse = ", "))
-  } else {
-    type_test <- NA
-  }
-
   # - all value are in the expected format and the column value does not contain
   # any NA
   format_test <- lapply(output_type, function(x) {
@@ -280,6 +270,16 @@ test_val <- function(df, pop, last_lst_gs, model_task) {
     }
   } else {
     valcum_test <- NA
+  }
+
+  # - required type(s) are present in the submission file
+  if (!all(req_type %in% unique(df[, type]))) {
+    type_test <- paste0(
+      "\U000274c Error 512: The data frame is missing at least one ",
+      "required output. The submission file should contains information",
+      " output in the type: ", paste(req_type, collapse = ", "))
+  } else {
+    type_test <- NA
   }
 
   value_test <-  na.omit(c(type_test, unlist(format_test), na_test,
