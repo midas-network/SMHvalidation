@@ -52,7 +52,7 @@ run_all_validation <- function(df, path, pop, last_lst_gs,
 
   # Test by type
   if (any(grepl("quantile", unlist(distinct(df[ ,"type", FALSE]))))) {
-    out_quant <- NA#test_quantiles(df, js_def)
+    out_quant <- test_quantiles(df, model_task)
   }
   if (any(grepl("sample", unlist(distinct(df[ ,"type", FALSE]))))) {
     out_sample <- test_sample(df, model_task)
@@ -178,7 +178,7 @@ validate_submission <- function(path, js_def, lst_gs, pop_path) {
   number2location <- setNames(pop$location_name, pop$location)
 
   # Read JSON file
-  js_def <- jsonlite::fromJSON(js_def)
+  js_def <- jsonlite::fromJSON(js_def, simplifyDataFrame = FALSE)
 
   # Print message --------
   print(paste0("Run validation on file: ", basename(path)))
@@ -194,7 +194,7 @@ validate_submission <- function(path, js_def, lst_gs, pop_path) {
     "%Y-%m-%d")))) {
     err003 <- paste0(
       "\U000274c Error 003: The columns containing date information should be
-      in a date format `YYYY-MM-DD`. Please verify")
+      in a date format `YYYY-MM-DD`. Please verify \n")
     cat(err003)
     stop(" The submission contains an issue, the validation was not run, ",
          "please see information above.")
@@ -202,13 +202,13 @@ validate_submission <- function(path, js_def, lst_gs, pop_path) {
 
   # Select the associated round (add error message if no match)
   js_def <- js_def$rounds[unlist(purrr::map(
-    js_def, "round_id") == df$origin_date[[1]])]
+    js_def$rounds, "round_id") == df$origin_date[[1]])][[1]]
 
   if (length(js_def) < 1) {
     err004 <- paste0(
       "\U000274c Error 004: The origin_date in the submission file was not ",
       "associated with any task_ids round. Please verify the date information",
-      " in the origin_date column corresponds to the expected value.")
+      " in the origin_date column corresponds to the expected value.\n")
     cat(err004)
     stop(" The submission contains an issue, the validation was not run, ",
          "please see information above.")

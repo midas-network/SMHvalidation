@@ -35,16 +35,15 @@
 #'
 #'@importFrom stats na.omit
 #'@importFrom dplyr %>% mutate filter
-#'@importFrom lubridate wday as.period period
 #'@importFrom purrr map keep
 #'@export
 test_target <- function(df, model_task) {
   # Prerequisite
-  target_req <- unlist(model_task$task_ids$target$required)
-  target_opt <- unlist(model_task$task_ids$target$optional)
-  target_names <- unique(na.omit(c(target_req, target_opt)))
-  req_horizon <- model_task$task_ids$horizon$required[[1]]
-  opt_horizon <- model_task$task_ids$horizon$optional[[1]]
+  target_req <- model_task$task_ids$target$required
+  target_opt <- model_task$task_ids$target$optional
+  target_names <- unique(c(target_req, target_opt))
+  req_horizon <- model_task$task_ids$horizon$required
+  opt_horizon <- model_task$task_ids$horizon$optional
   df <- data.table::data.table(df)
 
   # - target names (should be the same as in the GitHub)
@@ -93,36 +92,40 @@ test_target <- function(df, model_task) {
     }}
 
   # targets information for the horizon
-  target_ts <- model_task$target_metadata[[1]][
-    model_task$target_metadata[[1]]$is_step_ahead == TRUE, "target_id"]
-  target_pnt <- model_task$target_metadata[[1]][
-    model_task$target_metadata[[1]]$is_step_ahead == FALSE, "target_id"]
+  target_ts <- unlist(purrr::map(model_task$target_metadata[unlist(purrr::map(
+    model_task$target_metadata, "is_step_ahead"))], "target_id"))
+  target_pnt <- unlist(purrr::map(model_task$target_metadata[!unlist(purrr::map(
+    model_task$target_metadata, "is_step_ahead"))], "target_id"))
 
   # - all target weeks are present (1,2,3, etc.) by target, scenario, location,
   # quantile or sample for the target(s) requiring it
-  df_ts <- df[grepl(paste(target_ts, collapse = "|"), target)]
-  sel_group <- c(grep(
-    "value|target_end_date|type|model_projection_date|scenario_name|horizon",
-    names(df_ts), invert = TRUE, value = TRUE), "type", "type_id")
-  df_ts[, sel := ifelse(all(req_horizon %in% horizon), 0, 1), by = sel_group]
-  df_ts <- df_ts[sel > 0]
-  if (dim(df_ts)[1] > 0) {
-    err_groups <- df_ts %>% dplyr::select(-sel, -value) %>%
-      dplyr::distinct() %>% tidyr::unite("group", dplyr::everything(),
-                                         sep = ", ") %>% unlist()
-    targetwnum_test <- paste0(
-      "\U000274c Error 607: At least one target week is missing in the time ",
-      "series. Please verify: ", err_groups)
+  if (!is.null(target_ts)) {
+    df_ts <- df[grepl(paste(target_ts, collapse = "|"), target)]
+    sel_group <- c(grep(
+      "value|target_end_date|type|model_projection_date|scenario_name|horizon",
+      names(df_ts), invert = TRUE, value = TRUE), "type", "type_id")
+    df_ts[, sel := ifelse(all(req_horizon %in% horizon), 0, 1), by = sel_group]
+    df_ts <- df_ts[sel > 0]
+    if (dim(df_ts)[1] > 0) {
+      err_groups <- df_ts %>% dplyr::select(-sel, -value) %>%
+        dplyr::distinct() %>% tidyr::unite("group", dplyr::everything(),
+                                           sep = ", ") %>% unlist()
+      targetwnum_test <- paste0(
+        "\U000274c Error 607: At least one target week is missing in the time ",
+        "series. Please verify: ", err_groups)
+    } else {
+      targetwnum_test <- NA
+    }
+    if (length(na.omit(unlist(targetwnum_test))) > 100) {
+      targetwnum_test <- paste0(unique(unlist(purrr::map(strsplit(
+        targetwnum_test, "Please verify: "), 1))), length(targetwnum_test),
+        " unique groups have been identified with this issue. For example: \n",
+        paste("group: ", head(purrr::map(
+          strsplit(targetwnum_test, "verify: "), 2),3), collapse = ";\n"),
+        "; \netc.")
+    }
   } else {
     targetwnum_test <- NA
-  }
-  if (length(na.omit(unlist(targetwnum_test))) > 100) {
-    targetwnum_test <- paste0(unique(unlist(purrr::map(strsplit(
-      targetwnum_test, "Please verify: "), 1))), length(targetwnum_test),
-      " unique groups have been identified with this issue. For example: \n",
-      paste("group: ", head(purrr::map(
-        strsplit(targetwnum_test, "verify: "), 2),3), collapse = ";\n"),
-      "; \netc.")
   }
 
 

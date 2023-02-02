@@ -8,26 +8,18 @@
 #'@param js_def list containing round definitions: number and names of columns,
 #' target names, ...
 #'
-#'@details  This function contains 6 tests:
+#'@details  This function contains 4 tests:
 #'\itemize{
-#'  \item{Quantiles: }{The `quantile` column matches the expected quantiles:
-#'  0, 0.01, 0.025, 0.05, 0.1, 0.15, 0.2, 0.25, 0.3, 0.35, 0.4, 0.45, 0.5, 0.55,
-#'   0.6, 0.65, 0.7, 0.75, 0.8, 0.85, 0.9, 0.95, 0.975, 0.99 and/or 1.}
-#'  \item{Number: }{The projection should contain at least the 23 quantiles
-#'   (0 and 1 are optional). It is accepted to submit less quantiles but the
+#'  \item{Quantiles: }{The `quantile` column matches the expected quantiles}
+#'  \item{Required quantiles: }{The projection should contain all required
+#'   quantiles. It is accepted to submit less quantiles but the
 #'   function will return a warning and the submission will not be included
 #'   in the Ensembles.}
 #'  \item{Value: }{The `value` associated with each `quantile` is increasing as
 #'  the quantile increased. For example, if quantile 0.01 = 5 than quantile
 #'  0.5 should be equal or greater than 5.}
-#'  \item{Unique value: }{For the target(s) requiring quantiles information,
-#'  not all the quantiles per scenario, target and location (and age_group if
-#'  necessary) are equal.}
-#'  \item{1 quantile: }{For the target(s) requiring quantiles information, all
-#'  quantiles per scenario, target and location (and age_group if necessary) are
-#'   unique.}
 #'  \item{Target: }{All targets required to have quantiles information have all
-#'  expected quantiles.}
+#'  required quantiles for each group id (scenario/location/horizon/etc.)}
 #' }
 #' Function called in the `validate_submission()` function.
 #'
@@ -36,128 +28,88 @@
 #'@importFrom purrr discard keep map
 #'
 #'@export
-test_quantiles <- function(df, js_def) {
-  #Vector of expected quantile
-  quantiles <- sort(unique(unlist(js_def$quantiles)))
-  n_quantile <- length(quantiles) + 1
+test_quantiles <- function(df, model_task) {
+  # Prerequisite
+  req_quantile <- model_task$output_types$quantile$type_id$required
+  opt_quantile <- model_task$output_types$quantile$type_id$optional
+  all_quantile <- unique(c(req_quantile, opt_quantile))
+  df <- data.table::data.table(df)[type == "quantile"]
+  sub_quantile <- unlist(distinct(df[, "type_id"]))
 
-  # - quantiles values (should be the same as in the GitHub)
-  if (isFALSE(all(na.omit(df$quantile) %in% quantiles))) {
-    qvalues_test <- paste0(
-      "\U000274c Error 401: ", unique(na.omit(df$quantile))[!unique(na.omit(
-        df$quantile)) %in% quantiles], " is not an accepted quantile.")
+  # - test all quantiles value are expected
+  if (isFALSE(all(all_quantile %in% sub_quantile))) {
+    if (all(req_quantile %in% df[, "type_id"])) {
+      qvalues_test <- NA
+    } else {
+      qvalues_test <-  paste0(
+        "\U000274c Error 402: At least one quantile is missing: ",
+        paste(req_quantile[!req_quantile %in% sub_quantile], collapse = ", "),
+        ". Please verify")
+    }
   } else {
     qvalues_test <- NA
   }
-  # - number of quantiles
-  if (isTRUE(length(unique(df$quantile)) < n_quantile)) {
-    if (isFALSE(all(quantiles[!quantiles %in% df$quantile] %in%
-                    js_def$quantiles$optional))) {
-      qnum_test <- paste0(
-        "\U0001f7e1 Warning 402: Expected number of 'quantile' is at least ",
-        length(js_def$quantiles$required), " + NA ",
-        if (all(!is.na(js_def$quantiles$optional))) {
-          paste0("(+ ", length(js_def$quantiles$optional),
-                 " optionals quantiles: ", paste(js_def$quantiles$optional,
-                                                 collapse = ", "),")")
-          },
-        " unique values. The projection ",
-        "contains: ", length(unique(df$quantile)), " unique values of ",
-        "`quantile`. The file is missing the quantile(s): '",
-        paste(quantiles[!quantiles %in% df$quantile], collapse = ", "), "'. ",
-        "The file will be accepted but might not be included in the Ensembles.")
-    } else {
-      qnum_test <- NA
-    }
+
+  # - test submission does not have additional quantiles
+  if (isFALSE(all(sub_quantile %in% all_quantile))) {
+    qadd_test <- paste0(
+      "\U000274c Error 407: At least one additional quantile was provided in",
+      " the submission: ",  paste(sub_quantile[!sub_quantile %in% all_quantile],
+                                  collapse = ", "), ". Please verify")
   } else {
-    qnum_test <- NA
+    qadd_test <- NA
   }
 
-  # target name requiring quantiles
-  target_quan <- purrr::map(c(js_def$targets$required, js_def$targets$optional),
-                            "quantiles")
-  target_quan <- purrr::discard(target_quan, is.null)
-  target_quan <- purrr::keep(purrr::map(target_quan, "required"),
-                            function(x) "all" %in% x)
-  target_quan <- names(target_quan)
-
-  # - required targets contains quantile
-  qmissing_test <- lapply(target_quan, function(x) {
-    test_df <- dplyr::filter(df, grepl(x, target), type == "quantile",
-                             !is.na(quantile))
-    if (isFALSE(all(unique(test_df$quantile) %in% js_def$quantiles$required))) {
-      qmissing_test <-  paste0(
-        "\U0001f7e1 Warning 406: The target", x, " is  missing quantiles ",
-        "information, please verify.The file will be accepted but might not be",
-        " included in the Ensembles if required quantiles are missing.")
+  # target(s) contains all the required quantiles
+  sel_group <- names(model_task$task_ids)
+  df[, sel := ifelse(all(req_quantile %in% type_id), 0, 1), by = sel_group]
+  df_test <- df[sel > 0]
+  if (dim(df_test)[1] > 0) {
+    err_groups <- df_test %>% dplyr::select(-sel, -value, -type, -type_id) %>%
+      dplyr::distinct() %>% tidyr::unite("group", dplyr::everything(),
+                                         sep = ", ") %>% unlist()
+    qmissing_test <-  paste0(
+      "\U0001f7e1 Warning 406: At least one quantile is missing from the ",
+      " submission, please verify: ", err_groups, ". The file will be accepted",
+      " but might not be included in the Ensembles.")
   } else {
-      qmissing_test <- NA
-    }
-  })
+    qmissing_test <- NA
+  }
+  if (length(na.omit(unlist(qmissing_test))) > 100) {
+    qmissing_test <- paste0(unique(unlist(purrr::map(strsplit(
+      qmissing_test, "please verify: "), 1))), length(qmissing_test),
+      " unique groups have been identified with this issue. For example: \n",
+      paste("group: ", head(purrr::map(
+        strsplit(qmissing_test, "verify: "), 2),3), collapse = ";\n"),
+      "; \netc.")
+  }
 
   # - value increases with the quantiles
-  df2 <- dplyr::filter(df, grepl(paste(target_quan, collapse = "|"), target))
-  df2 <- dplyr::filter(df2, !is.na(value))
-  ### automatic fix location to avoid issue and error message
-  df2 <-  dplyr::mutate(
-    df2, location = ifelse(nchar(location) == 1, paste0("0", location),
-                           location))
-  sel_group <- grep(
-    "value|target_end_date|type|quantile|model_projection_date|scenario_name",
-    js_def$column_names, invert = TRUE, value = TRUE)
-  lst_df <-  split(df2, as.list(df2[,sel_group]))
-  lst_df <- purrr::discard(lst_df, function(x) dim(x)[[1]] < 1)
-  qval_test  <- lapply(lst_df, function(x) {
-    group <- paste(names(unique(x[, sel_group])), ":", unique(x[, sel_group]),
-                   collapse = ", ")
-    dfstl <- dplyr::filter(x, grepl("quantile", type))
-   # if (length(unique(dfstl$value)) == 1) {
-   #   if (unique(dfstl$value) != 0) {
-   #     qval_test_tot <- paste0(
-   #       "\U000274c Error 405: All the quantiles seem to be ",
-   #       "equal to a unique value for the group: ", group)
-   #   } else {
-   #     qval_test_tot <- NA
-   #   }
-   # } else {
-      sel_quantile <- sort(unique(dfstl$quantile))
-      qval_test_tot <- NULL
-      for (i in 1:(length(sel_quantile) - 1)) {
-        value <- dfstl[dfstl$quantile == sel_quantile[i], "value", TRUE]
-        n_value <- dfstl[dfstl$quantile == sel_quantile[i+1], "value", TRUE]
-        if (length(n_value) != 1) {
-          qval_test <- paste0(
-            "\U000274c Error 404: The quantile ", sel_quantile[i + 1], ", is ",
-            "not associated with an unique value for the group: ", group)
-        } else if (length(value) != 1) {
-          qval_test <- paste0(
-            "\U000274c Error 404: The quantile ", sel_quantile[i], ", is not ",
-            "associated with an unique value for the group: ", group)
-        } else {
-          if (n_value < value) {
-            qval_test <- paste0(
-              "\U000274c Error 403: Quantiles values are not increasing with ",
-              "quantiles, please verify: ", sel_quantile[i], " and ",
-              sel_quantile[i+1], " for the group: ", group)
-          } else {
-            qval_test <- NA
-          }
-        }
-        qval_test <- unique(qval_test)
-        qval_test_tot <- unique(c(qval_test_tot, qval_test))
-      }
-    #}
-    qval_test_tot <- unique(na.omit(qval_test_tot))
-    if (length(qval_test_tot) == 0) qval_test_tot <- NA
-    return(qval_test_tot)
-  })
+  df_qval <- df[order(type_id)][, !"sel"]
+  df_qval[ , diff := value - data.table::shift(value, 1, type = "lag"),
+           by = sel_group]
+  df_qval <- df_qval[diff < 0]
+  if (dim(df_qval)[1] > 0) {
+    err_groups <- df_qval %>% dplyr::select(-diff, -value, -type, -type_id) %>%
+      dplyr::distinct() %>% tidyr::unite("group", dplyr::everything(),
+                                         sep = ", ") %>% unlist()
+    qval_test <-   paste0(
+      "\U000274c Error 403: Quantiles values are not increasing with ",
+      "quantiles, please verify: ", err_groups)
+  } else {
+    qval_test <- NA
+  }
   if (length(na.omit(unlist(qval_test))) > 100) {
-    qval_test <- unique(na.omit(unlist(qval_test))) %>%
-      gsub(" target : \\d{1,2} wk ahead ", " target: ", .) %>% unique
+    qval_test <- paste0(unique(unlist(purrr::map(strsplit(
+      qval_test, "please verify: "), 1))), length(qval_test),
+      " unique groups have been identified with this issue. For example: \n",
+      paste("group: ", head(purrr::map(
+        strsplit(qval_test, "verify: "), 2),3), collapse = ";\n"),
+      "; \netc.")
   }
 
-
-  quantiles_test <- na.omit(c(qvalues_test, qnum_test, unlist(qval_test)))
+  quantiles_test <- na.omit(c(qvalues_test, qadd_test, qmissing_test,
+                              qval_test))
   quantiles_test <- unique(quantiles_test)
   if (length(quantiles_test) == 0)
     quantiles_test <- paste0("No errors or warnings found on quantiles values ",

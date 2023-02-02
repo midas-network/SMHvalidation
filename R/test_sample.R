@@ -40,9 +40,9 @@ test_sample <- function(df, model_task) {
   }
 
   # - sample type_id column contains the expected value
-  exp_sample <- as.numeric(unique(na.omit(c(
-    model_task$output_types$sample$type_id$required[[1]],
-    model_task$output_types$sample$type_id$optional[[1]]))))
+  exp_sample <- as.numeric(unique(c(
+    model_task$output_types$sample$type_id$required,
+    model_task$output_types$sample$type_id$optional)))
   test_df <- dplyr::filter(df_sample,  type_id < min(exp_sample) |
                              type_id > max(exp_sample))
   if (dim(test_df)[1] > 0 | any(grepl(
@@ -55,7 +55,7 @@ test_sample <- function(df, model_task) {
     sample_value <- NA
   }
   if (max(vector_sample) < max(
-    model_task$output_types$sample$type_id$required[[1]])) {
+    model_task$output_types$sample$type_id$required)) {
     sample_value <- c(
       sample_value,
       paste0("\U0001f7e1 Warning 901: The column 'sample' contains less ",

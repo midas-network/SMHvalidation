@@ -16,5 +16,6 @@ utils::globalVariables(c("type", "target", "target_end_date", "start_date_t",
 #' The Scenario Modeling Hub Validations package contains functions for validation and visualization scenario modeling hub submissions.
 #'
 #' @docType package
+#' @import data.table
 #' @name SMHvalidation
 NULL

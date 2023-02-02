@@ -17,7 +17,7 @@
 #' Function called in the `validate_submission()` function.
 #'
 #'@importFrom stats na.omit
-#'
+#'@export
 test_column <- function(df, req_colnames) {
   # The name of the columns are corresponding to the expected format
   if (isFALSE(

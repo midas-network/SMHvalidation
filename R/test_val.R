@@ -50,15 +50,17 @@
 #'
 #'@importFrom stats na.omit
 #'@importFrom dplyr filter left_join mutate distinct %>% arrange matches
+#'@importFrom dplyr case_when
 #'@importFrom tidyr unite
 #'@importFrom purrr discard map
 #'@export
 test_val <- function(df, pop, last_lst_gs, model_task) {
 
   # Prerequisite
-  req_type <- names(purrr::map(purrr::map(purrr::map(purrr::map(
-    model_task$output_types, `[`), "type_id"), "required"), na.omit)) %>%
-    unique()
+  req_type <- purrr::map(purrr::map(purrr::map(model_task$output_types, `[`),
+                                    "type_id"), "required")
+  req_type <- req_type[!unlist(purrr::map(req_type, is.null))]
+  req_type <- unique(names(req_type))
   output_type <- names(model_task$output_types)
   if (any(nchar(df$location) == 1)) {
     df$location[which(nchar(df$location) == 1)] <- paste0(
@@ -69,8 +71,20 @@ test_val <- function(df, pop, last_lst_gs, model_task) {
   # - all value are in the expected format and the column value does not contain
   # any NA
   format_test <- lapply(output_type, function(x) {
+
+    if (isFALSE(all(unique(df[type == x, type_id]) %in%
+                    unique(unlist(model_task$output_types[[x]]$type_id))))) {
+      err_mess_id <- paste0(
+        "\U000274c Error 5040: For the type '", x, "', the type_id should ",
+        "correspond to: ",  paste(unique(unlist(
+          model_task$output_types[[x]]$type_id)), collapse = ", "), " at least",
+        " one id is incorrect, please verify")
+    } else {
+      err_mess_id <- NA
+    }
+
     value_format <- model_task$output_types[[x]]$value
-    valtype_test <- case_when(
+    valtype_test <- dplyr::case_when(
       value_format$type == "double" ~ is.double(df$value),
       value_format$type == "numeric" ~ is.numeric(df$value),
       value_format$type == "integer" ~ is.integer(df$value)
@@ -112,7 +126,7 @@ test_val <- function(df, pop, last_lst_gs, model_task) {
         }
       }
     }
-    return(err_mess)
+    return(c(err_mess, err_mess_id))
   })
   if (isTRUE(any(is.na(df$value)))) {
     df <- df[!is.na(value)]
@@ -240,18 +254,20 @@ test_val <- function(df, pop, last_lst_gs, model_task) {
   }
 
   # - Cumulative values are not decreasing
-  target_sel <- unique(unlist(data.table::data.table(
-    model_task$target_metadata[[1]])[grepl("cumulative", description,
-                                           ignore.case = TRUE)][,"target_id"]))
+  target_sel <- unique(unlist(purrr::map(model_task$target_metadata[unlist(
+    purrr::map(purrr::map(model_task$target_metadata, "description"),
+               function(x) grepl("cumulative", x, ignore.case = TRUE)))],
+    "target_id")))
   if (length(target_sel) > 0) {
     df_cum <- df[grepl(paste(target_sel, collapse = "|"), target)]
+    df_cum <- df_cum[order(df_cum, target, horizon)]
     sel_group <- grep(
       "value|target_end_date|model_projection_date|scenario_name|horizon",
       names(df_cum), invert = TRUE, value = TRUE)
-    df_cum[ , diff := value - data.table::shift(value, 1, type = "lag"),
+    df_cum[, diff := (value - data.table::shift(value, 1, type = "lag")),
             by = sel_group]
     df_cum <- df_cum[diff < 0]
-    if (dim(df_test)[1] > 0) {
+    if (dim(df_cum)[1] > 0) {
       err_groups <- df_cum %>% dplyr::select(-diff, -value) %>%
         dplyr::distinct() %>% tidyr::unite("group", dplyr::everything(),
                                            sep = ", ") %>% unlist()

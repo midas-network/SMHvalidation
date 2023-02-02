@@ -48,11 +48,11 @@ test_location <- function(df, number2location, task_ids) {
     location_test <- NA
   }
 
-  #- targets woth specific location does not contains additional location
-  req_loc <- task_ids$location$required[[1]]
-  opt_loc <- task_ids$location$optional[[1]]
-  if (isFALSE(all(is.na(c(req_loc, opt_loc))))) {
-    if (all(is.na(req_loc))) {
+  #- targets with specific location does not contains additional location
+  req_loc <- task_ids$location$required
+  opt_loc <- task_ids$location$optional
+  if (isFALSE(all(is.null(c(req_loc, opt_loc))))) {
+    if (all(is.null(req_loc))) {
       if (isFALSE(all(unique(df$location) %in% opt_loc))) {
         loc_test <- paste0(
           "\U000274c Error 703: The submission should only contain information",
@@ -66,9 +66,9 @@ test_location <- function(df, number2location, task_ids) {
     } else {
       if (isFALSE(all(req_loc %in% unique(df$location)))) {
         loc_test <- paste0(
-          "\U000274c Error 703: The submission should only contain information",
+          "\U000274c Error 703: The submission should contain information",
           " for the location(s): ",  paste(req_loc, collapse = ", "),
-          ", the data frame contains other locations (",
+          ", the data frame is missing: ",
           paste(req_loc[!req_loc %in% unique(df$location)],
                 collapse = ", "), "), please verify.")
       } else if (isFALSE(all(unique(df$location) %in% c(opt_loc, req_loc)))) {

@@ -20,7 +20,7 @@
 #'@export
 test_scenario <- function(df, task_ids) {
   # Prerequisite
-  scenario_id <- unique(na.omit(unlist(task_ids$scenario_id)))
+  scenario_id <- unique(unlist(task_ids$scenario_id))
 
   # test scenario id are correctly spelled and correspond to the expected
   # values
