@@ -27,12 +27,12 @@
 run_all_validation <- function(df, path, pop, last_lst_gs,
                                number2location, js_def) {
   ### Prerequisite
-  model_task <- js_def$model_tasks[[1]]
-  task_ids <- model_task$task_ids
-  req_colnames <-  c(names(task_ids), "type", "type_id", "value")
+  model_task <- js_def$model_tasks
+  task_ids <- purrr::map(model_task, "task_ids")
+  req_colnames <-  c(unique(names(unlist(task_ids, FALSE))), "type", "type_id",
+                     "value")
 
   ### Tests:
-
   # Test on column information (name and number)
   out_col <- test_column(df, req_colnames)
   # update to stop if any missing column
@@ -48,7 +48,7 @@ run_all_validation <- function(df, path, pop, last_lst_gs,
   out_scen <- test_scenario(df, task_ids)
 
   # Test origin date information
-  out_ord <- test_origindate(df, path)
+  out_ord <- test_origindate(df, path, id = js_def$round_id)
 
   # Test by type
   if (any(grepl("quantile", unlist(distinct(df[ ,"type", FALSE]))))) {
@@ -96,7 +96,7 @@ run_all_validation <- function(df, path, pop, last_lst_gs,
   test_report <- paste0(test_report, "\n\n")
 
   # Output:
-  if (!(all(grepl("^No error|^No .+ required", test_report)))) {
+  if (any(grepl("\\\U000274c Error|\\\U0001f7e1 Warning", test_report))) {
     if (any(grepl("\U000274c Error", test_report))) {
       cat(test_report)
       stop(" The submission contains one or multiple issues, please see ",
@@ -202,7 +202,7 @@ validate_submission <- function(path, js_def, lst_gs, pop_path) {
 
   # Select the associated round (add error message if no match)
   js_def <- js_def$rounds[unlist(purrr::map(
-    js_def$rounds, "round_id") == df$origin_date[[1]])][[1]]
+    js_def$rounds, "round_id")) == df$origin_date[[1]]]
 
   if (length(js_def) < 1) {
     err004 <- paste0(
@@ -212,6 +212,8 @@ validate_submission <- function(path, js_def, lst_gs, pop_path) {
     cat(err004)
     stop(" The submission contains an issue, the validation was not run, ",
          "please see information above.")
+  } else {
+    js_def <- js_def[[1]]
   }
 
   # Extract week 0 or week -1 of observed data

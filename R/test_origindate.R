@@ -8,6 +8,7 @@
 #'
 #'@param df data frame to test
 #'@param path character vector path of the file being tested
+#'@param id character date "id" of the corresponding round
 #'
 #'@details  This function contains 4 tests:
 #'\itemize{
@@ -26,9 +27,9 @@
 #'@importFrom stats na.omit
 #'@importFrom stringr str_extract
 #'@export
-test_origindate <- function(df, path) {
+test_origindate <- function(df, path, id) {
   # Prerequisite
-  vector_date <- df %>% select(origin_date) %>% distinct() %>% unlist()
+  vector_date <- unique(df[, "origin_date"])
   # Test the format of the column: should be a date
   if (any(is.na(as.Date(vector_date, "%Y-%m-%d")))) {
     ordate_test <- paste0(
@@ -54,7 +55,7 @@ test_origindate <- function(df, path) {
     ordname_test <- paste0(
       "\U000274c Error 303: 'origin_date' is not corresponding to ",
       "the name in the file, the 'origin_date' date value and the ",
-      "date in the filename should correspond to: '", vector_date, "'.")
+      "date in the filename should correspond to: '", id, "'.")
   } else {
     ordname_test <- NA
   }
