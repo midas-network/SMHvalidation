@@ -1,5 +1,5 @@
 ################################################################################
-#' Extract README path information by round
+#' Extract README path information by round [DEPRECATED]
 #'
 #' Extracts the raw Github path for each README by round from the GitHub
 #' repository of the COVID19 Scenario Modeling Hub
@@ -62,7 +62,7 @@ scenario_path_round <- function(repo_path, branch = "master",
 
 
 ################################################################################
-#' Create summary table with round, scenario and date information
+#' Create summary table with round, scenario and date information [DEPRECATED]
 #'
 #' From a path linking to the Scenario Modeling Hub, reads all the scenario's
 #' README and extracts scenario name, scenario id and 1 weak ahead projection
@@ -85,7 +85,11 @@ scenario_path_round <- function(repo_path, branch = "master",
 #' different and required the use of the "add_readme" parameters or it will
 #' returns an error. Please see the examples
 #'
+#' Function deprecated in Feb, 2023.
+#'
 #' @examples
+#'
+#' \dontrun{
 #' # For COVID-19
 #' repo_path <- "https://raw.githubusercontent.com/midas-network/covid19-scenario-modeling-hub/"
 #' scen_round_info(add_readme =  data.frame(
@@ -102,6 +106,7 @@ scenario_path_round <- function(repo_path, branch = "master",
 #'# For FLU
 #'scen_round_info(repo_path = "midas-network/flu-scenario-modeling-hub/",
 #'                branch = "main")
+#' }
 #'
 #'@export
 scen_round_info <- function(

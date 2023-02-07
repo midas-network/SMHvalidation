@@ -3,7 +3,7 @@
 #' Validate Scenario Modeling Hub submissions: names and number of columns.
 #'
 #'@param df data frame to test
-#'@param req_colname vector of required column names
+#'@param req_colnames vector of required column names
 #'
 #'@details  This function contains 2 tests:
 #'\itemize{

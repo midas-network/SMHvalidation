@@ -9,7 +9,7 @@
 #'@param last_lst_gs list of data frame, named with the corresponding target and
 #'  containing the last avaible week of observed data  before start of the
 #'  projection
-#'@param model_task data.frame containing round information for each id columns
+#'@param model_task list containing round information for each id columns
 #' and model output (type, format, etc.)
 #'
 #'@details  This function contains 9 tests:
@@ -50,8 +50,11 @@
 #'
 #'@importFrom stats na.omit
 #'@importFrom dplyr filter left_join mutate distinct %>% arrange matches
+#'@importFrom data.table `.N`
 #'@importFrom dplyr case_when
 #'@importFrom tidyr unite
+#'@importFrom utils head
+#'@importFrom stats var
 #'@importFrom purrr discard map
 #'@export
 test_val <- function(df, pop, last_lst_gs, model_task) {

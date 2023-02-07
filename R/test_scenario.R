@@ -6,7 +6,7 @@
 #' associated with each others.
 #'
 #'@param df data frame to test
-#'@param task_ids data.frame containing round information for each id columns
+#'@param task_ids list containing round information for each id columns
 #'
 #'@details  This function contains 1 tests:
 #'\itemize{

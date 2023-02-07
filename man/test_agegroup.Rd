@@ -4,13 +4,13 @@
 \alias{test_agegroup}
 \title{Runs Validation Checks on the `age_group` column}
 \usage{
-test_agegroup(df, js_def)
+test_agegroup(df, model_task)
 }
 \arguments{
 \item{df}{data frame to test}
 
-\item{js_def}{list containing round definitions: number and names of columns,
-target names, ...}
+\item{model_task}{list containing round information for each id columns
+and model output (type, format, etc.)}
 }
 \description{
 Validate Scenario Modeling Hub submissions: test if the `age_group` column

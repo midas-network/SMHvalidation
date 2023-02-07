@@ -4,12 +4,14 @@
 \alias{test_origindate}
 \title{Runs Validation Checks on the Origin Date column}
 \usage{
-test_origindate(df, path)
+test_origindate(df, path, id)
 }
 \arguments{
 \item{df}{data frame to test}
 
 \item{path}{character vector path of the file being tested}
+
+\item{id}{character date "id" of the corresponding round}
 }
 \description{
 Validate Scenario Modeling Hub submissions: test if the

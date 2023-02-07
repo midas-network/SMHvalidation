@@ -2,14 +2,14 @@
 % Please edit documentation in R/test_sample.R
 \name{test_sample}
 \alias{test_sample}
-\title{Runs Validation Checks on the samplecolumn}
+\title{Runs Validation Checks on the sample column}
 \usage{
 test_sample(df, model_task)
 }
 \arguments{
 \item{df}{data frame to test}
 
-\item{model_task}{data.frame containing round information for each id columns
+\item{model_task}{list containing round information for each id columns
 and model output (type, format, etc.)}
 }
 \description{

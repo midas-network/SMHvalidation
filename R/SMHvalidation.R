@@ -9,7 +9,8 @@ utils::globalVariables(c("type", "target", "target_end_date", "start_date_t",
                          "model_projection_date", "point", "prctdiff_gt",
                          "pre_gs_end", "proj_plot_data_calib_cum", "quantile",
                          "ratio_gt", "state value_gt", "value_gt", "state",
-                         "ground truth", "X", "age_group"))
+                         "ground truth", "X", "age_group", "sel", "type_id",
+                         "horizon"))
 
 #' SMHvalidation: Scenario Modeling Hub Validations & Visualizations
 #'

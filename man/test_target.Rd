@@ -9,11 +9,8 @@ test_target(df, model_task)
 \arguments{
 \item{df}{data frame to test}
 
-\item{model_task}{data.frame containing round information for each id columns
+\item{model_task}{list containing round information for each id columns
 and model output (type, format, etc.)}
-
-\item{start_date}{corresponds to the "1 wk ahead" target in the projection
-file}
 }
 \description{
 Validate Scenario Modeling Hub submissions: test if the

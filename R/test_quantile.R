@@ -5,8 +5,8 @@
 #' and the projection value increases with the quantiles.
 #'
 #'@param df data frame to test
-#'@param js_def list containing round definitions: number and names of columns,
-#' target names, ...
+#'@param model_task list containing round information for each id columns
+#' and model output (type, format, etc.)
 #'
 #'@details  This function contains 5 tests:
 #'\itemize{

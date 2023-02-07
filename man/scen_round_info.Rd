@@ -2,7 +2,7 @@
 % Please edit documentation in R/scen_round_info.R
 \name{scen_round_info}
 \alias{scen_round_info}
-\title{Create summary table with round, scenario and date information}
+\title{Create summary table with round, scenario and date information [DEPRECATED]}
 \usage{
 scen_round_info(
   repo_path = "midas-network/covid19-scenario-modeling-hub/",
@@ -30,8 +30,12 @@ date information.
 For the four first rounds of COVID-19, the SMH README are slightly
 different and required the use of the "add_readme" parameters or it will
 returns an error. Please see the examples
+
+Function deprecated in Feb, 2023.
 }
 \examples{
+
+\dontrun{
 # For COVID-19
 repo_path <- "https://raw.githubusercontent.com/midas-network/covid19-scenario-modeling-hub/"
 scen_round_info(add_readme =  data.frame(
@@ -48,5 +52,6 @@ scen_round_info(add_readme =  data.frame(
 # For FLU
 scen_round_info(repo_path = "midas-network/flu-scenario-modeling-hub/",
                branch = "main")
+}
 
 }

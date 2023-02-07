@@ -16,7 +16,7 @@ entities by fips (in a column "location")}
 containing the last avaible week of observed data  before start of the
 projection}
 
-\item{model_task}{data.frame containing round information for each id columns
+\item{model_task}{list containing round information for each id columns
 and model output (type, format, etc.)}
 }
 \description{

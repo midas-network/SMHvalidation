@@ -9,8 +9,8 @@ test_quantiles(df, model_task)
 \arguments{
 \item{df}{data frame to test}
 
-\item{js_def}{list containing round definitions: number and names of columns,
-target names, ...}
+\item{model_task}{list containing round information for each id columns
+and model output (type, format, etc.)}
 }
 \description{
 Validate Scenario Modeling Hub submissions: test if the
@@ -18,8 +18,9 @@ Validate Scenario Modeling Hub submissions: test if the
 and the projection value increases with the quantiles.
 }
 \details{
-This function contains 4 tests:
+This function contains 5 tests:
 \itemize{
+ \item{Type: }{The submission contains quantiles value when expected}
  \item{Quantiles: }{The `quantile` column matches the expected quantiles}
  \item{Required quantiles: }{The projection should contain all required
   quantiles. It is accepted to submit less quantiles but the

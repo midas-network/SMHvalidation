@@ -9,7 +9,7 @@ test_scenario(df, task_ids)
 \arguments{
 \item{df}{data frame to test}
 
-\item{task_ids}{data.frame containing round information for each id columns}
+\item{task_ids}{list containing round information for each id columns}
 }
 \description{
 Validate Scenario Modeling Hub submissions: test if the name and id of the

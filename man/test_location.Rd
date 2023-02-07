@@ -12,7 +12,7 @@ test_location(df, number2location, task_ids)
 \item{number2location}{named vector containing the FIPS as name and the
 corresponding location name as value (example: name: "01", value: "Alabama")}
 
-\item{task_ids}{data.frame containing round information for each id columns}
+\item{task_ids}{list containing round information for each id columns}
 }
 \description{
 Validate Scenario Modeling Hub submissions: test if the  `location` column

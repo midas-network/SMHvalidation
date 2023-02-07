@@ -9,7 +9,7 @@ test_column(df, req_colnames)
 \arguments{
 \item{df}{data frame to test}
 
-\item{req_colname}{vector of required column names}
+\item{req_colnames}{vector of required column names}
 }
 \description{
 Validate Scenario Modeling Hub submissions: names and number of columns.
