@@ -69,7 +69,7 @@ run_all_validation <- function(df, path, pop, last_lst_gs,
 
   # Test for additional column
   if (any(grepl("age_group", names(df)))) {
-    out_agegroup <- NA#test_agegroup(df, js_def)
+    out_agegroup <- test_agegroup(df, model_task)
   }
 
   # Report:
