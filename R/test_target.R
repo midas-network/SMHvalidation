@@ -5,9 +5,7 @@
 #' and value.
 #'
 #'@param df data frame to test
-#'@param start_date corresponds to the "1 wk ahead" target in the projection
-#'  file
-#'@param model_task data.frame containing round information for each id columns
+#'@param model_task list containing round information for each id columns
 #' and model output (type, format, etc.)
 #'
 #'@details  This function contains 5 tests:
@@ -39,6 +37,20 @@
 #'@export
 test_target <- function(df, model_task) {
 
+  # - target names (should be the same as in the GitHub)
+  target_names <- unique(unlist(purrr::map(purrr::map(model_task, "task_ids"),
+                                           "target")))
+  if (isFALSE(all(df$target %in% target_names))) {
+    targetname_test <-  paste0(
+      "\U000274c Error 601: At least one of the target_names is ",
+      "misspelled. Please verify, the target_names should be (optional ",
+      "target(s) inluded): '", paste(target_names, collapse = ", "),
+      "'. The data frame contains: '", paste(
+        unique(df$target), collapse = ", "), "', as targets names.")
+  } else {
+    targetname_test <- NA
+  }
+
   target_test <- lapply(model_task, function(x) {
     # Prerequisite
     target_req <- x$task_ids$target$required
@@ -46,6 +58,7 @@ test_target <- function(df, model_task) {
     target_names <- unique(c(target_req, target_opt))
     req_horizon <- x$task_ids$horizon$required
     opt_horizon <- x$task_ids$horizon$optional
+
     df_target <- data.table::data.table(df)[target %in% unique(unlist(
       x$task_ids$target))]
     if (any(nchar(df_target$location) == 1)) {
@@ -53,17 +66,6 @@ test_target <- function(df, model_task) {
         0, df_target$location[which(nchar(df_target$location) == 1)])
     }
     if (dim(df_target)[1] > 0) {
-      # - target names (should be the same as in the GitHub)
-      if (isFALSE(all(df_target$target %in% target_names))) {
-        targetname_test <-  paste0(
-          "\U000274c Error 601: At least one of the target_names is ",
-          "misspelled. Please verify, the target_names should be (optional ",
-          "target(s) inluded): '", paste(target_names, collapse = ", "),
-          "'. The data frame contains: '", paste(
-            unique(df$target), collapse = ", "), "', as targets names.")
-      } else {
-        targetname_test <- NA
-      }
       # - the submission contains all the targets. It is also accepted
       # to submit projections for only certain target (example: only cases,
       # etc.)
@@ -86,7 +88,7 @@ test_target <- function(df, model_task) {
         targetweek_test <- paste0(
           "\U0001f7e1 Warning 605: The projections should contains at least ",
           n_target_week, " weeks of projection. The data frame contains only: ",
-          length(unique(df_target$target_end_date)), " week(s). The projection",
+          length(unique(df_target$horizon)), " week(s). The projection",
           " might not be included in the Ensembles.")
       } else {
         if (isTRUE(length(unique(na.omit(df_target$horizon))) > max_week)) {
@@ -164,8 +166,7 @@ test_target <- function(df, model_task) {
             strsplit(targetwna_test, "verify: "), 2),3), collapse = ";\n"),
           "; \netc.")
       }
-      target_test <- na.omit(c(targetname_test,  targetnum_test,
-                               targetweek_test, targetwnum_test,
+      target_test <- na.omit(c(targetnum_test, targetweek_test, targetwnum_test,
                                targetwna_test))
     } else {
       missing_target <- paste(
@@ -185,7 +186,7 @@ test_target <- function(df, model_task) {
     return(target_test)
   })
 
-  target_test <- unique(na.omit(unlist(target_test)))
+  target_test <- unique(na.omit(unlist(c(targetname_test, target_test))))
   if (length(target_test) == 0)
     target_test <- paste0("No errors or warnings found in target and ",
                           "target_end_date columns")
