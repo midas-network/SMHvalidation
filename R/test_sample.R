@@ -4,7 +4,7 @@
 #' contains the expected  value.
 #'
 #'@param df data frame to test
-#'@param model_task data.frame containing round information for each id columns
+#'@param model_task list containing round information for each id columns
 #' and model output (type, format, etc.)
 #'
 #'@details  This function contains 3 tests:
@@ -50,7 +50,7 @@ test_sample <- function(df, model_task) {
         test_df <- dplyr::filter(df_sample,  type_id < min(exp_sample) |
                                    type_id > max(exp_sample))
         if (dim(test_df)[1] > 0 | any(grepl(
-          "\\.", unlist(distinct(df[ ,"type_id", FALSE]))))) {
+          "\\.", unlist(unique(df_sample[ ,type_id]))))) {
           sample_value <-  paste0(
             "\U0001f7e1 Warning 901: The column 'sample' should contains ",
             "integer values between ", min(exp_sample), " and ",
@@ -58,13 +58,14 @@ test_sample <- function(df, model_task) {
         } else {
           sample_value <- NA
         }
-        if (max(vector_sample) < max(
-          x$output_types$sample$type_id$required)) {
+        if (max(vector_sample) < max(unlist(x$output_types$sample$type_id))) {
           sample_value <- c(
             sample_value,
             paste0("\U0001f7e1 Warning 901: The column 'sample' contains less ",
-                   "`sample` then expected. Up to 100 'samples' for each ",
-                   "scenario/target/location(/age_group) can be submitted."))
+                   "`sample` then expected. Up to ",
+                   max(unlist(x$output_types$sample$type_id)),
+                   " 'samples' for each scenario/target/location(/age_group) ",
+                   "can be submitted."))
         }
 
         # - sample id should be unique for each group (task_ids)
