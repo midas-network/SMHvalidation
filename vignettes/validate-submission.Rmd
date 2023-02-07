@@ -110,7 +110,8 @@ We can now run the `validate_submission()` function on a first example
 file.
 
 ```{r test1}
-path_test <- system.file("extdata", "2022-01-09_team-model.csv", package = "SMHvalidation")
+path_test <- system.file("extdata", "2022-01-09_team-model.csv", 
+                         package = "SMHvalidation")
 validate_submission(path_test, js_def, lst_gs, pop_path)
 ```
 
@@ -120,7 +121,8 @@ found.
 ## Example 2: Warnings
 
 ```{r test2}
-path_test <- system.file("extdata", "2021-08-15_team-model.gz", package = "SMHvalidation")
+path_test <- system.file("extdata", "2021-08-15_team-model.gz", 
+                         package = "SMHvalidation")
 validate_submission(path_test, js_def, lst_gs, pop_path)
 ```
 
@@ -133,7 +135,8 @@ information in the submission is correct.
 ## Example 3: Warnings & Error
 
 ```{r test3, error=TRUE}
-path_test <- system.file("extdata", "2021-11-14_team-model.zip", package = "SMHvalidation")
+path_test <- system.file("extdata", "2021-11-14_team-model.zip", 
+                         package = "SMHvalidation")
 validate_submission(path_test, js_def, lst_gs, pop_path)
 ```
 
@@ -146,7 +149,8 @@ accepted.
 ## Example 4: Flu submission
 
 ```{r test4}
-path_test <- system.file("extdata", "2022-08-14_team-flu.csv", package = "SMHvalidation")
+path_test <- system.file("extdata", "2022-08-14_team-flu.csv", 
+                         package = "SMHvalidation")
 pop_path <- "https://raw.githubusercontent.com/midas-network/flu-scenario-modeling-hub/main/data-locations/locations.csv"
 js_def <- system.file("extdata", "flu_tasks.json", package = "SMHvalidation")
 validate_submission(path_test, js_def, NULL, pop_path)
@@ -158,35 +162,47 @@ The `SMHvalidation` R package also contains plotting functionality to
 output a plot of each location and target, with all scenarios and
 observed data incorporated.
 
-```{r proj_plots,eval=FALSE}
-path_test <- system.file("extdata", "2022-01-09_team-model.csv", package = "SMHvalidation")
+```{r proj_plots}
+path_test <- system.file("extdata", "2022-01-09_team-model.csv", 
+                         package = "SMHvalidation")
 save_path <- getwd()
-pdf_path <- file.path(save_path, paste0("2022-01-09", "_", "team-model", "_plots.pdf"))
+pdf_path <- file.path(save_path, paste0("2022-01-09", "_", "team-model", 
+                                        "_plots.pdf"))
 print(paste0("Saving pdf plots to ", pdf_path, "."))
-generate_validation_plots(path_proj=path_test, lst_gs=lst_gs, save_path=getwd(), y_sqrt = FALSE, plot_quantiles = c(0.025, 0.975))
+generate_validation_plots(path_proj = path_test, lst_gs = lst_gs, 
+                          save_path = getwd(), y_sqrt = FALSE, 
+                          plot_quantiles = c(0.025, 0.975))
 system(paste0('open "', pdf_path, '"'))
 ```
 
 Try another file type (CSV, GZ, and ZIP files format are accepted
 currently)
 
-```{r proj_plots2,eval=FALSE}
-path_test <- system.file("extdata", "2021-08-15_team-model.gz", package = "SMHvalidation")
+```{r proj_plots2}
+path_test <- system.file("extdata", "2021-08-15_team-model.gz", 
+                         package = "SMHvalidation")
 save_path <- getwd()
-pdf_path <- file.path(save_path, paste0("2021-08-15", "_", "team-model", "_plots.pdf"))
+pdf_path <- file.path(save_path, paste0("2021-08-15", "_", "team-model", 
+                                        "_plots.pdf"))
 print(paste0("Saving pdf plots to ", pdf_path, "."))
-generate_validation_plots(path_proj=path_test, lst_gs=lst_gs, save_path=getwd(), y_sqrt = FALSE, plot_quantiles = c(0.025, 0.975))
+generate_validation_plots(path_proj = path_test, lst_gs = lst_gs, 
+                          save_path = getwd(), y_sqrt = FALSE, 
+                          plot_quantiles = c(0.025, 0.975))
 system(paste0('open "', pdf_path, '"'))
 ```
 
 An other example is available for FLU submission (not compared to
 observed data, set the `lst_gs` parameter to `NULL`)
 
-```{r proj_plots3,eval=FALSE}
-path_test <- system.file("extdata", "2022-08-14_team-flu.csv", package = "SMHvalidation")
+```{r proj_plots3}
+path_test <- system.file("extdata", "2022-08-14_team-flu.csv", 
+                         package = "SMHvalidation")
 save_path <- getwd()
-pdf_path <- file.path(save_path, paste0("2022-08-14", "_", "team-flu", "_plots.pdf"))
+pdf_path <- file.path(save_path, paste0("2022-08-14", "_", "team-flu", 
+                                        "_plots.pdf"))
 print(paste0("Saving pdf plots to ", pdf_path, "."))
-generate_validation_plots(path_proj=path_test, lst_gs=NULL, save_path=getwd(), y_sqrt = FALSE, plot_quantiles = c(0.025, 0.975))
+generate_validation_plots(path_proj = path_test, lst_gs = NULL, 
+                          save_path = getwd(), y_sqrt = FALSE, 
+                          plot_quantiles = c(0.025, 0.975))
 system(paste0('open "', pdf_path, '"'))
 ```
