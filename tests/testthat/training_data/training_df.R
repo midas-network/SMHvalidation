@@ -282,7 +282,7 @@ write.csv(base_df %>% filter(location == "US") %>%
           "tests/testthat/training_data/2022-06-05_round14_misswk_targ.csv", row.names = FALSE)
 # location
 write.csv(base_df %>% filter(location == "US") %>% mutate(location = gsub("US", "0202", location)), "tests/testthat/training_data/2022-01-09_badlocation.csv", row.names = FALSE)
-write.csv(base_df %>% filter(location == "02") %>% mutate(location = gsub("02", "2", location)), "tests/testthat/training_data/2021-11-14_no0location.csv", row.names = FALSE)
+write.csv(base_df %>% filter(location == "02" & !(type_id %in% c(0, 1))) %>% mutate(location = gsub("02", "2", location)), "tests/testthat/training_data/2021-11-14_no0location.csv", row.names = FALSE)
 zip("tests/testthat/training_data/2021-11-14_no0location", "tests/testthat/training_data/2021-11-14_no0location.csv")
 file.remove("tests/testthat/training_data/2021-11-14_no0location.csv")
 
@@ -438,8 +438,8 @@ write.csv(tot, "tests/testthat/training_data/2022-08-14_flu_no_error.csv", row.n
 write.csv(tot[!(grepl("median", tot$type) & !grepl("time", tot$target)),], "tests/testthat/training_data/2022-08-14_flu_nopoint_noerror.csv", row.names = FALSE)
 write.csv(rbind(tot, dplyr::mutate(filter(US_base_df, grepl("death", target)), location = "02")), "tests/testthat/training_data/2022-08-14_flu_addloc.csv", row.names = FALSE)
 write.csv(dplyr::mutate(tot, age_group = "130-17"), "tests/testthat/training_data/2022-08-14_flu_missage.csv", row.names = FALSE)
-write.csv(dplyr::mutate(tot, age_group = "00_12"), "tests/testthat/training_data/2022-08-14_flu_badage.csv", row.names = FALSE)
+write.csv(dplyr::mutate(tot, age_group = ifelse(target == "peak size hosp", "00_12", age_group)), "tests/testthat/training_data/2022-08-14_flu_badage.csv", row.names = FALSE)
 
 write.csv(tot_s, "tests/testthat/training_data/2022-08-14_flu_sample.csv", row.names = FALSE)
-write.csv(dplyr::mutate(tot_s, type_id = ifelse(type_id > 98, 105, sample)), "tests/testthat/training_data/2022-08-14_flu_badsample.csv", row.names = FALSE)
+write.csv(dplyr::mutate(tot_s, type_id = ifelse(type_id > 98, 105, type_id)), "tests/testthat/training_data/2022-08-14_flu_badsample.csv", row.names = FALSE)
 
