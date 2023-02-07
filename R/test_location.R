@@ -6,7 +6,7 @@
 #'@param df data frame to test
 #'@param number2location named vector containing the FIPS as name and the
 #'  corresponding location name as value (example: name: "01", value: "Alabama")
-#'@param task_ids data.frame containing round information for each id columns
+#'@param task_ids list containing round information for each id columns
 #'
 #'@details  This function contains 2 tests:
 #'\itemize{
@@ -54,6 +54,11 @@ test_location <- function(df, number2location, task_ids) {
     req_loc <- x$location$required
     opt_loc <- x$location$optional
     df_test <- data.table::data.table(df)[target %in% unique(unlist(x$target))]
+    if (any(nchar(df_test$location) == 1)) {
+      df_test$location[which(nchar(df_test$location) == 1)] <- paste0(
+        0, df_test$location[which(nchar(df_test$location) == 1)])
+    }
+
     if (dim(df_test)[1] > 0) {
       if (isFALSE(all(is.null(c(req_loc, opt_loc))))) {
         if (all(is.null(req_loc)) & !is.null(opt_loc)) {
@@ -61,22 +66,26 @@ test_location <- function(df, number2location, task_ids) {
             loc_test <- paste0(
               "\U000274c Error 703: The submission should only contain",
               " information for the location(s): ",
-              paste(opt_loc, collapse = ", "), ", the data frame contains ",
-              "other locations (", paste(unique(df_test$location)[!unique(
+              paste(opt_loc, collapse = ", "), ", for the target(s): ",
+              paste(unique(unlist(x$target)), collapse = ", "),
+              ". The data frame contains other locations (",
+              paste(unique(df_test$location)[!unique(
                 df_test$location) %in% opt_loc], collapse = ", "),
               "), please verify.")
           } else {
             loc_test <- NA
           }
         } else {
-          if (isFALSE(all(req_loc %in% unique(df$location)))) {
+          if (isFALSE(all(req_loc %in% unique(df_test$location)))) {
             loc_test <- paste0(
               "\U000274c Error 703: The submission should contain information",
               " for the location(s): ",  paste(req_loc, collapse = ", "),
-              ", the data frame is missing: ",
-              paste(req_loc[!req_loc %in% unique(df$location)],
+              ", for the target(s): ",
+              paste(unique(unlist(x$target)), collapse = ", "),
+              ". The data frame is missing: ",
+              paste(req_loc[!req_loc %in% unique(df_test$location)],
                     collapse = ", "), ", please verify.")
-          } else if (isFALSE(all(unique(df$location) %in%
+          } else if (isFALSE(all(unique(df_test$location) %in%
                                  c(opt_loc, req_loc)))) {
             if (is.null(opt_loc)) {
               opt_loc_text <- ""
@@ -88,9 +97,11 @@ test_location <- function(df, number2location, task_ids) {
               "\U000274c Error 703: The submission should only contain ",
               "information for the location(s): ", paste(
                 req_loc,  collapse = ", "), " (required)", opt_loc_text,
-              ", the data frame contains other locations (",
-              paste(unique(df$location)[!unique(
-                df$location) %in% c(opt_loc, req_loc)], collapse = ", "),
+                ", for the target(s): ", paste(unique(unlist(x$target)),
+                                               collapse = ", "),
+                ". The data frame contains other locations (",
+              paste(unique(df_test$location)[!unique(
+                df_test$location) %in% c(opt_loc, req_loc)], collapse = ", "),
               "), please verify.")
           } else {
             loc_test <- NA
