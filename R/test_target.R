@@ -1,8 +1,7 @@
-#' Runs Validation Checks on the Target and target_end_date columns
+#' Runs Validation Checks on the Target column
 #'
 #' Validate Scenario Modeling Hub submissions: test if the
-#' `target` and `target_end_date` columns contain the expected information
-#' and value.
+#' `target` column contain the expected information and value.
 #'
 #'@param df data frame to test
 #'@param model_task list containing round information for each id columns
@@ -79,7 +78,7 @@ test_target <- function(df, model_task) {
       }  else {
         targetnum_test <- NA
       }
-      # - target_end_date projects for the expected number of weeks or more
+      # - Model projects for the expected number of weeks or more
       #  (if a team submit more we will still accept it)
       n_target_week <- length(req_horizon)
       max_week <- length(unique(c(req_horizon, opt_horizon)))
@@ -143,15 +142,15 @@ test_target <- function(df, model_task) {
         if (isFALSE(all(is.na(df_pnt$horizon)))) {
           df_pnt <- df_pnt[!is.na(horizon)]
           sel_group <- grep(
-            "value|target_end_date|model_projection_date|scenario_name|horizon",
+            "value|model_projection_date|scenario_name",
             names(df_pnt), invert = TRUE, value = TRUE)
           df_pnt <- dplyr::distinct(df_pnt[, ..sel_group])
-          err_groups <- df_ts %>% dplyr::select(-sel, -value) %>%
-            dplyr::distinct() %>% tidyr::unite("group", dplyr::everything(),
+          err_groups <- df_pnt %>% tidyr::unite("group", dplyr::everything(),
                                                sep = ", ") %>% unlist()
           targetwna_test <- paste0(
-            "\U000274c Error 612: The 'target_end_date' should be equal to NA",
-            " for the target. Please verify: ", err_groups)
+            "\U000274c Error 612: The 'horizon' should be equal to NA",
+            " for the target(s): ", paste(target_pnt, collapse = ", "),
+            ". Please verify: ", err_groups)
         } else {
           targetwna_test <- NA
         }
@@ -189,7 +188,7 @@ test_target <- function(df, model_task) {
   target_test <- unique(na.omit(unlist(c(targetname_test, target_test))))
   if (length(target_test) == 0)
     target_test <- paste0("No errors or warnings found in target and ",
-                          "target_end_date columns")
+                          "associated columns")
 
   return(target_test)
 }

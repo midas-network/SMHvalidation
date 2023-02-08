@@ -2,7 +2,7 @@
 % Please edit documentation in R/test_target.R
 \name{test_target}
 \alias{test_target}
-\title{Runs Validation Checks on the Target and target_end_date columns}
+\title{Runs Validation Checks on the Target column}
 \usage{
 test_target(df, model_task)
 }
@@ -14,8 +14,7 @@ and model output (type, format, etc.)}
 }
 \description{
 Validate Scenario Modeling Hub submissions: test if the
-`target` and `target_end_date` columns contain the expected information
-and value.
+`target` column contain the expected information and value.
 }
 \details{
 This function contains 5 tests:
