@@ -82,7 +82,7 @@ test_agegroup <- function(df, model_task) {
     } else {
       test_age <-  paste0(
         "\U0001f7e1 Warning 513: No value found associated with the targets: ",
-        paste(unique(unlist(x$target)), collapse = ", "),
+        paste(unique(unlist(x$task_ids$target)), collapse = ", "),
         ". please verify.")
     }
     return(test_age)
