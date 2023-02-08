@@ -47,7 +47,7 @@ containing the list of all the tests with detailed information.
 
 The function internally runs all the different validation checks
 functions (`test_column()`, `test_scenario()`, `test_modelprojdate()`,
-`test_quantiles()`, `test_val()`, `test_target()`, `test_location()`) on
+`test_quantiles()`, `test_val()`, `test_target()`, `test_location()`, etc.) on
 a SMH submissions and prints information about the results of each tests
 on the submission: warning(s), error(s) or if all the tests were
 successful.
@@ -60,6 +60,8 @@ accessible with `?validate_submission()` for example.
 To test a submission file, it's necessary to provide 4 arguments:
 
 -   the path of the file to test (CSV, ZIP or GZ file format)
+-   a list containing the round information (column names, targets
+    information, etc.)
 -   a named list of data frame containing the observed data. We highly
     recommend to use the output of the pull_gs_data() function. The list
     should have the same format: each data frame should be named with
@@ -68,14 +70,12 @@ To test a submission file, it's necessary to provide 4 arguments:
     to observed data will be done
 -   a path to a CSV file containing locationand population size
     information
--   a list containing the round information (column names, targets
-    information, etc.)
 
 ```{r}
 lst_gs <- pull_gs_data()
 pop_path <- "https://raw.githubusercontent.com/midas-network/covid19-scenario-modeling-hub/master/data-locations/locations.csv"
 js_def <- "PATH/TO/ROUND/METADATA.json"
-validate_submission("PATH/TO/SUBMISSION", lst_gs, pop_path, js_def)
+validate_submission("PATH/TO/SUBMISSION", js_def, lst_gs, pop_path)
 ```
 
 As a warning:

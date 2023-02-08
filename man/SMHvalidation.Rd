@@ -5,5 +5,6 @@
 \alias{SMHvalidation}
 \title{SMHvalidation: Scenario Modeling Hub Validations & Visualizations}
 \description{
-The Scenario Modeling Hub Validations package contains functions for validation and visualization scenario modeling hub submissions.
+The Scenario Modeling Hub Validations package contains functions for
+validation and visualization scenario modeling hub submissions.
 }

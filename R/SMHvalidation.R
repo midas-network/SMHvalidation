@@ -10,11 +10,12 @@ utils::globalVariables(c("type", "target", "target_end_date", "start_date_t",
                          "pre_gs_end", "proj_plot_data_calib_cum", "quantile",
                          "ratio_gt", "state value_gt", "value_gt", "state",
                          "ground truth", "X", "age_group", "sel", "type_id",
-                         "horizon"))
+                         "horizon", "N", "..sel_group", "origin_date"))
 
 #' SMHvalidation: Scenario Modeling Hub Validations & Visualizations
 #'
-#' The Scenario Modeling Hub Validations package contains functions for validation and visualization scenario modeling hub submissions.
+#' The Scenario Modeling Hub Validations package contains functions for
+#' validation and visualization scenario modeling hub submissions.
 #'
 #' @docType package
 #' @import data.table
