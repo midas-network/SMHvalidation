@@ -148,7 +148,7 @@ test_val <- function(df, pop, last_lst_gs, model_task) {
                        value = TRUE)
       df_loc <- df_test[location %in% test_loc]
       sel_group <- c(grep("horizon|target_end_date|type", names(x$task_ids),
-                          value = TRUE, invert = TRUE))#, "type", "type_id")
+                          value = TRUE, invert = TRUE))
       df_loc[, var := var(value), by = sel_group]
       df_loc <- df_loc[var == 0]
       if (dim(df_loc)[1] > 0) {
