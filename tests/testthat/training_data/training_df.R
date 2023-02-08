@@ -436,10 +436,12 @@ tot_s <- rbind(tot, US_samp_df)
 # Write df:
 write.csv(tot, "tests/testthat/training_data/2022-08-14_flu_no_error.csv", row.names = FALSE)
 write.csv(tot[!(grepl("median", tot$type) & !grepl("time", tot$target)),], "tests/testthat/training_data/2022-08-14_flu_nopoint_noerror.csv", row.names = FALSE)
+write.csv(tot[!grepl("time", tot$target),], "tests/testthat/training_data/2022-08-14_flu_misstarget.csv", row.names = FALSE)
 write.csv(rbind(tot, dplyr::mutate(filter(US_base_df, grepl("death", target)), location = "02")), "tests/testthat/training_data/2022-08-14_flu_addloc.csv", row.names = FALSE)
 write.csv(dplyr::mutate(tot, age_group = "130-17"), "tests/testthat/training_data/2022-08-14_flu_missage.csv", row.names = FALSE)
 write.csv(dplyr::mutate(tot, age_group = ifelse(target == "peak size hosp", "00_12", age_group)), "tests/testthat/training_data/2022-08-14_flu_badage.csv", row.names = FALSE)
+write.csv(dplyr::mutate(tot, horizon = ifelse(grepl("size", target), 1, horizon)), "tests/testthat/training_data/2022-08-14_badhorizon.csv", row.names = FALSE)
 
 write.csv(tot_s, "tests/testthat/training_data/2022-08-14_flu_sample.csv", row.names = FALSE)
-write.csv(dplyr::mutate(tot_s, type_id = ifelse(type_id > 98, 105, type_id)), "tests/testthat/training_data/2022-08-14_flu_badsample.csv", row.names = FALSE)
+write.csv(dplyr::filter(tot_s, type_id < 90, !grepl("inc death", target)) %>% dplyr::mutate(type_id = ifelse(type_id > 85, 104.5, type_id)), "tests/testthat/training_data/2022-08-14_flu_badsample.csv", row.names = FALSE)
 

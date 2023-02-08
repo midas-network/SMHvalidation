@@ -163,6 +163,16 @@ test_that("Test validation process", {
       pop_path_flu),
     "End of validation check: all the validation checks were successful")
 
+  # Test on target & horizon -----
+  testthat::expect_equal(
+    extract_err_code(validate_submission(
+      "training_data/2022-08-14_flu_misstarget.csv", js_def_flu, lst_gs_flu,
+      pop_path_flu)), c("204", "513", "602"))
+  testthat::expect_equal(
+    extract_err_code(validate_submission(
+      "training_data/2022-08-14_badhorizon.csv", js_def_flu, lst_gs_flu,
+      pop_path_flu)), c("606", "612"))
+
   # Test additional location error -----
   testthat::expect_equal(
     extract_err_code(validate_submission(
@@ -183,7 +193,8 @@ test_that("Test validation process", {
   testthat::expect_equal(
     extract_err_code(validate_submission(
       "training_data/2022-08-14_flu_badsample.csv", js_def_flu, lst_gs_flu,
-      pop_path_flu)), c("5040", "510","901", "902"))
+      pop_path_flu)), c("204", "513", "5040", "510", "602", "904", "901",
+                        "902", "903", "401"))
 
 
 })
