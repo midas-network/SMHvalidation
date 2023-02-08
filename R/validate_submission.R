@@ -44,6 +44,10 @@ run_all_validation <- function(df, path, pop, last_lst_gs,
   # select only required column for the other tests
   df <- df[, req_colnames]
 
+  if (isFALSE(dim(df[!duplicated(df),])[1] == dim(df)[1])) {
+    warning("The submission file contains some duplicated row.")
+  }
+
   # Test on Scenario information
   out_scen <- test_scenario(df, task_ids)
 
