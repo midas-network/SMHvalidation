@@ -31,10 +31,9 @@ submission: warning(s), error(s) or message if all the tests were successful.
 \details{
 For more information on all tests run on the submission, please refer
 to the documentation of each "test_*" function. A vignette with all the
-information might be created later on too.
-\cr\cr
-The function accepts submission in CSV, ZIP, PQT or PARQUET or GZ file
-formats.
+information might be created later.
+
+The function accepts submission in CSV, ZIP or GZ file formats.
 }
 \examples{
 \dontrun{
