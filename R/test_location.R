@@ -110,8 +110,8 @@ test_location <- function(df, number2location, task_ids) {
       } else {
         if (!all(is.na(df_test))) {
           loc_test <-  paste0(
-            "\U000274c Error 703: No location should be associated with the
-            targets: ", paste(unique(unlist(x$target)), collapse = ", "),
+            "\U000274c Error 703: No location should be associated with the ",
+            "targets: ", paste(unique(unlist(x$target)), collapse = ", "),
             ". please verify.")
         } else {
           loc_test <- NA
