@@ -18,8 +18,8 @@
 #'@param js_def list containing round definitions: names of columns,
 #' target names, ...
 #'
-#'@details Internal function called in the `validation_submission()` function. For
-#' more information on all tests run on the submission, please refer to the
+#'@details Internal function called in the `validation_submission()` function.
+#' For more information on all tests run on the submission, please refer to the
 #' documentation of each "test_*" function. A vignette with all the information
 #' might be created later on too.
 #'
