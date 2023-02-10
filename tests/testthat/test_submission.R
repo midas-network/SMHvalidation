@@ -130,7 +130,11 @@ test_that("Test validation process", {
   testthat::expect_equal(
     extract_err_code(validate_submission(
       "training_data/2022-03-13_round13_missingweek.csv", js_def, lst_gs,
-      pop_path)), c("508", "509", "605", "607"))
+      pop_path)), c("509","5041", "508", "605", "607", "703"))
+  testthat::expect_equal(
+    extract_err_code(validate_submission(
+      "training_data/2022-03-13_round13_err.csv", js_def, lst_gs,
+    pop_path)), c("509","5041", "508", "511", "605", "607", "703"))
   testthat::expect_equal(
     extract_err_code(validate_submission(
       "training_data/2022-06-05_round14_misswk_targ.csv", js_def, lst_gs,
@@ -188,6 +192,10 @@ test_that("Test validation process", {
     extract_err_code(validate_submission(
       "training_data/2022-08-14_flu_badage.csv", js_def_flu, lst_gs_flu,
       pop_path_flu)), c("801", "802"))
+  testthat::expect_equal(
+    extract_err_code(validate_submission(
+      "training_data/2022-08-14_flu_noage.csv", js_def_flu, lst_gs_flu,
+      pop_path_flu)), c("102"))
 
   # Test sample ----
   testthat::expect_equal(

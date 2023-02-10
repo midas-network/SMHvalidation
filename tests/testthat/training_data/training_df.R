@@ -273,6 +273,16 @@ write.csv(base_df %>% filter(location == "US") %>%
 write.csv(base_df %>% filter(location == "US") %>%
             mutate(
               scenario_id = case_when(
+                scenario_id == "A-2022-01-09" ~ "A-2022-02-25",
+                scenario_id == "B-2022-01-09" ~ "B-2022-02-25",
+                scenario_id == "C-2022-01-09" ~ "C-2022-02-25",
+                scenario_id == "D-2022-01-09" ~ "D-2022-02-25"),
+              origin_date = "2022-03-13",
+              value = ifelse(grepl("cum case", target) & horizon > 7, value/1e6, value)),
+          "tests/testthat/training_data/2022-03-13_round13_err.csv", row.names = FALSE)
+write.csv(base_df %>% filter(location == "US") %>%
+            mutate(
+              scenario_id = case_when(
                 scenario_id == "A-2022-01-09" ~ "A-2022-05-09",
                 scenario_id == "B-2022-01-09" ~ "B-2022-05-09",
                 scenario_id == "C-2022-01-09" ~ "C-2022-05-09",
@@ -440,6 +450,7 @@ write.csv(tot[!grepl("time", tot$target),], "tests/testthat/training_data/2022-0
 write.csv(rbind(tot, dplyr::mutate(filter(US_base_df, grepl("death", target)), location = "02")), "tests/testthat/training_data/2022-08-14_flu_addloc.csv", row.names = FALSE)
 write.csv(dplyr::mutate(tot, age_group = "130-17"), "tests/testthat/training_data/2022-08-14_flu_missage.csv", row.names = FALSE)
 write.csv(dplyr::mutate(tot, age_group = ifelse(target == "peak size hosp", "00_12", age_group)), "tests/testthat/training_data/2022-08-14_flu_badage.csv", row.names = FALSE)
+write.csv(dplyr::select(tot, - age_group), "tests/testthat/training_data/2022-08-14_flu_noage.csv", row.names = FALSE)
 write.csv(dplyr::mutate(tot, horizon = ifelse(grepl("size", target), 1, horizon)), "tests/testthat/training_data/2022-08-14_badhorizon.csv", row.names = FALSE)
 
 write.csv(tot_s, "tests/testthat/training_data/2022-08-14_flu_sample.csv", row.names = FALSE)
