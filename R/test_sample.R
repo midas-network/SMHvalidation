@@ -31,9 +31,6 @@ test_sample <- function(df, model_task) {
       vector_sample <- unlist(unique(df_sample[, type_id]))
       task_ids <- x$task_ids
       # - sample column should be an integer
-      # Function from ?is.integer() function documentation
-      is.wholenumber <-
-        function(x, tol = .Machine$double.eps^0.5)  abs(x - round(x)) < tol
       if (dim(df_sample)[1] > 0) {
         if (isFALSE(all(is.wholenumber(vector_sample)))) {
           sample_type <-  paste0(
@@ -58,14 +55,15 @@ test_sample <- function(df, model_task) {
         } else {
           sample_value <- NA
         }
-        if (max(vector_sample) < max(unlist(x$output_types$sample$type_id))) {
+        if (length(vector_sample) < length(unlist(
+          x$output_types$sample$type_id))) {
           sample_value <- c(
             sample_value,
             paste0("\U0001f7e1 Warning 901: The column 'sample' contains less ",
-                   "`sample` then expected. Up to ",
-                   max(unlist(x$output_types$sample$type_id)),
-                   " 'samples' for each scenario/target/location(/age_group) ",
-                   "can be submitted."))
+                   "unique `sample` ID then expected. Up to ",
+                   length(unique(unlist(x$output_types$sample$type_id))),
+                   " unique 'samples' for each scenario/target/location",
+                   "(/age_group) can be submitted."))
         }
 
         # - sample id should be unique for each group (task_ids)
