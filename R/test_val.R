@@ -89,9 +89,9 @@ test_val <- function(df, pop, last_lst_gs, model_task) {
 
         value_format <- x$output_types[[y]]$value
         valtype_test <- dplyr::case_when(
-          value_format$type == "double" ~ is.double(df_test$value),
-          value_format$type == "numeric" ~ is.numeric(df_test$value),
-          value_format$type == "integer" ~ is.integer(df_test$value)
+          value_format$type == "double" ~ all(is.double(df_test$value)),
+          value_format$type == "numeric" ~ all(is.numeric(df_test$value)),
+          value_format$type == "integer" ~ all(is.wholenumber(df_test$value))
         )
         if (isFALSE(valtype_test)) {
           err_mess <- paste0(
