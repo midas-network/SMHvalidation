@@ -10,18 +10,15 @@
 #'@param path character vector path of the file being tested
 #'@param id character date "id" of the corresponding round
 #'
-#'@details  This function contains 4 tests:
+#'@details  This function contains 2 tests:
 #'\itemize{
-#'  \item{Date value: }{The `origin_date` column contains date value}
 #'  \item{Unique value: }{The `origin_date` column contains a unique
 #'  value.}
 #'  \item{Correspondance to the name of the file: }{The `origin_date`
 #'  column contains a unique date value matching the date in the name of the
 #'  submission file}
-#'   \item{Correspondance to the projection starting date: }{The
-#'  `origin_date` column contains a unique date value matching the
-#'  projection starting date of the corresponding round}
-#' }
+#'}
+#'
 #' Function called in the `validate_submission()` function.
 #'
 #'@importFrom stats na.omit
@@ -30,14 +27,6 @@
 test_origindate <- function(df, path, id) {
   # Prerequisite
   vector_date <- unique(df[, "origin_date"])
-  # Test the format of the column: should be a date
-  if (any(is.na(as.Date(vector_date, "%Y-%m-%d")))) {
-    ordate_test <- paste0(
-      "\U000274c Error 301: 'origin_date' should be a date, format ",
-      "YYYY-MM-DD")
-  } else {
-    ordate_test <- NA
-  }
   # Test the format of the column: should be an unique value
   if (isFALSE(length(vector_date) == 1)) {
     ordone_test <- paste0(
@@ -60,7 +49,7 @@ test_origindate <- function(df, path, id) {
     ordname_test <- NA
   }
 
-  ord_test <- na.omit(c(ordate_test, ordone_test, ordname_test))
+  ord_test <- na.omit(c(ordone_test, ordname_test))
   ord_test <- unique(ord_test)
   if (length(ord_test) == 0)
     ord_test  <- paste0("No errors or warnings found on the column ",
