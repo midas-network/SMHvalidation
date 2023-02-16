@@ -24,7 +24,7 @@
 test_sample <- function(df, model_task) {
 
   test_sample <- lapply(model_task, function(x) {
-    if ("sample" %in% names(x$output_types)) {
+    if ("sample" %in% names(x$output_type)) {
       # prerequisite
       df_sample <- data.table::data.table(
         df)[type == "sample" & target %in% unique(unlist(x$task_ids$target))]
@@ -42,8 +42,8 @@ test_sample <- function(df, model_task) {
 
         # - sample type_id column contains the expected value
         exp_sample <- as.numeric(unique(c(
-          x$output_types$sample$type_id$required,
-          x$output_types$sample$type_id$optional)))
+          x$output_type$sample$type_id$required,
+          x$output_type$sample$type_id$optional)))
         test_df <- dplyr::filter(df_sample,  type_id < min(exp_sample) |
                                    type_id > max(exp_sample))
         if (dim(test_df)[1] > 0 | any(grepl(
@@ -56,12 +56,12 @@ test_sample <- function(df, model_task) {
           sample_value <- NA
         }
         if (length(vector_sample) < length(unlist(
-          x$output_types$sample$type_id))) {
+          x$output_type$sample$type_id))) {
           sample_value <- c(
             sample_value,
             paste0("\U0001f7e1 Warning 901: The column 'sample' contains less ",
                    "unique `sample` ID then expected. Up to ",
-                   length(unique(unlist(x$output_types$sample$type_id))),
+                   length(unique(unlist(x$output_type$sample$type_id))),
                    " unique 'samples' for each scenario/target/location",
                    "(/age_group) can be submitted."))
         }

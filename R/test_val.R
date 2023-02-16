@@ -63,11 +63,11 @@ test_val <- function(df, pop, last_lst_gs, model_task) {
     # Prerequisite
     df_test <- data.table::data.table(df)[target %in% unique(unlist(
       x$task_ids$target))]
-    req_type <- purrr::map(purrr::map(purrr::map(x$output_types, `[`),
+    req_type <- purrr::map(purrr::map(purrr::map(x$output_type, `[`),
                                       "type_id"), "required")
     req_type <- req_type[!unlist(purrr::map(req_type, is.null))]
     req_type <- unique(names(req_type))
-    output_type <- names(x$output_types)
+    output_type <- names(x$output_type)
     if (any(nchar(df_test$location) == 1)) {
       df_test$location[which(nchar(df_test$location) == 1)] <- paste0(
         0, df_test$location[which(nchar(df_test$location) == 1)])
@@ -77,17 +77,17 @@ test_val <- function(df, pop, last_lst_gs, model_task) {
       # contain any NA
       format_test <- lapply(output_type, function(y) {
         if (isFALSE(all(unique(df_test[type == y, type_id]) %in%
-                        unique(unlist(x$output_types[[y]]$type_id))))) {
+                        unique(unlist(x$output_type[[y]]$type_id))))) {
           err_mess_id <- paste0(
             "\U000274c Error 5040: For the type '", y, "', the type_id should ",
             "correspond to: ",  paste(unique(unlist(
-              x$output_types[[y]]$type_id)), collapse = ", "), " at least",
+              x$output_type[[y]]$type_id)), collapse = ", "), " at least",
             " one id is incorrect, please verify")
         } else {
           err_mess_id <- NA
         }
 
-        value_format <- x$output_types[[y]]$value
+        value_format <- x$output_type[[y]]$value
         valtype_test <- dplyr::case_when(
           value_format$type == "double" ~ all(is.double(df_test$value)),
           value_format$type == "numeric" ~ all(is.numeric(df_test$value)),

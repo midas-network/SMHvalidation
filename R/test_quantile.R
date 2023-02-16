@@ -32,10 +32,10 @@
 test_quantiles <- function(df, model_task) {
 
   quantiles_test <- lapply(model_task, function(x) {
-    if ("quantile" %in% names(x$output_types)) {
+    if ("quantile" %in% names(x$output_type)) {
       # Prerequisite
-      req_quantile <- x$output_types$quantile$type_id$required
-      opt_quantile <- x$output_types$quantile$type_id$optional
+      req_quantile <- x$output_type$quantile$type_id$required
+      opt_quantile <- x$output_type$quantile$type_id$optional
       all_quantile <- unique(c(req_quantile, opt_quantile))
       df_test <- data.table::data.table(
         df)[type == "quantile" & target %in% unique(unlist(x$task_ids$target))]
