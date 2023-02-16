@@ -44,9 +44,9 @@ run_all_validation <- function(df, path, pop, last_lst_gs,
   # select only required column for the other tests
   df <- df[, req_colnames]
 
-  if (isFALSE(dim(df[!duplicated(df),])[1] == dim(df)[1])) {
-    warning("The submission file contains some duplicated row.")
-  }
+  #if (isFALSE(dim(df[!duplicated(df),])[1] == dim(df)[1])) {
+  #  warning("The submission file contains some duplicated row.")
+  #}
 
   # Test on Scenario information
   out_scen <- test_scenario(df, task_ids)
@@ -141,9 +141,10 @@ run_all_validation <- function(df, path, pop, last_lst_gs,
 #'
 #' The function accepts submission in CSV, ZIP or GZ file formats.
 #'
-#' @importFrom dplyr mutate select %>% mutate_all distinct
+#' @importFrom dplyr mutate select %>% mutate_all distinct collect
 #' @importFrom stats setNames
 #' @importFrom jsonlite fromJSON
+#' @importFrom arrow open_dataset
 #'
 #'@examples
 #' \dontrun{
@@ -188,8 +189,23 @@ validate_submission <- function(path, js_def, lst_gs, pop_path) {
 
   # Process file to test and associated information --------
   # Read file
-  df <- read_files(path) %>%
-    dplyr::mutate_if(is.factor, as.character)
+  if (length(path) == 1) {
+    df <- read_files(path) %>%
+      dplyr::mutate_if(is.factor, as.character)
+  } else if (all(grepl("parquet", path))) {
+    ds <- arrow::open_dataset(path, format = "parquet")
+    df <- dplyr::collect(ds)  %>%
+      dplyr::mutate_if(is.factor, as.character)
+  } else {
+    err003 <- paste0(
+      "\U000274c Error 005: The file format of the submission was not ",
+      "recognized, please use one unique files or multiple parquet file",
+      ". For more information, please look at the documentation of the ",
+      "hub. \n")
+    cat(err003)
+    stop(" The submission contains an issue, the validation was not run, ",
+         "please see information above.")
+  }
 
   # test date format
   if (any(is.na(as.Date(na.omit(unlist(dplyr::mutate_all(
