@@ -124,8 +124,10 @@ run_all_validation <- function(df, path, pop, last_lst_gs,
 #' submissions and prints information about the results of each tests on the
 #' submission: warning(s), error(s) or message if all the tests were successful.
 #'
-#'@param path path to the submissions file to test
-#' @param js_def path to JSON file containing round definitions: names of
+#'@param path path to the submissions file to test or string of parquet files (
+#' in this case, the validation will be run on the aggregation of all the
+#' parquet files together)
+#'@param js_def path to JSON file containing round definitions: names of
 #'  columns, target names, ...
 #'@param lst_gs named list of data frame containing the
 #' observed data. For COVID-19, we highly recommend to use the output of the
@@ -185,7 +187,8 @@ validate_submission <- function(path, js_def, lst_gs, pop_path) {
   js_def <- jsonlite::fromJSON(js_def, simplifyDataFrame = FALSE)
 
   # Print message --------
-  print(paste0("Run validation on file: ", basename(path)))
+  print(paste0("Run validation on file: ",
+               paste(basename(path), collapse = ", ")))
 
   # Process file to test and associated information --------
   # Read file

@@ -7,7 +7,9 @@
 validate_submission(path, js_def, lst_gs, pop_path)
 }
 \arguments{
-\item{path}{path to the submissions file to test}
+\item{path}{path to the submissions file to test or string of parquet files (
+in this case, the validation will be run on the aggregation of all the
+parquet files together)}
 
 \item{js_def}{path to JSON file containing round definitions: names of
 columns, target names, ...}
