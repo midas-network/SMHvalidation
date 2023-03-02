@@ -250,7 +250,7 @@ test_that("Test validation process", {
       pop_path_flu)), c("102"))
 
   # Test sample ----
-  # Filter sample < 90 and remove inc death target
+  # Filter sample < 90 and remove inc death and peak_time target
   # for sample >= 85, rename sample into 104.5
   testthat::expect_equal(
     extract_err_code(validate_submission(

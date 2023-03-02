@@ -46,7 +46,7 @@ To run the SMH validation checks, we can use the `validate_submision()`
 function. For more information on this function, please consult the
 documentation
 
-```{r}
+```{r eval=FALSE}
 ?validate_submission()
 ```
 
