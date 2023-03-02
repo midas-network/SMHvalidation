@@ -55,10 +55,14 @@ run_all_validation <- function(df, path, pop, last_lst_gs,
   out_ord <- test_origindate(df, path, id = js_def$round_id)
 
   # Test by type
-  if (any(grepl("quantile", unlist(distinct(df[ ,"type", FALSE]))))) {
+  if (any(grepl("quantile", unlist(distinct(df[ ,"type", FALSE])))) |
+      any("quantile" %in% names(unlist(purrr::map(model_task, "output_type"),
+                                       FALSE)))) {
     out_quant <- test_quantiles(df, model_task)
   }
-  if (any(grepl("sample", unlist(distinct(df[ ,"type", FALSE]))))) {
+  if (any(grepl("sample", unlist(distinct(df[ ,"type", FALSE])))) |
+      any("sample" %in% names(unlist(purrr::map(model_task, "output_type"),
+                                     FALSE)))) {
     out_sample <- test_sample(df, model_task)
   }
 
@@ -84,11 +88,15 @@ run_all_validation <- function(df, path, pop, last_lst_gs,
     "\n\n## Value and Type Columns: \n\n", paste(out_val, collapse = "\n"),
     "\n\n## Target Columns: \n\n", paste(out_target, collapse = "\n"),
     "\n\n## Locations: \n\n", paste(out_loc, collapse = "\n"))
-  if (any(grepl("sample", unlist(distinct(df[ ,"type", FALSE]))))) {
+  if (any(grepl("sample", unlist(distinct(df[ ,"type", FALSE])))) |
+      any("sample" %in% names(unlist(purrr::map(model_task, "output_type"),
+                                     FALSE))))  {
     test_report <- paste(
       test_report, "\n\n## Sample: \n\n", paste(out_sample, collapse = "\n"))
   }
-  if (any(grepl("quantile", unlist(distinct(df[ ,"type", FALSE]))))) {
+  if (any(grepl("quantile", unlist(distinct(df[ ,"type", FALSE])))) |
+      any("quantile" %in% names(unlist(purrr::map(model_task, "output_type"),
+                                     FALSE))))  {
     test_report <- paste(
       test_report, "\n\n## Quantiles: \n\n", paste(out_quant, collapse = "\n"))
   }

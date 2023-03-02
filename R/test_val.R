@@ -61,18 +61,19 @@ test_val <- function(df, pop, last_lst_gs, model_task) {
 
   value_test <- lapply(model_task, function(x) {
     # Prerequisite
-    df_test <- data.table::data.table(df)[target %in% unique(unlist(
-      x$task_ids$target))]
     req_type <- purrr::map(purrr::map(purrr::map(x$output_type, `[`),
                                       "type_id"), "required")
     req_type <- req_type[!unlist(purrr::map(req_type, is.null))]
     req_type <- unique(names(req_type))
     output_type <- names(x$output_type)
-    if (any(nchar(df_test$location) == 1)) {
-      df_test$location[which(nchar(df_test$location) == 1)] <- paste0(
-        0, df_test$location[which(nchar(df_test$location) == 1)])
-    }
+    df_test <- data.table::data.table(df)[target %in% unique(unlist(
+      x$task_ids$target)) & type %in% output_type]
     if (dim(df_test)[1] > 0) {
+      # If necessary fix location column to avoid issue
+      if (any(nchar(df_test$location) == 1)) {
+        df_test$location[which(nchar(df_test$location) == 1)] <- paste0(
+          0, df_test$location[which(nchar(df_test$location) == 1)])
+      }
       # - all value are in the expected format and the column value does not
       # contain any NA
       format_test <- lapply(output_type, function(y) {
@@ -313,10 +314,14 @@ test_val <- function(df, pop, last_lst_gs, model_task) {
                                pointuniq_test, pointpop_test, valcumcase_test,
                                valcumdeath_test, valunique_test, valcum_test))
     } else {
-      value_test <- paste0(
-        "\U0001f7e1 Warning 513: No value found associated with the targets: ",
-        paste(unique(unlist(x$task_ids$target)), collapse = ", "),
-        ". please verify.")
+      if (!is.null(x$task_ids$target$required)) {
+        value_test <- paste0(
+          "\U0001f7e1 Warning 513: No value found associated with the targets: ",
+          paste(unique(x$task_ids$target$required), collapse = ", "),
+          ". please verify.")
+      } else {
+        value_test <- NA
+      }
     }
     return(value_test)
   })

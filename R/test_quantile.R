@@ -78,7 +78,7 @@ test_quantiles <- function(df, model_task) {
             dplyr::distinct() %>% tidyr::unite("group", dplyr::everything(),
                                                sep = ", ") %>% unlist()
           qmissing_test <-  paste0(
-            "\U0001f7e1 Warning 406: At least one quantile is missing from the",
+            "\U000274c Error 406: At least one quantile is missing from the",
             " submission.", "The file will be  accepted but might not be ",
             "included in the Ensembles, please verify: ", err_groups)
         } else {
@@ -120,10 +120,15 @@ test_quantiles <- function(df, model_task) {
         quantiles_test <- na.omit(c(qvalues_test, qadd_test, qmissing_test,
                                     qval_test))
       } else {
-        quantiles_test <- paste0(
-          "\U000274c Error 401: Quantiles are expected in the submission for ",
-          "the target(s): ", paste(unique(unlist(x$task_ids$target)),
-                                   collapse = ", "), ". please verify.")
+        if (!is.null(x$task_ids$target$required) &
+            !is.null(x$output_type$quantile$type_id$required)) {
+          quantiles_test <- paste0(
+            "\U000274c Error 401: Quantiles are expected in the submission for ",
+            "the target(s): ", paste(unique(unlist(x$task_ids$target$required)),
+                                     collapse = ", "), ". please verify.")
+        } else {
+          quantiles_test <- NA
+        }
       }
     } else {
       quantiles_test <- NA

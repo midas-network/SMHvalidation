@@ -94,10 +94,15 @@ test_sample <- function(df, model_task) {
         test_sample <- unique(na.omit(c(sample_value, unlist(sample_unique),
                                         sample_type)))
       } else {
-        test_sample <- paste0(
-          "\U000274c Error 904: Samples are expected in the submission for ",
-          "the target(s): ", paste(unique(unlist(x$task_ids$target)),
-                                   collapse = ", "), ". please verify.")
+        if (!is.null(x$task_ids$target$required) &
+            !is.null(x$output_type$sample$type_id$required)) {
+          test_sample <- paste0(
+            "\U000274c Error 904: Samples are expected in the submission for ",
+            "the target(s): ", paste(unique(unlist(x$task_ids$target$required)),
+                                     collapse = ", "), ". please verify.")
+        } else {
+            test_sample <-  NA
+        }
       }
     } else {
       test_sample <- NA
