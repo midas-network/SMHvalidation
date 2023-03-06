@@ -20,11 +20,13 @@ contains the expected  value.
 This function contains 3 tests:
 \itemize{
  \item{sample value: }{The submission should contain a sample column with
- value between 0 and 100.}
-  \item{unique sample: }{The submission should contain a unique sample
-  identifier for each scenario/target/location (age_group) group.}
-   \item{sample integer: }{The submission should contain a sample column with
+ expected value.}
+ \item{unique sample: }{The submission should contain a unique sample
+ identifier for each scenario/target/location/horizon (age_group) group.}
+ \item{sample integer: }{The submission should contain a sample column with
  integer only.}
+ \item{required sample:}{If a target expected sample type output, the
+ submission should contain sample type output for this target}
 }
 Function called in the `validate_submission()` function.
 }

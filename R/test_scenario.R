@@ -8,10 +8,12 @@
 #'@param df data frame to test
 #'@param task_ids list containing round information for each id columns
 #'
-#'@details  This function contains 1 tests:
+#'@details  This function contains 2 tests:
 #'\itemize{
 #'  \item{Scenario ID: }{The IDs of the scenarios are correctly spelled and
 #'  correspond to the scenario IDs of the corresponding round.}
+#'  \item{Required scenario: }{All the required scenario are present in the
+#'  submission file (tested by target).}
 #' }
 #' Function called in the `validate_submission()` function.
 #'

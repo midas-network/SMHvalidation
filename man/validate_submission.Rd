@@ -35,23 +35,28 @@ For more information on all tests run on the submission, please refer
 to the documentation of each "test_*" function. A vignette with all the
 information might be created later.
 
-The function accepts submission in CSV, ZIP or GZ file formats.
+The function accepts submission in PARQUET, CSV, ZIP or GZ file formats.
+
+The function runs some preliminary tests before calling the "test_*"
+functions:
+\itemize{
+ \item{Input submission file format: }{The file format of the submission
+ file(s) correspond to the expected format (for example: `parquet`, or `csv`,
+  etc.). If multiple files inputted, only `parquet` is accepted}
+  \item{Date information: }{The column `origin_date` in the submission file
+  corresponds to a `model_tasks` round information in the JSON file
+  (`js_def` parameter)}
+  \item{Date format: }{All columns containing dates information should be in
+  "YYY-MM-DD" format}
+}
 }
 \examples{
 \dontrun{
-# FOR COVID-19 SMH Submission
+# FOR SMH Submission
 
 lst_gs <- pull_gs_data()
 pop_path <- "PATH/TO/data-locations/locations.csv"
-js_def <- "PATH/TO/covid_tasks.json"
-
-validate_submission("PATH/SUBMISSION", js_def, lst_gs, pop_path)
-
-# FOR FLU SMH Submission
-
-lst_gs <- NULL
-pop_path <- "PATH/TO/data-locations/locations.csv"
-js_def <- "PATH/TO/flu_tasks.json"
+js_def <- "PATH/TO/tasks.json"
 
 validate_submission("PATH/SUBMISSION", js_def, lst_gs, pop_path)
 

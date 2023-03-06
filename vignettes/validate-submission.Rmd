@@ -60,7 +60,7 @@ The function requires multiple parameters:
 -   `path`: path to the submission files. The package contains 3
     examples files that can be used to test the function. There paths
     can be accessed by using:
-    `system.file("extdata", "FILENAME", package = "SMHvalidation")`. the
+    `system.file("extdata", "FILENAME", package = "SMHvalidation")`, the
     3 filenames (+ quick descriptions) are:
     -   "2022-01-09_team-model.csv" : should returns no issues
     -   "2021-08-15_team-model.gz" : should returns multiple warnings
@@ -160,7 +160,7 @@ validate_submission(path_test, js_def, NULL, pop_path)
 
 The `SMHvalidation` R package also contains plotting functionality to
 output a plot of each location and target, with all scenarios and
-observed data incorporated.
+observed data incorporated (only for quantile type output).
 
 ```{r proj_plots}
 path_test <- system.file("extdata", "2022-01-09_team-model.csv", 

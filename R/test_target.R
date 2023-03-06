@@ -13,7 +13,8 @@
 #'  expressed in the SMH Github. }
 #'  \item{Target number: }{The submission file contains projection for all
 #'  required targets. It is accepted to submit only a subset of target but
-#'  a warning message will be return (only if a required target is missing.}
+#'  a warning and/or a error message will be return (depending if the target
+#'  is optional or required)}
 #'  \item{Number of week projected: }{The submission file contains projections
 #'  for the expected number of weeks or more. If a team submits more week than
 #'  expected, a warning message will be returned, but the submission will be
@@ -23,8 +24,8 @@
 #'   accepted, but will return a warning message and might not be included
 #'   in the Ensembles}
 #'  \item{Week projected: }{The submission file contains projection for all
-#'  expected weeks for each target, location, scenario (age_group) and quantiles
-#'  or sample combination.}
+#'  expected weeks for each target, location, scenario (age_group) and for all
+#'  output type combination.}
 #'  \item{NA target}{The projection contains NA for all "horizon"
 #'  for the target requiring no time series information. }
 #' }
