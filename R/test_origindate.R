@@ -1,0 +1,59 @@
+
+#' Runs Validation Checks on the Origin Date column
+#'
+#' Validate Scenario Modeling Hub submissions: test if the
+#' `origin` column contains one unique date value corresponding
+#' to the projection start date of the round and also corresponds to the date
+#' in the name of the submission file.
+#'
+#'@param df data frame to test
+#'@param path character vector path of the file being tested
+#'@param id character date "id" of the corresponding round
+#'
+#'@details  This function contains 2 tests:
+#'\itemize{
+#'  \item{Unique value: }{The `origin_date` column contains a unique
+#'  value.}
+#'  \item{Correspondance to the name of the file: }{The `origin_date`
+#'  column contains a unique date value matching the date in the name of the
+#'  submission file}
+#'}
+#'
+#' Function called in the `validate_submission()` function.
+#'
+#'@importFrom stats na.omit
+#'@importFrom stringr str_extract
+#'@export
+test_origindate <- function(df, path, id) {
+  # Prerequisite
+  vector_date <- unique(df[, "origin_date"])
+  # Test the format of the column: should be an unique value
+  if (isFALSE(length(vector_date) == 1)) {
+    ordone_test <- paste0(
+      "\U000274c Error 302: 'origin_date' should contains 1 unique ",
+      "date. The file contains multiple `origin_date' values: '",
+      paste(vector_date, collapse = ", "), "'.")
+  } else {
+    ordone_test <- NA
+  }
+  # The origin_date value should correspond to the name of the file
+  if (isFALSE(all(as.Date(
+    stringr::str_extract(
+      basename(path), "[[:digit:]]{4}-[[:digit:]]{2}-[[:digit:]]{2}")) ==
+    vector_date))) {
+    ordname_test <- paste0(
+      "\U000274c Error 303: 'origin_date' is not corresponding to ",
+      "the name in the file, the 'origin_date' date value and the ",
+      "date in the filename should correspond to: '", id, "'.")
+  } else {
+    ordname_test <- NA
+  }
+
+  ord_test <- na.omit(c(ordone_test, ordname_test))
+  ord_test <- unique(ord_test)
+  if (length(ord_test) == 0)
+    ord_test  <- paste0("No errors or warnings found on the column ",
+                        "'origin_date'")
+
+  return(ord_test)
+}

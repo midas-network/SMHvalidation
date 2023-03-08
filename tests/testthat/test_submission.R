@@ -6,16 +6,9 @@ test_that("Test validation process", {
   pop_path <- "https://raw.githubusercontent.com/midas-network/covid19-scenario-modeling-hub/master/data-locations/locations.csv"
   pop_path_flu <- "https://raw.githubusercontent.com/midas-network/flu-scenario-modeling-hub/main/data-locations/locations.csv"
 
-  js_def <- "training_data/2022-01-09_metadata.json"
- # js_def <- jsonlite::fromJSON(js_def)
+  js_def <- "training_data/covid_tasks.json"
 
-  js_def_0815 <- "training_data/2021-08-15_metadata.json"#jsonlite::fromJSON("training_data/2021-08-15_metadata.json")
-  js_def_1114 <- "training_data/2021-11-14_metadata.json"#jsonlite::fromJSON("training_data/2021-11-14_metadata.json")
-  js_def_0313 <- "training_data/2022-03-13_metadata.json"#jsonlite::fromJSON("training_data/2022-03-13_metadata.json")
-  js_def_0605 <- "training_data/2022-06-05_metadata.json"#jsonlite::fromJSON("training_data/2022-06-05_metadata.json")
-
-  js_def_flu1 <- "training_data/2022-08-14_metadata.json"#jsonlite::fromJSON("training_data/2022-08-14_metadata.json")
-  js_def_flu1_sample <- "training_data/2022-08-14_metadata-sample.json"#jsonlite::fromJSON("training_data/2022-08-14_metadata-sample.json")
+  js_def_flu <- "training_data/flu_tasks.json"
 
   extract_err_code <- function(expr) {
     test <- capture.output(try(suppressWarnings(expr), silent = TRUE))
@@ -26,189 +19,244 @@ test_that("Test validation process", {
   }
 
   ### Test on COVID ###
+  # File corresponding to the expected format
   testthat::expect_equal(
     validate_submission(
-      "training_data/2022-01-09_no_error.csv", lst_gs, pop_path, js_def),
+      "training_data/2022-01-09_no_error.csv", js_def, lst_gs, pop_path),
     "End of validation check: all the validation checks were successful")
 
   # Test columns error -----
+  # File with additional column ("row": row number id)
   testthat::expect_equal(
     extract_err_code(validate_submission(
-      "training_data/2022-01-09_addcol.pqt", lst_gs, pop_path, js_def)),
+      "training_data/2022-01-09_addcol.pqt", js_def, lst_gs, pop_path)),
     c("101", "102"))
+  # File with "location" column renamed "fips"
   testthat::expect_equal(
     extract_err_code(validate_submission(
-      "training_data/2022-01-09_colname.csv", lst_gs, pop_path, js_def)),
+      "training_data/2022-01-09_colname.csv", js_def, lst_gs, pop_path)),
     "103")
 
   # Test scenario error -----
-  testthat::expect_equal(
-    extract_err_code(validate_submission(
-      "training_data/2022-01-09_badidscen.csv", lst_gs, pop_path, js_def)),
-    c("202", "203"))
-  testthat::expect_equal(
-    extract_err_code(validate_submission(
-      "training_data/2022-01-09_badnamescen.csv", lst_gs, pop_path, js_def)),
-    c("201", "203"))
 
-  # Test model_projection_data and filename date error -----
+  # File with scenario name incorrect: A-2020 instead of A-2022
   testthat::expect_equal(
     extract_err_code(validate_submission(
-      "training_data/2022-01-09_multimpd.csv", lst_gs, pop_path, js_def)),
-    c("302"))
+      "training_data/2022-01-09_badidscen.csv", js_def, lst_gs, pop_path)),
+    c("202", "204"))
+
+  # Test origin_date and filename date error -----
+  # File with 2 values in the origin date column (1 expected and 1 not expected)
+  # half of all the row with incorrect value
   testthat::expect_equal(
     extract_err_code(validate_submission(
-      "training_data/2022-01-09_mpd_error.csv", lst_gs, pop_path, js_def)),
-    c("303", "304"))
+      "training_data/2022-01-09_multimpd.csv", js_def, lst_gs, pop_path)),
+    c("302", "303", "607"))
+  # File with incorrect origin date column value (unique value: 2922 instead of
+  # 2022)
   testthat::expect_equal(
     extract_err_code(validate_submission(
-      "training_data/2922-01-09_mpdfile_error.csv", lst_gs, pop_path, js_def)),
-    c("304"))
+      "training_data/2022-01-09_mpd_error.csv", js_def, lst_gs, pop_path)),
+    c("004"))
+  # File with incorrect origin date column format (DD/MM/YYYY instead of
+  # YYYY-MM-DD)
   testthat::expect_equal(
     extract_err_code(validate_submission(
-      "training_data/2022-01-09_mpd_format.csv", lst_gs, pop_path, js_def)),
+      "training_data/2022-01-09_mpd_format.csv", js_def, lst_gs, pop_path)),
     c("003"))
 
   # Test quantile error -----
+  # File with incorrect quantile: replace 0.01 by 0.02 (unexpected value)
   testthat::expect_equal(
     extract_err_code(validate_submission(
-      "training_data/2022-01-09_badquant.csv", lst_gs,  pop_path, js_def)),
-    c("401"))
+      "training_data/2022-01-09_badquant.csv", js_def, lst_gs,  pop_path)),
+    c("5040", "402", "407", "406"))
+  # File with missing required quantile: remove all 0.5 quantile
   testthat::expect_equal(
     extract_err_code(validate_submission(
-      "training_data/2022-01-09_missquant.csv", lst_gs,  pop_path, js_def)),
-    c("402"))
+      "training_data/2022-01-09_missquant.csv", js_def, lst_gs,  pop_path)),
+    c("402", "406"))
+  # File with unique value for all US, Scenario A, quantile 1, inc death (= 0)
   testthat::expect_equal(
     extract_err_code(validate_submission(
-      "training_data/2022-01-09_valquant.csv", lst_gs,  pop_path, js_def)),
-    c("403", "5041", "5042"))
+      "training_data/2022-01-09_valquant.csv", js_def, lst_gs,  pop_path)),
+    c("5042", "403"))
+  # File with missing optional quantile: remove all 0 and 1 quantile
   testthat::expect_equal(
     extract_err_code(validate_submission(
-      "training_data/2022-01-09_missoptquant.csv", lst_gs, pop_path, js_def)),
+      "training_data/2022-01-09_missoptquant.csv", js_def, lst_gs, pop_path)),
     character(0))
 
   # Test value error -----
+  # Rename type column with NA type_id value into "pnt" (instead of median)
   testthat::expect_equal(
     extract_err_code(validate_submission(
-      "training_data/2022-01-09_badpointtype.csv", lst_gs, pop_path, js_def)),
-    c("501", "503", "506"))
+      "training_data/2022-01-09_badpointtype.csv", js_def, lst_gs, pop_path)),
+    c("512"))
+  # Associated 0.5 instead of NA in the type_id column for median type value
   testthat::expect_equal(
     extract_err_code(validate_submission(
-      "training_data/2022-01-09_badpointquant.csv", lst_gs, pop_path, js_def)),
-    c("502"))
+      "training_data/2022-01-09_badpointquant.csv", js_def, lst_gs, pop_path)),
+    c("5040"))
+  # negative value of quantile 0, Scenario A, location US, inc death
   testthat::expect_equal(
     extract_err_code(validate_submission(
-      "training_data/2022-01-09_negvalue.csv", lst_gs, pop_path, js_def)),
+      "training_data/2022-01-09_negvalue.csv", js_def, lst_gs, pop_path)),
     c("5041"))
+  # Duplicates value for Scenario A location US, inc death
   testthat::expect_equal(
     extract_err_code(validate_submission(
-      "training_data/2022-01-09_doublepoint.csv", lst_gs, pop_path, js_def)),
-    c("404", "503", "506", "510"))
+      "training_data/2022-01-09_doublepoint.csv", js_def, lst_gs, pop_path)),
+    c("510"))
+  # Duplicates value for Scenario A location US, inc death, quantile 0 (optional)
   testthat::expect_equal(
     extract_err_code(validate_submission(
-      "training_data/2022-01-09_doublequantzero.csv", lst_gs, pop_path,
-      js_def)), c("404", "510"))
+      "training_data/2022-01-09_doublequantzero.csv", js_def, lst_gs, pop_path)
+      ), c("510"))
+  # High value (1e9) of quantile 1, Scenario A, location US, inc death
   testthat::expect_equal(
     extract_err_code(validate_submission(
-      "training_data/2022-01-09_highvalue.csv", lst_gs, pop_path, js_def)),
+      "training_data/2022-01-09_highvalue.csv", js_def, lst_gs, pop_path)),
     c("507"))
+  # Low value (10) of Scenario A, location US, cum case
   testthat::expect_equal(
     extract_err_code(validate_submission(
-      "training_data/2022-01-09_lowcumcase.csv", lst_gs, pop_path, js_def)),
-    c("508")) # "405"
+      "training_data/2022-01-09_lowcumcase.csv", js_def, lst_gs, pop_path)),
+    c("505", "508"))
+  # Low value (1) of Scenario A, location US, cum death
   testthat::expect_equal(
     extract_err_code(validate_submission(
-      "training_data/2022-01-09_lowcumdeath.csv", lst_gs, pop_path, js_def)),
-    c("509")) # "405"
+      "training_data/2022-01-09_lowcumdeath.csv", js_def, lst_gs, pop_path)),
+    c("505", "509"))
+  #  Unique value (1) of Scenario A, location US, inc death
   testthat::expect_equal(
     extract_err_code(validate_submission(
-      "training_data/2022-01-09_uniquevalue.csv", lst_gs, pop_path, js_def)),
-    c("505")) # "405"
+      "training_data/2022-01-09_uniquevalue.csv", js_def, lst_gs, pop_path)),
+    c("505"))
+  # File with missing first 100 rows
   testthat::expect_equal(
     extract_err_code(validate_submission(
-      "training_data/2022-01-09_missingrow.csv", lst_gs, pop_path, js_def)),
-    c("607"))
+      "training_data/2022-01-09_missingrow.csv", js_def, lst_gs, pop_path)),
+    c("607", "406"))
 
   # Test target error -----
+  # Rename "inc case" into "inccase"
   testthat::expect_equal(
     extract_err_code(validate_submission(
-      "training_data/2022-01-09_badnametarget.csv", lst_gs, pop_path, js_def)),
-    c("601", "607"))
+      "training_data/2022-01-09_badnametarget.csv", js_def, lst_gs, pop_path)),
+    c("601", "602"))
+  # Remove horizon == 12 rows
   testthat::expect_equal(
     extract_err_code(validate_submission(
-      "training_data/2022-01-09_misswk.csv", lst_gs, pop_path, js_def)),
+      "training_data/2022-01-09_misswk.csv", js_def, lst_gs, pop_path)),
     c("605", "607"))
+  # Contains 27 week horizons instead of 13 required 26 optional (round 8)
   testthat::expect_equal(
     extract_err_code(validate_submission(
-      "training_data/2021-08-15_morewk.gz", lst_gs, pop_path, js_def_0815)),
+      "training_data/2021-08-15_morewk.gz", js_def, lst_gs, pop_path)),
     c("606", "702"))
+  # Contains 12 week horizons instead of 52 required (round 13))
+  # JSON expect:
+  #  location (for all target expect cum case): "USA" required, "unknown"
+  #    optional and "US" not possible
+  #  location (cum case): null
   testthat::expect_equal(
     extract_err_code(validate_submission(
-      "training_data/2022-01-09_badstartdate.csv", lst_gs, pop_path, js_def)),
-    c("603", "608", "609"))
+      "training_data/2022-03-13_round13_missingweek.csv", js_def, lst_gs,
+      pop_path)), c("509","5041", "508", "605", "607", "703"))
+  # Cumulative cases with low value (after horizon 7)
+  # JSON expect:
+  #  location (for all target expect cum case): "USA" required, "unknown"
+  #    optional and "US" not possible
+  #  location (cum case): null
   testthat::expect_equal(
     extract_err_code(validate_submission(
-      "training_data/2022-03-13_round13_missingweek.csv", lst_gs, pop_path,
-      js_def_0313)), c("508", "509", "605", "607"))
+      "training_data/2022-03-13_round13_err.csv", js_def, lst_gs,
+    pop_path)), c("509","5041", "508", "511", "605", "607", "703"))
+  # Change inc case into inc inf target
+  # JSON expect:
+  #  target: inc case required inc inf optional
   testthat::expect_equal(
     extract_err_code(validate_submission(
-      "training_data/2022-06-05_round14_misswk_targ.csv", lst_gs, pop_path,
-      js_def_0605)), c("508", "509", "602", "605", "607"))
+      "training_data/2022-06-05_round14_misswk_targ.csv", js_def, lst_gs,
+      pop_path)), c("508", "509", "602", "605", "607"))
 
   # Test location error -----
+  # Rename US as "0202" for location
   testthat::expect_equal(
     extract_err_code(validate_submission(
-      "training_data/2022-01-09_badlocation.csv", lst_gs, pop_path, js_def)),
-    c("701"))
+      "training_data/2022-01-09_badlocation.csv", js_def, lst_gs, pop_path)),
+    c("701", "703"))
+  # Rename "02" as "2" for location
   testthat::expect_equal(
     extract_err_code(validate_submission(
-      "training_data/2021-11-14_no0location.zip", lst_gs, pop_path,
-      js_def_1114)), c("509", "702")) # "405"
+      "training_data/2021-11-14_no0location.zip", js_def, lst_gs, pop_path)),
+    c("509", "702"))
 
   ### Tests on FLU ###
+  # No error (contains optional point value)
   testthat::expect_equal(
     validate_submission(
-      "training_data/2022-08-14_flu_no_error.csv", lst_gs_flu, pop_path_flu,
-      js_def_flu1),
+      "training_data/2022-08-14_flu_no_error.csv", js_def_flu, lst_gs_flu,
+      pop_path_flu),
     "End of validation check: all the validation checks were successful")
+  # No error (missing optional point value)
   testthat::expect_equal(
     validate_submission(
-      "training_data/2022-08-14_flu_nopoint_noerror.csv", lst_gs_flu,
-      pop_path_flu, js_def_flu1),
+      "training_data/2022-08-14_flu_nopoint_noerror.csv", js_def_flu,
+      lst_gs_flu, pop_path_flu),
     "End of validation check: all the validation checks were successful")
+  # No error (contains quantile and optional sample format)
   testthat::expect_equal(
     validate_submission(
-      "training_data/2022-08-14_flu_sample.csv", lst_gs_flu,
-      pop_path_flu, js_def_flu1_sample),
+      "training_data/2022-08-14_flu_sample.csv", js_def_flu, lst_gs_flu,
+      pop_path_flu),
     "End of validation check: all the validation checks were successful")
+
+  # Test on target & horizon -----
+  # remove target with "time" in the name
+  testthat::expect_equal(
+    extract_err_code(validate_submission(
+      "training_data/2022-08-14_flu_misstarget.csv", js_def_flu, lst_gs_flu,
+      pop_path_flu)), c("204", "513", "602"))
+  # For "size" target, horizon = 1
+  testthat::expect_equal(
+    extract_err_code(validate_submission(
+      "training_data/2022-08-14_badhorizon.csv", js_def_flu, lst_gs_flu,
+      pop_path_flu)), c("606", "612"))
 
   # Test additional location error -----
+  # add location "02" for "death" target(s)
   testthat::expect_equal(
     extract_err_code(validate_submission(
-      "training_data/2022-08-14_flu_addloc.csv", lst_gs_flu, pop_path_flu,
-      js_def_flu1)), c("703"))
+      "training_data/2022-08-14_flu_addloc.csv", js_def_flu, lst_gs_flu,
+      pop_path_flu)), c("703"))
 
   # Test age-group ----
+  # Change all age_group to "130-17"
   testthat::expect_equal(
     extract_err_code(validate_submission(
-      "training_data/2022-08-14_flu_missage.csv", lst_gs_flu, pop_path_flu,
-      js_def_flu1)), c("802", "803","805", "804", "806"))
+      "training_data/2022-08-14_flu_missage.csv", js_def_flu, lst_gs_flu,
+      pop_path_flu)), c("802"))
+  # Change all age_group for peak size hosp to "00_12"
   testthat::expect_equal(
     extract_err_code(validate_submission(
-      "training_data/2022-08-14_flu_badage.csv", lst_gs_flu, pop_path_flu,
-      js_def_flu1)), c("801", "804", "806"))
-
-  # Test target_end_date -----
+      "training_data/2022-08-14_flu_badage.csv", js_def_flu, lst_gs_flu,
+      pop_path_flu)), c("801", "802"))
+  # Remove age group column
   testthat::expect_equal(
     extract_err_code(validate_submission(
-      "training_data/2022-08-14_flu_badtargdate.csv", lst_gs_flu, pop_path_flu,
-      js_def_flu1)), c("603", "606", "612"))
+      "training_data/2022-08-14_flu_noage.csv", js_def_flu, lst_gs_flu,
+      pop_path_flu)), c("102"))
 
   # Test sample ----
+  # Filter sample < 90 and remove inc death and peak_time target
+  # for sample >= 85, rename sample into 104.5
   testthat::expect_equal(
     extract_err_code(validate_submission(
-      "training_data/2022-08-14_flu_badsample.csv", lst_gs_flu, pop_path_flu,
-      js_def_flu1_sample)), c("901", "902", "510"))
+      "training_data/2022-08-14_flu_badsample.csv", js_def_flu, lst_gs_flu,
+      pop_path_flu)), c("204", "513", "5040", "510", "602", "901", "902",
+                        "903", "401"))
 
 
 })

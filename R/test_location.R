@@ -6,8 +6,7 @@
 #'@param df data frame to test
 #'@param number2location named vector containing the FIPS as name and the
 #'  corresponding location name as value (example: name: "01", value: "Alabama")
-#'@param js_def list containing round definitions: number and names of columns,
-#' target names, ...
+#'@param task_ids list containing round information for each id columns
 #'
 #'@details  This function contains 2 tests:
 #'\itemize{
@@ -25,7 +24,7 @@
 #'@importFrom purrr keep map discard
 #'@importFrom dplyr filter
 #'@export
-test_location <- function(df, number2location, js_def) {
+test_location <- function(df, number2location, task_ids) {
   # - correspond to the table in the GitHub
   if (isFALSE(!any(is.na(number2location[unique(df$location)])))) {
     vect <- vect0 <- df$location
@@ -49,30 +48,85 @@ test_location <- function(df, number2location, js_def) {
     location_test <- NA
   }
 
-  #- targets woth specific location does not contains additional location
-  target_loc <- purrr::map(c(js_def$targets$required, js_def$targets$optional),
-                           "location")
-  target_loc <- purrr::discard(target_loc, is.null)
-  target_loc <- purrr::keep(purrr::map(target_loc, "required"),
-                            function(x) x != "all")
-  loc_target_name <- names(target_loc)
-  targ_loc_test <- lapply(loc_target_name, function(x) {
-    test <- target_loc[[x]]
-    df_test <- dplyr::filter(df, !grepl(paste(test, collapse = "|"), location),
-                             grepl(x, target))
+  #- targets with specific location does not contains additional location
+  loc_test <- lapply(task_ids, function(x) {
+    # Prerequisite
+    req_loc <- x$location$required
+    opt_loc <- x$location$optional
+    df_test <- data.table::data.table(df)[target %in% unique(unlist(x$target))]
+    if (any(nchar(df_test$location) == 1)) {
+      df_test$location[which(nchar(df_test$location) == 1)] <- paste0(
+        0, df_test$location[which(nchar(df_test$location) == 1)])
+    }
+
     if (dim(df_test)[1] > 0) {
-      loc_test <- paste0("\U000274c Error 703: ",
-        "The target ", x, " should only contain the location(s):",
-        paste(test, collapse = ", "), ", the data frame contains other ",
-        "locations (", paste(unique(df_test$location), collapse = ", "),
-        "), please verify.")
+      if (isFALSE(all(is.null(c(req_loc, opt_loc))))) {
+        if (all(is.null(req_loc)) & !is.null(opt_loc)) {
+          if (isFALSE(all(unique(df_test$location) %in% opt_loc))) {
+            loc_test <- paste0(
+              "\U000274c Error 703: The submission should only contain",
+              " information for the location(s): ",
+              paste(opt_loc, collapse = ", "), ", for the target(s): ",
+              paste(unique(unlist(x$target)), collapse = ", "),
+              ". The data frame contains other locations (",
+              paste(unique(df_test$location)[!unique(
+                df_test$location) %in% opt_loc], collapse = ", "),
+              "), please verify.")
+          } else {
+            loc_test <- NA
+          }
+        } else {
+          if (isFALSE(all(req_loc %in% unique(df_test$location)))) {
+            loc_test <- paste0(
+              "\U000274c Error 703: The submission should contain information",
+              " for the location(s): ",  paste(req_loc, collapse = ", "),
+              ", for the target(s): ",
+              paste(unique(unlist(x$target)), collapse = ", "),
+              ". The data frame is missing: ",
+              paste(req_loc[!req_loc %in% unique(df_test$location)],
+                    collapse = ", "), ", please verify.")
+          } else if (isFALSE(all(unique(df_test$location) %in%
+                                 c(opt_loc, req_loc)))) {
+            if (is.null(opt_loc)) {
+              opt_loc_text <- ""
+            } else {
+                opt_loc_text <- paste0(" and ", paste(opt_loc, collapse = ", "),
+                                       " (optional)")
+            }
+            loc_test <- paste0(
+              "\U000274c Error 703: The submission should only contain ",
+              "information for the location(s): ", paste(
+                req_loc,  collapse = ", "), " (required)", opt_loc_text,
+                ", for the target(s): ", paste(unique(unlist(x$target)),
+                                               collapse = ", "),
+                ". The data frame contains other locations (",
+              paste(unique(df_test$location)[!unique(
+                df_test$location) %in% c(opt_loc, req_loc)], collapse = ", "),
+              "), please verify.")
+          } else {
+            loc_test <- NA
+          }
+        }
+      } else {
+        if (!all(is.na(df_test))) {
+          loc_test <-  paste0(
+            "\U000274c Error 703: No location should be associated with the ",
+            "targets: ", paste(unique(unlist(x$target)), collapse = ", "),
+            ". please verify.")
+        } else {
+          loc_test <- NA
+        }
+      }
     } else {
-      loc_test <- NA
+      loc_test <-  paste0(
+        "\U0001f7e1 Warning 513: No value found associated with the targets: ",
+        paste(unique(unlist(x$target)), collapse = ", "),
+        ". please verify.")
     }
     return(loc_test)
   })
 
-  test_loc <- unique(na.omit(c(location_test, unlist(targ_loc_test))))
+  test_loc <- unique(na.omit(c(location_test, unlist(loc_test))))
   if (length(test_loc) == 0)
     test_loc <- "No errors or warnings found on Location"
 

@@ -4,13 +4,12 @@
 \alias{test_scenario}
 \title{Runs Validation Checks on Scenario ID and Scenario Name columns}
 \usage{
-test_scenario(df, js_def)
+test_scenario(df, task_ids)
 }
 \arguments{
 \item{df}{data frame to test}
 
-\item{js_def}{list containing round definitions: number and names of columns,
-target names, ...}
+\item{task_ids}{list containing round information for each id columns}
 }
 \description{
 Validate Scenario Modeling Hub submissions: test if the name and id of the
@@ -18,14 +17,12 @@ scenario correspond to the expected name and id and if they are correctly
 associated with each others.
 }
 \details{
-This function contains 3 tests:
+This function contains 2 tests:
 \itemize{
- \item{Scenario Name: }{The names of the scenarios are correctly spelled and
- correspond to the scenario name of the corresponding round.}
  \item{Scenario ID: }{The IDs of the scenarios are correctly spelled and
  correspond to the scenario IDs of the corresponding round.}
- \item{Correspondance Name and ID: }{The names and ID of the scenarios are
- correctly matching (scenario ID A = scenario name A)}
+ \item{Required scenario: }{All the required scenario are present in the
+ submission file (tested by target).}
 }
 Function called in the `validate_submission()` function.
 }

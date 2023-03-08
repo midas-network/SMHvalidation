@@ -2,27 +2,31 @@
 % Please edit documentation in R/test_sample.R
 \name{test_sample}
 \alias{test_sample}
-\title{Runs Validation Checks on the samplecolumn}
+\title{Runs Validation Checks on the sample column}
 \usage{
-test_sample(df, js_def)
+test_sample(df, model_task)
 }
 \arguments{
 \item{df}{data frame to test}
 
-\item{js_def}{list containing round definitions: number and names of columns,
-target names, ...}
+\item{model_task}{list containing round information for each id columns
+and model output (type, format, etc.)}
 }
 \description{
 Validate Scenario Modeling Hub submissions: test if the  `sample` column
 contains the expected  value.
 }
 \details{
-This function contains 2 tests:
+This function contains 3 tests:
 \itemize{
  \item{sample value: }{The submission should contain a sample column with
- value between 0 and 100.}
-  \item{unique samplee: }{The submission should contain a unique sample
-  identifier for each scenario/target/location (age_group) group.}
+ expected value.}
+ \item{unique sample: }{The submission should contain a unique sample
+ identifier for each scenario/target/location/horizon (age_group) group.}
+ \item{sample integer: }{The submission should contain a sample column with
+ integer only.}
+ \item{required sample:}{If a target expected sample type output, the
+ submission should contain sample type output for this target}
 }
 Function called in the `validate_submission()` function.
 }

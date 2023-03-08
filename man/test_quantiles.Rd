@@ -4,13 +4,13 @@
 \alias{test_quantiles}
 \title{Runs Validation Checks on the Quantiles type and value columns}
 \usage{
-test_quantiles(df, js_def)
+test_quantiles(df, model_task)
 }
 \arguments{
 \item{df}{data frame to test}
 
-\item{js_def}{list containing round definitions: number and names of columns,
-target names, ...}
+\item{model_task}{list containing round information for each id columns
+and model output (type, format, etc.)}
 }
 \description{
 Validate Scenario Modeling Hub submissions: test if the
@@ -18,26 +18,19 @@ Validate Scenario Modeling Hub submissions: test if the
 and the projection value increases with the quantiles.
 }
 \details{
-This function contains 6 tests:
+This function contains 5 tests:
 \itemize{
- \item{Quantiles: }{The `quantile` column matches the expected quantiles:
- 0, 0.01, 0.025, 0.05, 0.1, 0.15, 0.2, 0.25, 0.3, 0.35, 0.4, 0.45, 0.5, 0.55,
-  0.6, 0.65, 0.7, 0.75, 0.8, 0.85, 0.9, 0.95, 0.975, 0.99 and/or 1.}
- \item{Number: }{The projection should contain at least the 23 quantiles
-  (0 and 1 are optional). It is accepted to submit less quantiles but the
+ \item{Type: }{The submission contains quantiles value when expected}
+ \item{Quantiles: }{The `quantile` column matches the expected quantiles}
+ \item{Required quantiles: }{The projection should contain all required
+  quantiles. It is accepted to submit less quantiles but the
   function will return a warning and the submission will not be included
   in the Ensembles.}
  \item{Value: }{The `value` associated with each `quantile` is increasing as
  the quantile increased. For example, if quantile 0.01 = 5 than quantile
  0.5 should be equal or greater than 5.}
- \item{Unique value: }{For the target(s) requiring quantiles information,
- not all the quantiles per scenario, target and location (and age_group if
- necessary) are equal.}
- \item{1 quantile: }{For the target(s) requiring quantiles information, all
- quantiles per scenario, target and location (and age_group if necessary) are
-  unique.}
  \item{Target: }{All targets required to have quantiles information have all
- expected quantiles.}
+ required quantiles for each group id (scenario/location/horizon/etc.)}
 }
 Function called in the `validate_submission()` function.
 }

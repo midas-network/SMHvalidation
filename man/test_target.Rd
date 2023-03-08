@@ -2,34 +2,29 @@
 % Please edit documentation in R/test_target.R
 \name{test_target}
 \alias{test_target}
-\title{Runs Validation Checks on the Target and target_end_date columns}
+\title{Runs Validation Checks on the Target column}
 \usage{
-test_target(df, start_date, js_def)
+test_target(df, model_task)
 }
 \arguments{
 \item{df}{data frame to test}
 
-\item{start_date}{corresponds to the "1 wk ahead" target in the projection
-file}
-
-\item{js_def}{list containing round definitions: number and names of columns,
-target names, ...}
+\item{model_task}{list containing round information for each id columns
+and model output (type, format, etc.)}
 }
 \description{
 Validate Scenario Modeling Hub submissions: test if the
-`target` and `target_end_date` columns contain the expected information
-and value.
+`target` column contain the expected information and value.
 }
 \details{
-This function contains 9 tests:
+This function contains 5 tests:
 \itemize{
  \item{Target name: }{The target should correspond to the target name as
  expressed in the SMH Github. }
  \item{Target number: }{The submission file contains projection for all
  required targets. It is accepted to submit only a subset of target but
- a warning message will be return (only if a required target is missing.}
- \item{End of week: }{The date in the "target_end_date" column should always
- correspond to the end of the epiweek (Saturday).}
+ a warning and/or a error message will be return (depending if the target
+ is optional or required)}
  \item{Number of week projected: }{The submission file contains projections
  for the expected number of weeks or more. If a team submits more week than
  expected, a warning message will be returned, but the submission will be
@@ -39,16 +34,9 @@ This function contains 9 tests:
   accepted, but will return a warning message and might not be included
   in the Ensembles}
  \item{Week projected: }{The submission file contains projection for all
- expected weeks for each target, location, scenario (age_group) and quantiles
- or sample combination.}
- \item{Starting date: }{The 1 week ahead of the `target_end_date` starts on
- the expected date (end of the epiweek of the starting projection date).}
- \item{Correct date: }{Each target_end_date corresponds to the expected date
-  for example if 1 wk ahead = 2022-01-15, than 2 wk ahead = 2022-01-22.}
- \item{Target value: }{For the round 14s and 15, and for the optional target
- "prop X", the associated value with this target should be between 0 and 1
- and should be noted with quantile = NA and type = "point".}
- \item{NA target}{The projection contains NA for all "target_end_date"
+ expected weeks for each target, location, scenario (age_group) and for all
+ output type combination.}
+ \item{NA target}{The projection contains NA for all "horizon"
  for the target requiring no time series information. }
 }
 Function called in the `validate_submission()` function.

@@ -3,8 +3,11 @@ title: "Validate Submission"
 output: rmarkdown::html_vignette
 vignette: >
   %\VignetteIndexEntry{Validate Submission}
-  %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
+  %\VignetteEngine{knitr::rmarkdown}
+editor_options: 
+  markdown: 
+    wrap: 72
 ---
 
 ```{r, include = FALSE}
@@ -43,7 +46,7 @@ To run the SMH validation checks, we can use the `validate_submision()`
 function. For more information on this function, please consult the
 documentation
 
-```{r}
+```{r eval=FALSE}
 ?validate_submission()
 ```
 
@@ -57,12 +60,14 @@ The function requires multiple parameters:
 -   `path`: path to the submission files. The package contains 3
     examples files that can be used to test the function. There paths
     can be accessed by using:
-    `system.file("extdata", "FILENAME", package = "SMHvalidation")`. the
+    `system.file("extdata", "FILENAME", package = "SMHvalidation")`, the
     3 filenames (+ quick descriptions) are:
     -   "2022-01-09_team-model.csv" : should returns no issues
     -   "2021-08-15_team-model.gz" : should returns multiple warnings
     -   "2021-11-14_team-model.zip" : should returns multiple warnings
         and errors
+-   `js_def`: list containing the round specific and scenario
+    information.
 -   `lst_gs`: named list of data frame containing the observed data. We
     highly recommend to use the output of the `pull_gs_data()` function
     as input. This function will generate the output in the expected
@@ -74,10 +79,6 @@ The function requires multiple parameters:
     location name. For example, path to the locations file in the
     [COVID19 Scenario Modeling Hub GitHub
     repository](https://github.com/midas-network/covid19-scenario-modeling-hub/blob/master/data-locations/locations.csv)
--   `js_def`: list containing the round specific and scenario
-    information. It should be in the same output format as the function
-    `json_metadata()` in the package `ScenarioModelingHub.data`. Some
-    examples are also available in this package.
 
 #### Output
 
@@ -100,15 +101,7 @@ parameter as explained above:
 ```{r prerequisite, message=FALSE, warning=FALSE}
 lst_gs <- pull_gs_data()
 pop_path <- "https://raw.githubusercontent.com/midas-network/covid19-scenario-modeling-hub/master/data-locations/locations.csv"
-js_def <- system.file("extdata", "2022-01-09_metadata.json", package = "SMHvalidation")
-#js_def <- jsonlite::fromJSON(js_def)
-```
-
-To look at the structure of `lst_gs` and `js_def`:
-
-```{r str}
-str(lst_gs)
-str(js_def)
+js_def <- system.file("extdata", "covid_tasks.json", package = "SMHvalidation")
 ```
 
 ## Example 1: No issues
@@ -117,8 +110,9 @@ We can now run the `validate_submission()` function on a first example
 file.
 
 ```{r test1}
-path_test <- system.file("extdata", "2022-01-09_team-model.csv", package = "SMHvalidation")
-validate_submission(path_test, lst_gs, pop_path, js_def)
+path_test <- system.file("extdata", "2022-01-09_team-model.csv", 
+                         package = "SMHvalidation")
+validate_submission(path_test, js_def, lst_gs, pop_path)
 ```
 
 The function returns a simple message stating that no issues has been
@@ -127,10 +121,9 @@ found.
 ## Example 2: Warnings
 
 ```{r test2}
-path_test <- system.file("extdata", "2021-08-15_team-model.gz", package = "SMHvalidation")
-js_def <- system.file("extdata", "2021-08-15_metadata.json", package = "SMHvalidation")
-#js_def <- jsonlite::fromJSON(js_def)
-validate_submission(path_test, lst_gs, pop_path, js_def)
+path_test <- system.file("extdata", "2021-08-15_team-model.gz", 
+                         package = "SMHvalidation")
+validate_submission(path_test, js_def, lst_gs, pop_path)
 ```
 
 The function returns a warning message stating that one or multiple
@@ -142,10 +135,9 @@ information in the submission is correct.
 ## Example 3: Warnings & Error
 
 ```{r test3, error=TRUE}
-path_test <- system.file("extdata", "2021-11-14_team-model.zip", package = "SMHvalidation")
-js_def <- system.file("extdata", "2021-11-14_metadata.json", package = "SMHvalidation")
-#js_def <- jsonlite::fromJSON(js_def)
-validate_submission(path_test, lst_gs, pop_path, js_def)
+path_test <- system.file("extdata", "2021-11-14_team-model.zip", 
+                         package = "SMHvalidation")
+validate_submission(path_test, js_def, lst_gs, pop_path)
 ```
 
 The function returns an error message stating that one or multiple
@@ -157,25 +149,29 @@ accepted.
 ## Example 4: Flu submission
 
 ```{r test4}
-path_test <- system.file("extdata", "2022-08-14_team-flu.csv", package = "SMHvalidation")
+path_test <- system.file("extdata", "2022-08-14_team-flu.csv", 
+                         package = "SMHvalidation")
 pop_path <- "https://raw.githubusercontent.com/midas-network/flu-scenario-modeling-hub/main/data-locations/locations.csv"
-js_def <- system.file("extdata", "2022-08-14_metadata.json", package = "SMHvalidation")
-#js_def <- jsonlite::fromJSON(js_def)
-validate_submission(path_test, NULL, pop_path, js_def)
+js_def <- system.file("extdata", "flu_tasks.json", package = "SMHvalidation")
+validate_submission(path_test, js_def, NULL, pop_path)
 ```
 
 ## Plotting Projections
 
 The `SMHvalidation` R package also contains plotting functionality to
 output a plot of each location and target, with all scenarios and
-observed data incorporated.
+observed data incorporated (only for quantile type output).
 
 ```{r proj_plots}
-path_test <- system.file("extdata", "2022-01-09_team-model.csv", package = "SMHvalidation")
+path_test <- system.file("extdata", "2022-01-09_team-model.csv", 
+                         package = "SMHvalidation")
 save_path <- getwd()
-pdf_path <- file.path(save_path, paste0("2022-01-09", "_", "team-model", "_plots.pdf"))
+pdf_path <- file.path(save_path, paste0("2022-01-09", "_", "team-model", 
+                                        "_plots.pdf"))
 print(paste0("Saving pdf plots to ", pdf_path, "."))
-generate_validation_plots(path_proj=path_test, lst_gs=lst_gs, save_path=getwd(), y_sqrt = FALSE, plot_quantiles = c(0.025, 0.975))
+generate_validation_plots(path_proj = path_test, lst_gs = lst_gs, 
+                          save_path = getwd(), y_sqrt = FALSE, 
+                          plot_quantiles = c(0.025, 0.975))
 system(paste0('open "', pdf_path, '"'))
 ```
 
@@ -183,11 +179,15 @@ Try another file type (CSV, GZ, and ZIP files format are accepted
 currently)
 
 ```{r proj_plots2}
-path_test <- system.file("extdata", "2021-08-15_team-model.gz", package = "SMHvalidation")
+path_test <- system.file("extdata", "2021-08-15_team-model.gz", 
+                         package = "SMHvalidation")
 save_path <- getwd()
-pdf_path <- file.path(save_path, paste0("2021-08-15", "_", "team-model", "_plots.pdf"))
+pdf_path <- file.path(save_path, paste0("2021-08-15", "_", "team-model", 
+                                        "_plots.pdf"))
 print(paste0("Saving pdf plots to ", pdf_path, "."))
-generate_validation_plots(path_proj=path_test, lst_gs=lst_gs, save_path=getwd(), y_sqrt = FALSE, plot_quantiles = c(0.025, 0.975))
+generate_validation_plots(path_proj = path_test, lst_gs = lst_gs, 
+                          save_path = getwd(), y_sqrt = FALSE, 
+                          plot_quantiles = c(0.025, 0.975))
 system(paste0('open "', pdf_path, '"'))
 ```
 
@@ -195,11 +195,14 @@ An other example is available for FLU submission (not compared to
 observed data, set the `lst_gs` parameter to `NULL`)
 
 ```{r proj_plots3}
-path_test <- system.file("extdata", "2022-08-14_team-flu.csv", package = "SMHvalidation")
+path_test <- system.file("extdata", "2022-08-14_team-flu.csv", 
+                         package = "SMHvalidation")
 save_path <- getwd()
-pdf_path <- file.path(save_path, paste0("2022-08-14", "_", "team-flu", "_plots.pdf"))
+pdf_path <- file.path(save_path, paste0("2022-08-14", "_", "team-flu", 
+                                        "_plots.pdf"))
 print(paste0("Saving pdf plots to ", pdf_path, "."))
-generate_validation_plots(path_proj=path_test, lst_gs=NULL, save_path=getwd(), y_sqrt = FALSE, plot_quantiles = c(0.025, 0.975))
+generate_validation_plots(path_proj = path_test, lst_gs = NULL, 
+                          save_path = getwd(), y_sqrt = FALSE, 
+                          plot_quantiles = c(0.025, 0.975))
 system(paste0('open "', pdf_path, '"'))
 ```
-

@@ -18,8 +18,8 @@ knitr::opts_chunk$set(
 )
 ```
 
-The `SMHvalidation` R package contains functions to pull COVID-19
-data from the R package `covidcast` (output in the Scenario Modeling Hub
+The `SMHvalidation` R package contains functions to pull COVID-19 data
+from the R package `covidcast` (output in the Scenario Modeling Hub
 (SMH) standard format), and functions to validate and visualize Scenario
 Modeling Hub submission.
 
@@ -45,46 +45,108 @@ In each section, the tests are describes with detailed information that
 should be provided in the json files inputted in the validation
 function. This information will be noted in each section.
 
+*Remarks:* After round 16 of COVID-19, the submission file format and
+js_def file format has been updated to follow the "hub infrastructure"
+format and to adapt to future rounds. The documentation is about the
+last version of the data. For previous version, please consult past
+version of the package (version 0.0.0.9).
+
+### `Validate_submission()` function
+
+#### Input
+
+To test a submission file, the function requires multiple parameters:
+
+-   `path`: path to the submission file(s). The `SMHvalidation` package
+    contains multiple examples files that can be used to test the
+    function. Please refer to the package documentation for more
+    information
+-   `js_def`: path to a JSON file containing the round specific and
+    scenario information, following the [Consortium of Infectious
+    Disease Modeling Hubs
+    standard](https://github.com/Infectious-Disease-Modeling-Hubs/schemas)
+-   `lst_gs`: named list of data frame containing the observed data. We
+    highly recommend to use the output of the `pull_gs_data()` function
+    as input. This function will generate the output in the expected
+    format with the expected data. For more information, please do
+    `?pull_gs_data()`. This parameter can be set to `NULL` is no
+    observed data comparison is required.
+-   `pop_path`: path to a table containing the population size of each
+    geographical entities by FIPS (in a column "location") and by
+    location name.
+
+##### `js_def` parameter:
+
+The parameter should follow the standard of the `tasks.json` file from
+the [Consortium of Infectious Disease Modeling Hubs
+standard](https://github.com/Infectious-Disease-Modeling-Hubs/schemas).
+
+It should contains information by rounds for:
+
+-   "model_tasks": Array defining round-specific modeling tasks. Can
+    contain one or more groups of modeling tasks per round where each
+    group is defined by a distinct combination of values of task id
+    variables:
+
+    -   "tasks_ids": Group of valid values of task id variables. A set
+        of valid tasks corresponding to this group is formed by taking
+        all combinations of these values. (For example: origin_date,
+        scenario_id, target, horizon, location, age_groups)
+
+    -   "output_types": Object defining valid model output types for a
+        given modeling task. The name of each property corresponds to
+        valid values in column 'type' while the 'type_id' property of
+        each output type defines the valid values of the 'type_id'
+        column and the 'value' property defines the valid values of the
+        'value' column for a given output type.
+
+    -   "target_metadata": Array of objects containing metadata about
+        each unique target, one object for each unique target value.
+
+#### Output
+
+The function returns a message with:
+
+-   "Error": the validation has failed and returned a message indicating
+    the error(s). The error(s) should be fixed.
+-   "Warning": it might be necessary to verify the input file to check
+    if the warning(s) are expected or not.
+-   "Success": the validation did not found any issue and returns a
+    message indicating that the validation is a success.
+
 ### File format (`test_column()`)
 
 The name and number of the columns are corresponding to the expected
-format (information should be provided via the `js_def` parameter), for
-example:
+format, for example:
 
-For quantiles submission:
 
-| model_projection_date | scenario_name | scenario_id | target | target_end_date | location | type | quantile | value | (age_group) |
-|:------:|:------:|:------:|:------:|:------:|:------:|:------:|:------:|:------:|:------:|
-
-For sample submission:
-
-| model_projection_date | scenario_name | scenario_id | target | target_end_date | location | sample | value | (age_group) |
-|:------:|:------:|:------:|:------:|:------:|:------:|:------:|:------:|:------:|
+|origin_date|scenario_id|target|horizon|location|type|type_id|value|
+|:-----:|:-----:|:----:|:----:|:----:|:---:|:---:|:---:|
+|||||||||
 
 The order of the column is not important but it should contain the
 expected number of columns with each name correctly spelled.
-*Remarks:*If one column is missing, the submission test will directly
-stop and return an error message without running all the other tests.
+
+*Remarks:* In this example, the `task_ids` values correspond to:
+origin_date, scenario_id, target, horizon, location.
+
+*Remarks:*If one required column is missing, the submission test will
+directly stop and return an error message without running all the other
+tests.
 
 ### Scenario Information (`test_scenario()`)
 
--   The name and ID of the scenarios are corresponding to the expected
-    name and ID of the expected round without any typo (information
-    should be provided via the `js_def` parameter).
+-   The ID of the scenarios are corresponding to the expected ID of the
+    expected round without any typo.
 
--   The names and ID of the scenarios are correctly matching (scenario
-    ID A = scenario name A). (The information should be provided via the
-    `js_def` parameter)
+### Column "origin_date" (`test_origindate()`)
 
-### Column "model_projection_date" (`test_modelprojdate()`)
-
--   The `model_projection_date` column contains:
+-   The `origin_date` column contains:
     -   one unique date value in the `YYYY-MM-DD` format.
     -   the date in the submission file is matching the date in the name
         of the file.
     -   the date in the submission file matching the projection starting
-        date (information should be provided via the `js_def`
-        parameter).
+        date or round id.
 
 *Remarks:* Implemented since January 2022, all submissions previous to
 this can have a slightly more flexible date information.
@@ -99,11 +161,7 @@ this can have a slightly more flexible date information.
     `0.99`. **If a submission is missing some (or all) quantiles it will
     still be accepted but will not included in the Ensembles.**
 
--   Additionals \*optional\*\* quantiles can been added to the list
-    (information should be provided via the `js_def` parameter), for
-    example: `0` and `1`. These quantiles are not required.
-
--   For each target/scenario/location/(age_group) group, the value
+-   For each target/scenario/location/(age_group, etc.) group, the value
     increases with the quantiles. For example, for the 1st week ahead of
     target X for the location Y and for the scenario A, if quantile
     `0.01`= "5" than quantile `0.5` should be equal or greater than "5".
@@ -113,26 +171,13 @@ information.
 
 ### Value and Types information (`test_val()`)
 
-#### For the "quantile" submission file format:
-
--   Point values should be noted as `type`= "point" and `quantile`= NA.
-
-#### For all type of files
-
--   Each quantile or sample/target/scenario/location/(age_group) group
+-   Each type/type_id/target/scenario/location/(age_group, etc.) group
     combination has one unique value projected. For example: only 1
-    value for quantile `0.5`, location `US`, target
-    `1 wk ahead inc hosp` and, scenario `A`)
+    value for quantile `0.5`, location `US`, target `inc hosp`, horizon
+    `1` and, scenario `A`)
 
--   The projection contains X point values, X = number of unique targets
-    in the submission file \* number of unique scenarios in the
-    submission file \* number of unique locations in the submission
-    file. Only tested when all targets, for all scenarios and for all
-    locations are required
-
--   The projection contains the expected value (for example, value
-    `>= 0` or in between 0 and 1, information should be provided via the
-    `js_def` parameter)
+-   The projection contains the expected value (for example, integer
+    value `>= 0` or numeric in between 0 and 1)
 
 -   For each target name/scenario/location/(age group) group (except
     locations `66` (Guam), `69` (Northern Mariana Island), `60`
@@ -163,47 +208,22 @@ information.
 ### Target information and value (`test_target()`)
 
 -   The target are corresponding to the target name as expressed in the
-    associated metadata JSON file (`js_def` parameter).
+    associated metadata JSON file.
 
 -   The submission file contains projections for all the required
-    targets (information should be provided via the `js_def` parameter).
-    **The submission file will be accepted if some targets are missing,
-    but will return a warning message and the submission might not be
-    included in the Ensembles**
-
--   Each `target_end_date` should correspond to the end of the epiweek
-    (Saturday) and should correspond to the expected value. (Start date
-    should be provided via the `js_def` parameter). For example, if the
-    start date is defined as : "Start date for scenarios: January 9,
-    2022", than the `1 wk ahead` should be `"2022-01-15"`, `2 wk ahead`
-    should be `"2022-01-22"`, etc.
+    targets. **The submission file will be accepted if some targets are
+    missing, but will return a warning message and the submission might
+    not be included in the Ensembles**
 
 -   The submission file contains projection for an expected number of
-    week (information should be provided via the `js_def` parameter).
-    **If the file contains more projected weeks than expected, the
-    submission will still be accepted, but will return a warning message
-    and the additional weeks will not be included in the visualization
-    on the SMH website. If the file contains less projected weeks than
-    expected, the submission might still be accepted, but will return a
-    warning message and might not be included in the Ensembles, if the
-    submission is not accepted, an error message will be returned.**
-
-#### For COVID-19 Submission
-
-| Round               | Minimal number of weeks | Maximal number of weeks |
-|:--------------------|:-----------------------:|:-----------------------:|
-| 1 to 9 (included)   |           13            |           26            |
-| 10                  |           26            |           52            |
-| 11 to 12 (included) |           12            |           12            |
-| 13 to 14 (included) |           52            |           52            |
-| 15                  |           40            |           40            |
-| 16                  |           26            |           26            |
-
-#### For FLU Submission
-
-| Round | Minimal number of weeks | Maximal number of weeks |
-|:------|:-----------------------:|:-----------------------:|
-| 1     |           42            |           42            |
+    week (or horizon). **If the file contains more projected weeks than
+    expected, the submission will still be accepted, but will return a
+    warning message and the additional weeks will not be included in the
+    visualization on the SMH website. If the file contains less
+    projected weeks than expected, the submission might still be
+    accepted, but will return a warning message and might not be
+    included in the Ensembles, if the submission is not accepted, an
+    error message will be returned.**
 
 ### Column "location" (`test_location()`)
 
@@ -213,12 +233,10 @@ information.
     table](https://github.com/midas-network/covid19-scenario-modeling-hub/blob/master/data-locations/locations.csv)
     in the COVID-19 SMH GitHub Repository (same table used for FLU). If
     the FIPS numbers are missing a trailing zero, the submission will be
-    accepted but a warning message will be returned (information should
-    be provided via the `js_def` parameter).
+    accepted but a warning message will be returned.
 
 -   For the target requiring only specific location(s), no additional
-    location is provided in the submission file (information should be
-    provided via the `js_def` parameter).
+    location is provided in the submission file.
 
 *Remarks:* If a submission file contains only state level projection
 (one or multiple), the `location` column might be automatically identify
@@ -237,90 +255,92 @@ please feel free to ignore it.
     age group `0-130`.
 
 -   For the target requiring only specific age group(s), no additional
-    age group is provided in the submission file (information should be
-    provided via the `js_def` parameter). **If additional age group are
-    provided, a warning will be returned and the additional information
-    might not be integrated in the analysis and visualization.**
+    age group is provided in the submission file. **If additional age
+    group are provided, a warning will be returned and the additional
+    information might not be integrated in the analysis and
+    visualization.**
 
 *Remarks:* These tests are only run if the submission contains an
-`age_group` column. If an age_group value is not in the expected format
-(`<AGEMIN>-<AGEMAX>`) , some tests are skipped (802, 303, 805).
+`age_group` column..
 
-#### For FLU Submission (information should be provided via the `js_def` parameter).
+### Samples information and value (`test_sample()`)
 
--   `<AGEMIN>` can be of value: `0`, `5`, `18`, `50` or `65`
--   `<AGEMAX>` can be of value: `4`, `17`, `49` , `64` or `130`
-
-### Column "sample" (`test_sample()`)
-
--   The `sample` column should only contain integer values between 1 and
-    100 (included).
+-   The column `type_id` for the type 'sample' rows should only contain
+    expected integer values.
 
 -   The submission should contain a unique sample identifier for each
-    scenario/target/location (age_group) combination.
+    scenario/target/location/horizon (age_group) combination.
 
 *Remarks:* These tests are only run if the submission contains a
 `sample` column.
 
 ## Table of error/warning code
 
-| Code                                          | Type             | Checking Step                                                                                                     | Test                                                                                                                                                                                                                                                                                 |
-|:----------------|:----------------|:----------------|:-------------------|
-| 001 - [Deprecated for new `js_def` parameter] | Error            | Information extracted before running the validation, **if any issue, stop and will not run the validation**       | `scen_info` parameter should either be: a path to a file containing the round and scenario information, or a data frame, or NULL. If NULL, the information will be automatically extracted from the Scenario Modeling Hub GitHub repository.                                         |
-| 002 - [Deprecated for new `js_def` parameter] | Error            | Information extracted before running the validation, **if any issue, stop and will not run the validation**       | Cannot extract round number information from the files, test that the file name contains the expected date and the `scenario id` column contains the expected information.                                                                                                           |
-| 003                                           | Error            | Information extracted before running the validation, **if any issue, stop and will not run the validation**       | All columns containing dates information should be in "YYY-MM-DD" format                                                                                                                                                                                                             |
-| 101                                           | Error            | Run in `test_column()` function                                                                                   | No column name is misspelled or does not correspond to the expected column names.                                                                                                                                                                                                    |
-| 102                                           | Error            | Run in `test_column()` function                                                                                   | The data frame should contain the expected number of columns.                                                                                                                                                                                                                        |
-| 103                                           | Error            | Run in `test_column()` function , if no error 101 but error 102 appears, **stop and will not run the validation** | No column name is misspelled or does not correspond to the expected column names. An additional unexpected column will stop the rest of the validation.                                                                                                                              |
-| 201                                           | Error            | Run in `test_scenario()` function                                                                                 | The `scenario_name` values are correct.                                                                                                                                                                                                                                              |
-| 202                                           | Error            | Run in `test_scenario()` function                                                                                 | The `scenario_id` values are correct.                                                                                                                                                                                                                                                |
-| 203                                           | Error            | Run in `test_scenario()` function                                                                                 | The name and ID of the scenario are correctly associated.                                                                                                                                                                                                                            |
-| 301                                           | Error            | Run in `modelprojdate()` function                                                                                 | The `model_projection_date` value is in a date format "YYYY-MM-DD".                                                                                                                                                                                                                  |
-| 302                                           | Error            | Run in `modelprojdate()` function                                                                                 | The `model_projection_date` value is unique.                                                                                                                                                                                                                                         |
-| 303                                           | Error            | Run in `modelprojdate()` function                                                                                 | The `model_projection_date` value is corresponding to the date in the name of the submission file.                                                                                                                                                                                   |
-| 304                                           | Error            | Run in `modelprojdate()` function                                                                                 | The `model_projection_date` value is corresponding to the projection starting date.                                                                                                                                                                                                  |
-| 401                                           | Error            | Run in `test_quantile()` function                                                                                 | The `quantile` values correspond to the expected values.                                                                                                                                                                                                                             |
-| 402                                           | Warning          | Run in `test_quantile()` function                                                                                 | No quantiles are missing in the projection file.                                                                                                                                                                                                                                     |
-| 403                                           | Error            | Run in `test_quantile()` function                                                                                 | For the target(s) requiring quantiles information, the `value` is equal or is increasing with the quantiles.                                                                                                                                                                         |
-| 404                                           | Error            | Run in `test_quantile()` function                                                                                 | For the target(s) requiring quantiles information, all quantiles per scenario, target and location (and age_group if necessary) are unique.                                                                                                                                          |
-| 405 - [Not implemented]                       | Error            | Run in `test_quantile()` function                                                                                 | For the target(s) requiring quantiles information, not all the quantiles per scenario, target and location (and age_group if necessary) are equal (except if all equal to 0).                                                                                                        |
-| 406                                           | Warning          | Run in `test_quantile()` function                                                                                 | All targets required to have quantiles information have all expected quantiles.                                                                                                                                                                                                      |
-| 501                                           | Error            | Run in `test_val()` function                                                                                      | The projection contains type `"point"` values for the target(s) requiring "point" values.                                                                                                                                                                                            |
-| 502                                           | Error            | Run in `test_val()` function                                                                                      | The `"point"` type values have for value `NA` in the column `quantile`.                                                                                                                                                                                                              |
-| 503                                           | Error            | Run in `test_val()` function                                                                                      | The projection contains X point value, X = number of targets \* number of scenarios \* number of locations (only when all required targets required point projections for all scenarios, locations)                                                                                  |
-| 5041                                          | Error            | Run in `test_val()` function                                                                                      | All `value` have the expected value (for example, \>= 0 or in between 0 and 1).                                                                                                                                                                                                      |
-| 5042                                          | Error            | Run in `test_val()` function                                                                                      | All `value` are numeric, `NA` values are not accepted.                                                                                                                                                                                                                               |
-| 505                                           | Warning          | Run in `test_val()` function                                                                                      | For each group of location/target/scenario (and age_group if necessary) , the projected `value` are not identical for the complete time series.                                                                                                                                      |
-| 506                                           | Error or Warning | Run in `test_val()` function                                                                                      | For each group of location/target/scenario (and age_group if necessary) and for each target requiring "point" values , an unique `"point"` is associated with each group. The test will return an error message for required target(s) and a warning message for optional target(s). |
-| 507                                           | Warning          | Run in `test_val()` function                                                                                      | The projected `value` is lower or equal to the population size of the associated geographical unit.                                                                                                                                                                                  |
-| 508?                                          | Error            | Run in `test_val()` function                                                                                      | The projected `value` for the "cumulative case count" is equal or higher than the observed cumulative case count for the previous week (week 0) or previous past week (week - 1) (depending on availability) before projection starting date.                                        |
-| 509?                                          | Error            | Run in `test_val()` function                                                                                      | The projected `value` for the "cumulative death count" is equal or higher than the observed cumulative death count for the previous week (week 0) or previous past week (week - 1) (depending on availability) before projection starting date.                                      |
-| 510                                           | Error            | Run in `test_val()` function                                                                                      | For each group of location/target/quantile/scenario (and age_group if necessary), no more than one value is associated                                                                                                                                                               |
-| 511                                           | Error            | Run in `test_val()` function                                                                                      | For each quantile/target name/scenario/location (and age_group if necessary) combination and for the cumulative target only, the projected values are not decreasing with time                                                                                                       |
-| 601                                           | Error            | Run in `test_target()` function                                                                                   | No target name is misspelled.                                                                                                                                                                                                                                                        |
-| 602                                           | Warning          | Run in `test_target()` function                                                                                   | No required target is missing.                                                                                                                                                                                                                                                       |
-| 603                                           | Error            | Run in `test_target()` function                                                                                   | Each `target_end_date` corresponds to the end of an epiweek (Saturday).                                                                                                                                                                                                              |
-| 604 - [Deprecated for warning 605]            | Error            | Run in `test_target()` function                                                                                   | For specifics rounds, the number of week projected should be equal or higher than the expected minimum.                                                                                                                                                                              |
-| 605                                           | Warning          | Run in `test_target()` function                                                                                   | The number of weeks projected should be equal or higher than the expected minimum.                                                                                                                                                                                                   |
-| 606                                           | Warning          | Run in `test_target()` function                                                                                   | The number of weeks projected is not greater than the expected maximum number of weeks.                                                                                                                                                                                              |
-| 607                                           | Error            | Run in `test_target()` function                                                                                   | The projected time series is not missing any weeks (complete time series) for the target requiring it.                                                                                                                                                                               |
-| 608                                           | Error            | Run in `test_target()` function                                                                                   | The first week `target_end_date` corresponds to the expected value.                                                                                                                                                                                                                  |
-| 609                                           | Error            | Run in `test_target()` function                                                                                   | Each `target_end_date` corresponds to the expected value.                                                                                                                                                                                                                            |
-| 610 - [Deprecated for error 5041]             | Warning          | Run in `test_target()` function                                                                                   | Only for COVID-19 round 14, the value associated with the optional target `prop X` is between 0 and 1.                                                                                                                                                                               |
-| 611 - [Deprecated for error 502]              | Warning          | Run in `test_target()` function                                                                                   | Only for COVID-19 round 14, the value associated with the optional target `prop X` is noted with `quantile = NA` and `type = "point"`.                                                                                                                                               |
-| 612                                           | Error            | Run in `test_target()` function                                                                                   | The projection contains NA for all "target_end_date" for the target requiring no time series information.                                                                                                                                                                            |
-| 701                                           | Error            | Run in `test_location()` function                                                                                 | Each location code corresponds to the expected value.                                                                                                                                                                                                                                |
-| 702                                           | Warning          | Run in `test_location()` function                                                                                 | The location code value is not missing any trailing `0`.                                                                                                                                                                                                                             |
-| 703                                           | Error            | Run in `test_location()` function                                                                                 | For the target requiring only specific location(s), no additional location is provided in the submission file                                                                                                                                                                        |
-| 801                                           | Error            | Run in `test_agegroup()` function                                                                                 | The submission should contain a column `age_group` with values defined as `<AGEMIN>-<AGEMAX>`.                                                                                                                                                                                       |
-| 802                                           | Error            | Run in `test_agegroup()` function                                                                                 | Each age_group value corresponds to the expected value.                                                                                                                                                                                                                              |
-| 803                                           | Error            | Run in `test_agegroup()` function                                                                                 | `<AGEMIN>` cannot be equal or greater than `<AGEMAX>`                                                                                                                                                                                                                                |
-| 804                                           | Error            | Run in `test_agegroup()` function                                                                                 | The submission should at least contain one age group `0-130` for each scenario/target/location/quantile group                                                                                                                                                                        |
-| 805                                           | Warning          | Run in `test_agegroup()` function                                                                                 | When multiple age groups are provided for the same scenario/target/location/quantile group, the multiple age groups are adding to `0-130`                                                                                                                                            |
-| 806                                           | Error            | Run in `test_agegroup()` function                                                                                 | For the target requiring only specific age group(s), no additional age group is provided in the submission file                                                                                                                                                                      |
-| 901                                           | Warning          | Run in `test_sample()` function                                                                                   | The column 'sample' contains only value between `1` and `100` (included)                                                                                                                                                                                                             |
-| 902                                           | Error            | Run in `test_sample()` function                                                                                   | The submission should contain a unique sample identifier for each scenario/target/location (age_group) group.                                                                                                                                                                        |
-| 903                                           | Error            | Run in `test_sample()` function                                                                                   | The column 'sample' contains only integer value                                                                                                                                                                                                                                      |
+|Code | Type | Checking Step | Test |
+|:---:|:---:|:------|:--------------|
+|003|Error|Information extracted before running the validation, if any issue, stop and will not run the validation|All columns containing dates information should be in "YYY-MM-DD" format|
+|004|Error|Information extracted before running the validation, if any issue, stop and will not run the validation|The column `origin_date` in the submission file corresponds to a `task_ids` round information in the JSON file (`js_def` parameter)|
+|005|Error|Information extracted before running the validation, if any issue, stop and will not run the validation|The file format of the submission file(s) correspond to the expected format (for example: `parquet`, or `csv`, etc.)|
+|101|Error|Run in `test_column()` function|No column name is misspelled or does not correspond to the expected column names|
+|102|Error|Run in `test_column()` function|The data frame should contain the expected number of columns|
+|103|Error|Run in `test_column()` function, if error 101 but no error 102 appears, **stop and will not run the validation**|For the expected number of column, no column name is misspelled or does not correspond to the expected column names. An error will stop the rest of the validation.|The submission will also stop if a required column is missing|
+|202|Error|Run in `test_scenario()` function|The `scenario_id` values are correct (correspond to the optional and expected `scenario_id` format)|
+|204|Error|Run in `test_scenario()` function|All the required `scenario_id` are present in the submission file|
+|302|Error|Run in `test_origindate()` function|The `origin_date` value is unique|
+|303|Error|Run in `test_origindate()` function|The `origin_date` value is corresponding to the date in the name of the submission file|
+|401|Error|Run in `test_quantile()` function|For model_task with required target (not null) AND required quantile, the submission contains quantile information for the required targets|
+|402|Error|Run in `test_quantile()` function|No quantile is missing in the projection file|
+|403|Error|Run in `test_quantile()` function|For each group (`origin_date`, `scenario`, `location`, `target`, `horizon` (and other potential `task_id` variable), the associated value is equal or is increasing with the quantile value. For example, the value associated with the quantile `0.5` is less or equal to the value associated with the quantile `0.55`|
+|405 - **[Not implemented]**|Error|Run in `test_quantile()` function|For each group (origin_date, scenario_id, location, target, horizon (and other potential task_id variable), not all the quantile is equal to the same associated value (except if all equal to 0)|
+|406|Error|Run in `test_quantile()` function|For each group ( `origin_date`, `scenario_id`, `location`, `target`, `horizon` (and other potential `task_id` variable), all the required quantiles are present|
+|407|Error|Run in `test_quantile()` function|No additional quantile are provided in the projection file|
+|5040|Error|Run in `test_val()` function|The `type_id` column corresponds to the expected content and format for each type|
+|5041|Error|Run in `test_val()` function|All values have the expected value format (for example, numeric superior or equal at 0)|
+|5042|Error|Run in `test_val()` function|`NA `values are not accepted|
+|505|Warning|Run in `test_val()` function (except for location: `60`, `66`, `69`, `74`)|For each group of `location`, `target`, `scenario_id` (and `age_group`, etc. if necessary) , the value are not identical for the complete time series and for all types. For example, `0` for all quantile and complete time series for a specific scenario, location and target|
+|507|Warning|Run in `test_val()` function|The projected value is lower or equal to the population size of the associated geographical unit|
+|508|Error|Run in `test_val()` function|The projected value for the "cumulative case count" is equal or higher than the observed cumulative case count for the previous week (week 0) or previous past week (week - 1) (depending on availability) before projection starting date.|
+|509|Error|Run in `test_val()` function|The projected value for the "cumulative death count" is equal or higher than the observed cumulative death count for the previous week (week 0) or previous past week (week - 1) (depending on availability) before projection starting date.|
+|510|Error|Run in `test_val()` function|For each group of `task_id` column (`location`, `target`, `horizon`, `scenario_id`, etc.) and output type (`type`, `type_id`), no more than one value is associated|
+|511|Error|Run in `test_val()` function|For each group of `task_id` column exclusion of `horizon` (`location`, `target`, `scenario_id`, etc.) and output type (`type`, `type_id`) and only for the "cumulative" targets, the projected value are not decreasing with time|
+|512|Error|Run in `test_val()` function|The submission file contains all the required output type (for example: `quantile`, etc.)|
+|513|Error or Warning|Run in `test_val()` function|For each `model_task` required target, the submission contains associated output information. For example, if `inc case` is required, the submission without `inc case` information will return an error. sA redundant warning might be issued in other output section|
+|601|Error|Run in `test_target()` function|All targets in the submission file are included in the round specification (no typo, no addition)|
+|602|Warning or Error|Run in `test_target()` function|For each `model_task` group, no target is missing in the submission file (warning for missing optional target, error for missing required target)|
+|605|Warning|Run in `test_target()` function|The number of weeks projected should be equal or higher than the required horizon|
+|606|Warning|Run in `test_target()` function|The number of weeks projected is not greater than the maximum number of weeks in the horizon specification (required and optional included)|
+|607|Error|Run in `test_target()` function|For each target qualified as `is_step_ahead` equal `TRUE`, the projected time series is not missing any weeks (complete time series) for each group of `task_id` columns (`location`, `target`, `scenario_id`, etc.) and by output type (`type`, `type_id`), exclusion of `horizon`|
+|612|Error|Run in `test_target()` function|The projection contains `NA` value for all "horizon" for the target requiring no time series information.|
+|701|Error|Run in `test_location()` function|Each location code corresponds to the expected value.|
+|702|Warning|Run in `test_location()` function|The location code value is not missing any trailing 0.|
+|703|Error|Run in `test_location()` function|No required location is missing or no additional location is provided in the submission file per `model_task` target group|
+|801|Error|Run in `test_agegroup()` function|The submission should contain a column `age_group` with values defined as `<AGEMIN>-<AGEMAX>`|
+|802|Error|Run in `test_agegroup()` function|Each `age_group` value corresponds to the expected value (no missing required value and no additional value)|
+|901|Warning|Run in `test_sample()` function|The column `type_id` for the type 'sample' rows contains expected value (all required and possible optional value)|
+|902|Error|Run in `test_sample()` function|The submission should contain a unique sample identifier for each `task_id` group (`scenario_id`, `horizon`, `target`, `ocation`, `origin_date`, (`age_group`, etc.))|
+|903|Error|Run in `test_sample()` function|The column 'type_id' contains only integer value|
+|904|Error|Run in `test_sample()` function|For `model_task` with required target (not null) AND required sample, the submission contains sample information for the required targets|
+|001 - [Deprecated]|Error|Information extracted before running the validation, if any issue, stop and will not run the validation|`scen_info` parameter should either be: a path to a file containing the round and scenario information, or a data frame, or NULL. If NULL, the information will be automatically extracted from the Scenario Modeling Hub GitHub repository.|
+|002 - [Deprecated]|Error|Information extracted before running the validation, if any issue, stop and will not run the validation|Cannot extract round number information from the files, test that the file name contains the expected date and the scenario id column contains the expected information.|
+|201 - [Deprecated]|Error|Run in `test_scenario()` function|The `scenario_name` values are correct.|
+|203 - [Deprecated]|Error|Run in `test_scenario()` function|The name and ID of the scenario are correctly associated.|
+|301 - [Deprecated]|Error|Run in test _ origindate() function|The `origin_date` value is in a date format `"YYYY-MM-DD"`.|
+|304 - [Deprecated]|Error|Run in test _ origindate() function|The `origin_date` value is corresponding to the projection starting date.|
+|404 - [Deprecated]|Error|Run in test  _quantile() function|For the target(s) requiring quantiles information, all quantiles per `scenario`, `target` and `location` (and `age_group` if necessary) are unique.|
+|501 - [Deprecated]|Error|Run in `test_val()` function|The projection contains type `"point"` values for the target(s) requiring `"point"` values.|
+|502 - [Deprecated]|Error|Run in `test_val()` function|The "point" type values have for value NA in the column quantile.|
+|503 - [Deprecated]|Error|Run in `test_val()` function|The projection contains X point value, X = number of targets * number of scenarios * number of locations (only when all required targets required point projections for all scenarios, locations)|
+|506 - [Deprecated]|Error or Warning|Run in `test_val()` function|For each group of location/target/scenario(and age group if necessary) and for each target requiring `"point"` values , an unique `"point"` is associated with each group. The test will return an error message for required target(s) and a warning message for optional target(s).|
+|603 - [Deprecated]|Error|Run in `test_target()` function|Each `target_end_date` corresponds to the end of an epiweek (Saturday).|
+|604 - [Deprecated]|Error|Run in `test_target()` function|For specifics rounds, the number of week projected should be equal or higher than the expected minimum.|
+|608 - [Deprecated]|Error|Run in `test_target()` function|The first week `target_end_date` corresponds to the expected value.|
+|609 - [Deprecated]|Error|Run in `test_target()` function|Each `target_end_date` corresponds to the expected value.|
+|610 - [Deprecated]|Warning|Run in `test_target()` function|Only for COVID-19 round 14, the value associated with the optional target `prop X` is between 0 and 1.|
+|611 - [Deprecated]|Warning|Run in `test_target()` function|Only for COVID-19 round 14, the value associated with the optional target `prop X` is noted with `quantile` = `NA` and `type` = `"point"`.|
+|803 - [Deprecated]|Error|Run in `test_agegroup()` function|`<AGEMIN>` cannot be equal or greater than `<AGEMAX>`|
+|804 - [Deprecated]|Error|Run in `test_agegroup()` function|The submission should at least contain one age group `0-130` for each scenario/target/location/quantile group|
+|805 - [Deprecated]|Warning|Run in `test_agegroup()` function|When multiple age groups are provided for the same scenario/target/location/quantile group, the multiple age groups are adding to `0-130|`
+|806 - [Deprecated]|Error|Run in `test_agegroup()` function|For the target requiring only specific age group(s), no additional age group is provided in the submission file|
 
 ## Validation on Metadata and Abstract
 
