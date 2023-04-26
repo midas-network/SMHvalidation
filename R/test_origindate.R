@@ -26,7 +26,7 @@
 #'@export
 test_origindate <- function(df, path, id) {
   # Prerequisite
-  vector_date <- unique(df[, "origin_date"])
+  vector_date <- unique(unlist(df[, "origin_date", TRUE]))
   # Test the format of the column: should be an unique value
   if (isFALSE(length(vector_date) == 1)) {
     ordone_test <- paste0(
