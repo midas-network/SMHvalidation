@@ -89,11 +89,13 @@ test_val <- function(df, pop, last_lst_gs, model_task) {
         }
 
         value_format <- x$output_type[[y]]$value
-        valtype_test <- dplyr::case_when(
-          value_format$type == "double" ~ all(is.double(df_test$value)),
-          value_format$type == "numeric" ~ all(is.numeric(df_test$value)),
-          value_format$type == "integer" ~ all(is.wholenumber(df_test$value))
-        )
+        valtype_test <- ifelse(value_format$type == "integer",
+               all(is.wholenumber(df_test$value)),
+               ifelse(value_format$type == "numeric",
+                      all(is.numeric(df_test$value)),
+                      ifelse(value_format$type == "double",
+                             all(is.double(df_test$value)),
+                             NA)))
         if (isFALSE(valtype_test)) {
           err_mess <- paste0(
             "\U000274c Error 5041: All values should be '", value_format$type,
