@@ -209,7 +209,17 @@ validate_submission <- function(path, js_def, lst_gs, pop_path) {
     df <- read_files(path) %>%
       dplyr::mutate_if(is.factor, as.character)
   } else if (all(grepl("parquet", path))) {
-    ds <- arrow::open_dataset(path, format = "parquet")
+    ds <- arrow::open_dataset(path, format = "parquet",
+                              schema = arrow::schema(
+                                arrow::field("origin_date", arrow::string()),
+                                arrow::field("scenario_id", arrow::string()),
+                                arrow::field("location", arrow::string()),
+                                arrow::field("target", arrow::string()),
+                                arrow::field("horizon", double()),
+                                arrow::field("type", arrow::string()),
+                                arrow::field("type_id", double()),
+                                arrow::field("value", double()),
+                              ))
     df <- dplyr::collect(ds)  %>%
       dplyr::mutate_if(is.factor, as.character)
   } else {
