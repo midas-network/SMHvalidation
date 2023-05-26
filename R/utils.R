@@ -37,5 +37,6 @@ read_files <- function(path) {
 
 # Function from ?is.integer() function documentation
 is.wholenumber <- function(x, tol = .Machine$double.eps^0.5) {
+  x <- as.numeric(x)
   abs(x - round(x)) < tol
 }
