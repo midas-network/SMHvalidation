@@ -36,8 +36,8 @@ test_sample <- function(df, model_task) {
       if (dim(df_sample)[1] > 0) {
         if (isFALSE(all(is.wholenumber(vector_sample)))) {
           sample_type <-  paste0(
-            "\U000274c Error 903: The column 'sample' should contains integer ",
-            "values only. Please verify")
+            "\U000274c Error 903: The column 'type_id' should contains integer ",
+            "values only for type 'sample'. Please verify")
         } else {
           sample_type <- NA
         }
@@ -51,9 +51,9 @@ test_sample <- function(df, model_task) {
         if (dim(test_df)[1] > 0 | any(grepl(
           "\\.", unlist(unique(df_sample[ ,type_id]))))) {
           sample_value <-  paste0(
-            "\U0001f7e1 Warning 901: The column 'sample' should contains ",
+            "\U0001f7e1 Warning 901: The column 'type_id' should contains ",
             "integer values between ", min(exp_sample), " and ",
-            max(exp_sample), " (included), please verify.")
+            max(exp_sample), " (included) for the type 'sample', please verify.")
         } else {
           sample_value <- NA
         }
@@ -61,8 +61,8 @@ test_sample <- function(df, model_task) {
           x$output_type$sample$type_id))) {
           sample_value <- c(
             sample_value,
-            paste0("\U0001f7e1 Warning 901: The column 'sample' contains less ",
-                   "unique `sample` ID then expected. Up to ",
+            paste0("\U0001f7e1 Warning 901: The column 'type_id' contains less",
+                   " unique `sample` ID then expected. Up to ",
                    length(unique(unlist(x$output_type$sample$type_id))),
                    " unique 'samples' for each scenario/target/location",
                    "(/age_group) can be submitted."))
