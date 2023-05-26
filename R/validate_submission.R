@@ -234,6 +234,7 @@ validate_submission <- function(path, js_def, lst_gs, pop_path) {
   }
 
   # test date format
+  df <- as.data.frame(df)
   if (any(is.na(as.Date(na.omit(unlist(dplyr::mutate_all(
     dplyr::distinct(df[, grepl("date", names(df)), FALSE]), as.character))),
     "%Y-%m-%d")))) {
