@@ -163,7 +163,7 @@ test_that("Test validation process", {
   testthat::expect_equal(
     extract_err_code(validate_submission(
       "training_data/2022-03-13_round13_missingweek.csv", js_def, lst_gs,
-      pop_path)), c("509","5041", "508", "605", "607", "703"))
+      pop_path)), c("204", "509","5041", "508", "605", "607", "703"))
   # Cumulative cases with low value (after horizon 7)
   # JSON expect:
   #  location (for all target expect cum case): "USA" required, "unknown"
@@ -172,7 +172,7 @@ test_that("Test validation process", {
   testthat::expect_equal(
     extract_err_code(validate_submission(
       "training_data/2022-03-13_round13_err.csv", js_def, lst_gs,
-    pop_path)), c("509","5041", "508", "511", "605", "607", "703"))
+    pop_path)), c("204", "509","5041", "508", "511", "605", "607", "703"))
   # Change inc case into inc inf target
   # JSON expect:
   #  target: inc case required inc inf optional
@@ -237,12 +237,12 @@ test_that("Test validation process", {
   testthat::expect_equal(
     extract_err_code(validate_submission(
       "training_data/2022-08-14_flu_missage.csv", js_def_flu, lst_gs_flu,
-      pop_path_flu)), c("802"))
+      pop_path_flu)), c("204", "802"))
   # Change all age_group for peak size hosp to "00_12"
   testthat::expect_equal(
     extract_err_code(validate_submission(
       "training_data/2022-08-14_flu_badage.csv", js_def_flu, lst_gs_flu,
-      pop_path_flu)), c("801", "802"))
+      pop_path_flu)), c("204", "801", "802"))
   # Remove age group column
   testthat::expect_equal(
     extract_err_code(validate_submission(
