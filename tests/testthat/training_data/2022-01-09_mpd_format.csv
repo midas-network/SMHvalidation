@@ -1,4 +1,4 @@
-"location","type_id","scenario_id","origin_date","target","horizon","type","value"
+"location","output_type_id","scenario_id","origin_date","target","horizon","output_type","value"
 "US",0,"A-2022-01-09","01/09/2022","inc death",1,"quantile",11800
 "US",0.01,"A-2022-01-09","01/09/2022","inc death",1,"quantile",11900
 "US",0.025,"A-2022-01-09","01/09/2022","inc death",1,"quantile",11960

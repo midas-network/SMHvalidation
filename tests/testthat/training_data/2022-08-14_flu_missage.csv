@@ -1,4 +1,4 @@
-"location","type_id","scenario_id","origin_date","target","horizon","type","value","age_group"
+"location","output_type_id","scenario_id","origin_date","target","horizon","output_type","value","age_group"
 "US",0,"A-2022-08-14",2022-08-14,"inc death",1,"quantile",11800,"130-17"
 "US",0.01,"A-2022-08-14",2022-08-14,"inc death",1,"quantile",11900,"130-17"
 "US",0.025,"A-2022-08-14",2022-08-14,"inc death",1,"quantile",11960,"130-17"
