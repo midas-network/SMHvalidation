@@ -29,7 +29,7 @@ run_all_validation <- function(df, path, pop, last_lst_gs,
   ### Prerequisite
   model_task <- js_def$model_tasks
   task_ids <- purrr::map(model_task, "task_ids")
-  req_colnames <-  c(unique(names(unlist(task_ids, FALSE))), "type", "type_id",
+  req_colnames <-  c(unique(names(unlist(task_ids, FALSE))), "output_type", "output_type_id",
                      "value")
 
   ### Tests:
@@ -55,12 +55,12 @@ run_all_validation <- function(df, path, pop, last_lst_gs,
   out_ord <- test_origindate(df, path, id = js_def$round_id)
 
   # Test by type
-  if (any(grepl("quantile", unlist(distinct(df[ ,"type", FALSE])))) |
+  if (any(grepl("quantile", unlist(distinct(df[ ,"output_type", FALSE])))) |
       any("quantile" %in% names(unlist(purrr::map(model_task, "output_type"),
                                        FALSE)))) {
     out_quant <- test_quantiles(df, model_task)
   }
-  if (any(grepl("sample", unlist(distinct(df[ ,"type", FALSE])))) |
+  if (any(grepl("sample", unlist(distinct(df[ ,"output_type", FALSE])))) |
       any("sample" %in% names(unlist(purrr::map(model_task, "output_type"),
                                      FALSE)))) {
     out_sample <- test_sample(df, model_task)
@@ -88,13 +88,13 @@ run_all_validation <- function(df, path, pop, last_lst_gs,
     "\n\n## Value and Type Columns: \n\n", paste(out_val, collapse = "\n"),
     "\n\n## Target Columns: \n\n", paste(out_target, collapse = "\n"),
     "\n\n## Locations: \n\n", paste(out_loc, collapse = "\n"))
-  if (any(grepl("sample", unlist(distinct(df[ ,"type", FALSE])))) |
+  if (any(grepl("sample", unlist(distinct(df[ ,"output_type", FALSE])))) |
       any("sample" %in% names(unlist(purrr::map(model_task, "output_type"),
                                      FALSE))))  {
     test_report <- paste(
       test_report, "\n\n## Sample: \n\n", paste(out_sample, collapse = "\n"))
   }
-  if (any(grepl("quantile", unlist(distinct(df[ ,"type", FALSE])))) |
+  if (any(grepl("quantile", unlist(distinct(df[ ,"output_type", FALSE])))) |
       any("quantile" %in% names(unlist(purrr::map(model_task, "output_type"),
                                      FALSE))))  {
     test_report <- paste(
@@ -247,20 +247,27 @@ validate_submission <- function(path, js_def, lst_gs, pop_path) {
   }
 
   # Select the associated round (add error message if no match)
-  js_def <- js_def$rounds[unlist(purrr::map(
-    js_def$rounds, "round_id")) == df$origin_date[[1]]]
-
-  if (length(js_def) < 1) {
-    err004 <- paste0(
-      "\U000274c Error 004: The origin_date in the submission file was not ",
-      "associated with any task_ids round. Please verify the date information",
-      " in the origin_date column corresponds to the expected value.\n")
-    cat(err004)
-    stop(" The submission contains an issue, the validation was not run, ",
-         "please see information above.")
-  } else {
-    js_def <- js_def[[1]]
-  }
+   team_round <- as.Date(df$origin_date[[1]])
+   js_date <- lapply(js_def$rounds, function(x) {
+     if (x$round_id_from_variable) {
+       js_date <- as.Date(x$model_tasks[[1]]$task_ids[[x$round_id]]$required)
+     } else {
+       js_date <- as.Date(x$round_id)
+     }
+   })
+   js_date <- unlist(js_date)
+   if (team_round %in% js_date) {
+     js_def <- js_def$rounds[js_date %in% team_round]
+     js_def <- js_def[[1]]
+   } else {
+     err004 <- paste0(
+       "\U000274c Error 004: The origin_date in the submission file was not ",
+       "associated with any task_ids round. Please verify the date information",
+       " in the origin_date column corresponds to the expected value.\n")
+     cat(err004)
+     stop(" The submission contains an issue, the validation was not run, ",
+          "please see information above.")
+   }
 
   # Extract week 0 or week -1 of observed data
   last_week_gs <-  lapply(lst_gs, function(x) {

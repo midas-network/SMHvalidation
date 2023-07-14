@@ -278,10 +278,10 @@ make_state_plot_pdf <- function(proj_data, gs_data, team_model_name,
   # Projections - Clean up and merge
   proj_data <- proj_data %>%
     dplyr::mutate(location = stringr::str_pad(location, 2, "left", "0")) %>%
-    dplyr::filter(type_id %in% c(plot_quantiles[1], 0.5,
+    dplyr::filter(output_type_id %in% c(plot_quantiles[1], 0.5,
                                   plot_quantiles[2])) %>%
     tidyr::separate(target, into = c("incid_cum", "outcome"), sep = " ") %>%
-    dplyr::rename(date = target_end_date, quantile = type_id) %>%
+    dplyr::rename(date = target_end_date, quantile = output_type_id) %>%
     tibble::as_tibble()
 
 
@@ -541,7 +541,7 @@ generate_validation_plots <- function(path_proj, lst_gs,
       origin_date = lubridate::as_date(origin_date)) %>%
     dplyr::filter(grepl(
       "inc case|inc death|inc hosp|cum case|cum death|cum hosp", target) &
-      grepl("quantile", type))
+      grepl("quantile", output_type))
 
   if (any("age_group" %in% colnames(proj_data)))
     proj_data <- dplyr::filter(proj_data, grepl("0-130", age_group))

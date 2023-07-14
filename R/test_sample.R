@@ -29,29 +29,29 @@ test_sample <- function(df, model_task) {
     if ("sample" %in% names(x$output_type)) {
       # prerequisite
       df_sample <- data.table::data.table(
-        df)[type == "sample" & target %in% unique(unlist(x$task_ids$target))]
-      vector_sample <- unlist(unique(df_sample[, type_id]))
+        df)[output_type == "sample" & target %in% unique(unlist(x$task_ids$target))]
+      vector_sample <- unlist(unique(df_sample[, output_type_id]))
       task_ids <- x$task_ids
       # - sample column should be an integer
       if (dim(df_sample)[1] > 0) {
         if (isFALSE(all(is.wholenumber(vector_sample)))) {
           sample_type <-  paste0(
-            "\U000274c Error 903: The column 'type_id' should contains integer ",
+            "\U000274c Error 903: The column 'output_type_id' should contains integer ",
             "values only for type 'sample'. Please verify")
         } else {
           sample_type <- NA
         }
 
-        # - sample type_id column contains the expected value
+        # - sample output_type_id column contains the expected value
         exp_sample <- as.numeric(unique(c(
           x$output_type$sample$type_id$required,
           x$output_type$sample$type_id$optional)))
-        test_df <- dplyr::filter(df_sample,  type_id < min(exp_sample) |
-                                   type_id > max(exp_sample))
+        test_df <- dplyr::filter(df_sample,  output_type_id < min(exp_sample) |
+                                   output_type_id > max(exp_sample))
         if (dim(test_df)[1] > 0 | any(grepl(
-          "\\.", unlist(unique(df_sample[ ,type_id]))))) {
+          "\\.", unlist(unique(df_sample[ , output_type_id]))))) {
           sample_value <-  paste0(
-            "\U0001f7e1 Warning 901: The column 'type_id' should contains ",
+            "\U0001f7e1 Warning 901: The column 'output_type_id' should contains ",
             "integer values between ", min(exp_sample), " and ",
             max(exp_sample), " (included) for the type 'sample', please verify.")
         } else {
@@ -61,7 +61,7 @@ test_sample <- function(df, model_task) {
           x$output_type$sample$type_id))) {
           sample_value <- c(
             sample_value,
-            paste0("\U0001f7e1 Warning 901: The column 'type_id' contains less",
+            paste0("\U0001f7e1 Warning 901: The column 'output_type_id' contains less",
                    " unique `sample` ID then expected. Up to ",
                    length(unique(unlist(x$output_type$sample$type_id))),
                    " unique 'samples' for each scenario/target/location",
@@ -69,7 +69,7 @@ test_sample <- function(df, model_task) {
         }
 
         # - sample id should be unique for each group (task_ids)
-        sel_group <- c(names(task_ids), "type", "type_id")
+        sel_group <- c(names(task_ids), "output_type", "output_type_id")
         df_test <- data.table::data.table(df_sample)
         df_test <- df_test[,.N, by = sel_group]
         df_test <- df_test[N > 1]
