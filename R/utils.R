@@ -40,3 +40,49 @@ is.wholenumber <- function(x, tol = .Machine$double.eps^0.5) {
   x <- as.numeric(x)
   abs(x - round(x)) < tol
 }
+
+# Internal function to filter data frame according to a set of task_id value
+filter_df <- function(df, task_id, exclusion, required = FALSE,
+                      location_fix = TRUE) {
+  # transform to data.table format
+  df_test <- as.data.frame(df)
+  # fix location if wanted
+  if (location_fix) {
+    if (any(nchar(df_test$location) == 1)) {
+      df_test$location[which(nchar(df_test$location) == 1)] <- paste0(
+        0, df_test$location[which(nchar(df_test$location) == 1)])
+    }
+  }
+  # filter
+  col_names <- grep(exclusion, names(task_id), invert = TRUE, value = TRUE)
+  if (required) {
+    filter_var <- setNames(lapply(col_names, function(y)
+      unique(unlist(task_id[[y]]$required))), col_names)
+  } else {
+    filter_var <- setNames(lapply(col_names, function(y)
+      unique(unlist(task_id[[y]]))), col_names)
+  }
+  filter_var <- purrr::discard(filter_var, is.null)
+  for (i in 1:length(filter_var)) {
+    if (grepl("date", names(filter_var)[i])) {
+      df_test[[names(filter_var)[i]]] <- as.Date(
+        df_test[[names(filter_var)[i]]])
+      filter_var[[names(filter_var)[i]]] <- as.Date(
+        filter_var[[names(filter_var)[i]]])
+    }
+    df_test <- df_test[which(
+      df_test[[names(filter_var)[[i]]]] %in% filter_var[[i]]), ]
+  }
+  text_var <- paste(
+    names(filter_var), ": ",  purrr::map(
+      filter_var,  function(x) {
+        if (length(x) > 10) {
+          paste0(paste(na.omit(x[1:10]), collapse = ", "), ", ...")
+        } else {
+          paste(na.omit(x[1:10]), collapse = ", ")
+        }
+      }))
+
+  attr(df_test, "filter") <- text_var
+  return(df_test)
+}
