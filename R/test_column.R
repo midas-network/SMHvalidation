@@ -39,6 +39,11 @@ test_column <- function(df, req_colnames) {
       length(req_colnames), " columns, not ",
       length(colnames(df)), ". Please verify if one or multiple columns have ",
       "been added or are missing.")
+    if (!is.na(colnames_test)) {
+      cat(paste(coldim_test, "\n", colnames_test))
+      stop("\n The submission contains one or multiple issues, please see ",
+           "information above", call. = FALSE)
+    }
   } else {
     coldim_test <- NA
     if (!is.na(colnames_test)) {
