@@ -168,6 +168,7 @@ run_all_validation <- function(df, path, pop, last_lst_gs,
 #' @importFrom stats setNames
 #' @importFrom jsonlite fromJSON
 #' @importFrom arrow open_dataset
+#' @importFrom purrr list_simplify
 #'
 #'@examples
 #' \dontrun{
@@ -209,17 +210,7 @@ validate_submission <- function(path, js_def, lst_gs, pop_path) {
     df <- read_files(path) %>%
       dplyr::mutate_if(is.factor, as.character)
   } else if (all(grepl("parquet", path))) {
-    ds <- arrow::open_dataset(path, format = "parquet",
-                              schema = arrow::schema(
-                                arrow::field("origin_date", arrow::string()),
-                                arrow::field("scenario_id", arrow::string()),
-                                arrow::field("location", arrow::string()),
-                                arrow::field("target", arrow::string()),
-                                arrow::field("horizon", double()),
-                                arrow::field("type", arrow::string()),
-                                arrow::field("type_id", double()),
-                                arrow::field("value", double()),
-                              ))
+    ds <- arrow::open_dataset(path, format = "parquet")
     df <- dplyr::collect(ds)  %>%
       dplyr::mutate_if(is.factor, as.character)
   } else {
@@ -255,7 +246,7 @@ validate_submission <- function(path, js_def, lst_gs, pop_path) {
        js_date <- as.Date(x$round_id)
      }
    })
-   js_date <- unlist(js_date)
+   js_date <- purrr::list_simplify(js_date)
    if (team_round %in% js_date) {
      js_def <- js_def$rounds[js_date %in% team_round]
      js_def <- js_def[[1]]
@@ -277,7 +268,7 @@ validate_submission <- function(path, js_def, lst_gs, pop_path) {
   })
 
   # Run tests --------
-  run_all_validation(df, path = path, pop = pop,
+   run_all_validation(df, path = path, pop = pop,
                      last_lst_gs = last_week_gs,
                      number2location = number2location, js_def = js_def)
 }

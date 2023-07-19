@@ -62,7 +62,7 @@ test_val <- function(df, pop, last_lst_gs, model_task) {
   value_test <- lapply(model_task, function(x) {
     # Prerequisite
     req_type <- purrr::map(purrr::map(purrr::map(x$output_type, `[`),
-                                      "type_id"), "required")
+                                      "output_type_id"), "required")
     req_type <- req_type[!unlist(purrr::map(req_type, is.null))]
     req_type <- unique(names(req_type))
     output_type <- names(x$output_type)
@@ -78,11 +78,11 @@ test_val <- function(df, pop, last_lst_gs, model_task) {
       # contain any NA
       format_test <- lapply(output_type, function(y) {
         if (isFALSE(all(unique(df_test[output_type == y, output_type_id]) %in%
-                        unique(unlist(x$output_type[[y]]$type_id))))) {
+                        unique(unlist(x$output_type[[y]]$output_type_id))))) {
           err_mess_id <- paste0(
             "\U000274c Error 5040: For the type '", y, "', the output_type_id should ",
             "correspond to: ",  paste(unique(unlist(
-              x$output_type[[y]]$type_id)), collapse = ", "), " at least",
+              x$output_type[[y]]$output_type_id)), collapse = ", "), " at least",
             " one id is incorrect, please verify")
         } else {
           err_mess_id <- NA

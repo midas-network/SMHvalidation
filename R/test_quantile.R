@@ -34,8 +34,8 @@ test_quantiles <- function(df, model_task) {
   quantiles_test <- lapply(model_task, function(x) {
     if ("quantile" %in% names(x$output_type)) {
       # Prerequisite
-      req_quantile <- x$output_type$quantile$type_id$required
-      opt_quantile <- x$output_type$quantile$type_id$optional
+      req_quantile <- x$output_type$quantile$output_type_id$required
+      opt_quantile <- x$output_type$quantile$output_type_id$optional
       all_quantile <- unique(c(req_quantile, opt_quantile))
       df_test <- data.table::data.table(
         df)[output_type == "quantile" & target %in% unique(unlist(x$task_ids$target))]
@@ -121,7 +121,7 @@ test_quantiles <- function(df, model_task) {
                                     qval_test))
       } else {
         if (!is.null(x$task_ids$target$required) &
-            !is.null(x$output_type$quantile$type_id$required)) {
+            !is.null(x$output_type$quantile$output_type_id$required)) {
           quantiles_test <- paste0(
             "\U000274c Error 401: Quantiles are expected in the submission for ",
             "the target(s): ", paste(unique(unlist(x$task_ids$target$required)),

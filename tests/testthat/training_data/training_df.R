@@ -409,7 +409,21 @@ al_base_df <- filter(US_base_df, grepl("hosp", target)) %>%
   mutate(value = ifelse(grepl("time", target) & value >= 1, 1, value)) %>%
   mutate(value = ifelse(grepl("time", target) & value <= 0, 0, value))
 
-tot <- rbind(US_base_df, al_base_df)
+tot <- rbind(US_base_df, al_base_df) %>%
+  mutate(output_type_id = ifelse(
+    target == "peak time hosp",
+    as.character(as.Date((origin_date + 7 * horizon) - 1)),
+    as.character(output_type_id)))
+
+peak_time_date <- tot[which(tot$target == "peak time hosp"), "output_type_id"]
+peak_time_val <- MMWRweek::MMWRweek(peak_time_date) %>%
+  mutate(MMWRweek = ifelse(nchar(MMWRweek) < 2, paste0(0, MMWRweek),
+                           MMWRweek)) %>%
+  tidyr::unite("output_type_id", MMWRyear, MMWRweek,
+               sep = "")
+
+tot[which(tot$target == "peak time hosp"), "output_type_id"] <- paste(
+  "EW", peak_time_val[["output_type_id"]], sep = "")
 
 # Sample format
 

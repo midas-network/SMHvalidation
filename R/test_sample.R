@@ -42,10 +42,12 @@ test_sample <- function(df, model_task) {
           sample_type <- NA
         }
 
+        df_sample$output_type_id <- as.integer(df_sample$output_type_id)
+        vector_sample <- as.integer(vector_sample)
         # - sample output_type_id column contains the expected value
         exp_sample <- as.numeric(unique(c(
-          x$output_type$sample$type_id$required,
-          x$output_type$sample$type_id$optional)))
+          x$output_type$sample$output_type_id$required,
+          x$output_type$sample$output_type_id$optional)))
         test_df <- dplyr::filter(df_sample,  output_type_id < min(exp_sample) |
                                    output_type_id > max(exp_sample))
         if (dim(test_df)[1] > 0 | any(grepl(
@@ -58,12 +60,12 @@ test_sample <- function(df, model_task) {
           sample_value <- NA
         }
         if (length(vector_sample) < length(unlist(
-          x$output_type$sample$type_id))) {
+          x$output_type$sample$output_type_id))) {
           sample_value <- c(
             sample_value,
             paste0("\U0001f7e1 Warning 901: The column 'output_type_id' contains less",
                    " unique `sample` ID then expected. Up to ",
-                   length(unique(unlist(x$output_type$sample$type_id))),
+                   length(unique(unlist(x$output_type$sample$output_type_id))),
                    " unique 'samples' for each scenario/target/location",
                    "(/age_group) can be submitted."))
         }
@@ -97,7 +99,7 @@ test_sample <- function(df, model_task) {
                                         sample_type)))
       } else {
         if (!is.null(x$task_ids$target$required) &
-            !is.null(x$output_type$sample$type_id$required)) {
+            !is.null(x$output_type$sample$output_type_id$required)) {
           test_sample <- paste0(
             "\U000274c Error 904: Samples are expected in the submission for ",
             "the target(s): ", paste(unique(unlist(x$task_ids$target$required)),
