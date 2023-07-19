@@ -29,8 +29,8 @@ run_all_validation <- function(df, path, pop, last_lst_gs,
   ### Prerequisite
   model_task <- js_def$model_tasks
   task_ids <- purrr::map(model_task, "task_ids")
-  req_colnames <-  c(unique(names(unlist(task_ids, FALSE))), "output_type", "output_type_id",
-                     "value")
+  req_colnames <-  c(unique(names(unlist(task_ids, FALSE))),
+                     "output_type", "output_type_id", "value")
 
   ### Tests:
   # Test on column information (name and number)
@@ -239,14 +239,7 @@ validate_submission <- function(path, js_def, lst_gs, pop_path) {
 
   # Select the associated round (add error message if no match)
    team_round <- as.Date(df$origin_date[[1]])
-   js_date <- lapply(js_def$rounds, function(x) {
-     if (x$round_id_from_variable) {
-       js_date <- as.Date(x$model_tasks[[1]]$task_ids[[x$round_id]]$required)
-     } else {
-       js_date <- as.Date(x$round_id)
-     }
-   })
-   js_date <- purrr::list_simplify(js_date)
+   js_date <- as.Date(hubUtils::get_round_ids(js_def))
    if (team_round %in% js_date) {
      js_def <- js_def$rounds[js_date %in% team_round]
      js_def <- js_def[[1]]
