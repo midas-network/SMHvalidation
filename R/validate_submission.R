@@ -35,12 +35,7 @@ run_all_validation <- function(df, path, pop, last_lst_gs,
   ### Tests:
   # Test on column information (name and number)
   out_col <- test_column(df, req_colnames)
-  # update to stop if any missing column
-  if (length(colnames(df)) < length(req_colnames)) {
-    cat(out_col)
-    stop(" The submission contains an issue, the validation was not run, please",
-         " see information above.")
-  }
+
   # select only required column for the other tests
   df <- df[, req_colnames]
 

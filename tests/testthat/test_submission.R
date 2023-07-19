@@ -30,7 +30,7 @@ test_that("Test validation process", {
   testthat::expect_equal(
     extract_err_code(validate_submission(
       "training_data/2022-01-09_addcol.pqt", js_def, lst_gs, pop_path)),
-    c("101", "102"))
+    c("102"))
   # File with "location" column renamed "fips"
   testthat::expect_equal(
     extract_err_code(validate_submission(
@@ -247,7 +247,7 @@ test_that("Test validation process", {
   testthat::expect_equal(
     extract_err_code(validate_submission(
       "training_data/2022-08-14_flu_noage.csv", js_def_flu, lst_gs_flu,
-      pop_path_flu)), c("102"))
+      pop_path_flu)), c("103"))
 
   # Test sample ----
   # Filter sample < 90 and remove inc death and peak_time target

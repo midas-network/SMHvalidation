@@ -283,7 +283,7 @@ please feel free to ignore it.
 |005|Error|Information extracted before running the validation, if any issue, stop and will not run the validation|The file format of the submission file(s) correspond to the expected format (for example: `parquet`, or `csv`, etc.)|
 |101|Error|Run in `test_column()` function|No column name is misspelled or does not correspond to the expected column names|
 |102|Error|Run in `test_column()` function|The data frame should contain the expected number of columns|
-|103|Error|Run in `test_column()` function, if error 101 but no error 102 appears, **stop and will not run the validation**|For the expected number of column, no column name is misspelled or does not correspond to the expected column names. An error will stop the rest of the validation.|The submission will also stop if a required column is missing|
+|103|Error|Run in `test_column()` function, if error 101, if a column is missing, **stop and will not run the validation**|For the expected number of column, no column name is misspelled or does not correspond to the expected column names. An error will stop the rest of the validation.|The submission will also stop if a required column is missing|
 |202|Error|Run in `test_scenario()` function|The `scenario_id` values are correct (correspond to the optional and expected `scenario_id` format)|
 |204|Error|Run in `test_scenario()` function|All the required `scenario_id` are present in the submission file|
 |302|Error|Run in `test_origindate()` function|The `origin_date` value is unique|
