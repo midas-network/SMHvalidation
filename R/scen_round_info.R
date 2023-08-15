@@ -24,41 +24,41 @@
 #' scenario_path_round("midas-network/covid19-scenario-modeling-hub/")
 #'
 #' @noRd
-scenario_path_round <- function(repo_path, branch = "master",
-                                add_readme = NULL) {
-  # Extract path of each round README
-  tree <- gh::gh(paste0("GET /repos/", repo_path, "git/trees/", branch,
-                        "?recursive=1"))
-  tree_readme <- tibble(files =  unlist(purrr::map(tree$tree, "path"))) %>%
-    filter(grepl("README", files), grepl(".md$", files), grepl("round", files),
-           !grepl("1_and_2", files), !grepl("resources", files)) %>%
-    mutate(url = paste0("https://raw.githubusercontent.com/", repo_path,
-                        "master/", files),
-           round = tolower(gsub("previous-rounds/README_|\\.md", "", files,
-                                ignore.case = TRUE)))
+#scenario_path_round <- function(repo_path, branch = "master",
+#                                add_readme = NULL) {
+#  # Extract path of each round README
+#  tree <- gh::gh(paste0("GET /repos/", repo_path, "git/trees/", branch,
+#                        "?recursive=1"))
+#  tree_readme <- tibble(files =  unlist(purrr::map(tree$tree, "path"))) %>%
+#    filter(grepl("README", files), grepl(".md$", files), grepl("round", files),
+#           !grepl("1_and_2", files), !grepl("resources", files)) %>%
+#    mutate(url = paste0("https://raw.githubusercontent.com/", repo_path,
+#                        "master/", files),
+#           round = tolower(gsub("previous-rounds/README_|\\.md", "", files,
+#                                ignore.case = TRUE)))
 
-  # Add last round and binds all the information together
-  readme <- bind_rows(tree_readme, add_readme)
+#  # Add last round and binds all the information together
+#  readme <- bind_rows(tree_readme, add_readme)
 
-  if (dim(readme)[1] == 0) {
-    readme <- data.frame(
-      url = paste0("https://raw.githubusercontent.com/", repo_path, branch,
-                   "/", "README.md"),
-      round = "round1",
-      round_number = 1
-    )
-  } else {
-    readme <- mutate(
-      readme,
-      round_number = as.numeric(gsub("[^[:digit:]]", "", round))) %>%
-      add_row(round_number = max(.$round_number) + 1,
-              round = paste0("round", max(.$round_number) + 1),
-              url = paste0("https://raw.githubusercontent.com/", repo_path,
-                           "master/", "README.md"))   %>%
-      select(-files)
-  }
-  return(readme)
-}
+#  if (dim(readme)[1] == 0) {
+#    readme <- data.frame(
+#      url = paste0("https://raw.githubusercontent.com/", repo_path, branch,
+#                   "/", "README.md"),
+#      round = "round1",
+#      round_number = 1
+#    )
+#  } else {
+#    readme <- mutate(
+#      readme,
+#      round_number = as.numeric(gsub("[^[:digit:]]", "", round))) %>%
+#      add_row(round_number = max(.$round_number) + 1,
+#              round = paste0("round", max(.$round_number) + 1),
+#              url = paste0("https://raw.githubusercontent.com/", repo_path,
+#                           "master/", "README.md"))   %>%
+#      select(-files)
+#  }
+#  return(readme)
+#}
 
 
 ################################################################################
@@ -108,53 +108,52 @@ scenario_path_round <- function(repo_path, branch = "master",
 #'                branch = "main")
 #' }
 #'
-#'@export
-scen_round_info <- function(
-  repo_path = "midas-network/covid19-scenario-modeling-hub/", branch = "master",
-  add_readme = NULL) {
-
-  df <- scenario_path_round(repo_path, branch = branch,
-                            add_readme = add_readme)
-
-  scen_round_info <- lapply(seq_len(dim(df)[1]), function(x) {
-    # Read README
-    scenario <- read.delim(df[x, "url", TRUE], sep = "\n",
-                           header = FALSE)
-    # extract start date of the projection and calculate the first week ahead
-    # date value
-    start_date <- scenario[which(grepl("Start date", scenario[,1])),] %>%
-      stringr::str_extract("[:alpha:]+ \\d+, \\d\\d\\d\\d") %>%
-      as.Date("%B %d, %Y") + 6
-    # extract scenario id and name depending on the format of the
-    # README (change after round 4 for COVID SMH repo)
-    if (!is.null(add_readme) & (df[x, "round_number", TRUE] %in% c(1, 2, 3, 4))) {
-        scenario_id <- scenario[which(grepl("Scenario id", scenario[,1])),] %>%
-          stringr::str_extract(".-\\d{4}-\\d{2}-\\d{2}")
-        scenario_name <- scenario[which(grepl("Scenario name",
-                                              scenario[,1])),] %>%
-          stringr::str_extract("\\`.+\\`")
-      }  else {
-      table_info <- scenario[grep("\\|", scenario[,1]), 1] %>% strsplit("\\|")
-      scenario_id <- table_info %>%
-        unlist() %>% .[grep(".-\\d{4}-\\d{2}-\\d{2}", .)] %>% trimws()
-      scenario_name <- purrr::map(table_info, table_info[grep(
-        "scenario name", table_info, ignore.case = TRUE)] %>% unlist() %>%
-          grep("scenario name", ., ignore.case = TRUE)) %>%
-        grep("[[:alpha:]]", ., value = TRUE) %>%
-        grep("scenario name|NULL", ., value = TRUE, invert = TRUE,
-             ignore.case = TRUE) %>%
-        trimws()
-    }
-    # regroup all the information in a table
-    df <- data.frame(
-      first_week_ahead = start_date,
-      scenario_id = scenario_id,
-      scenario_name = scenario_name,
-      round = df[x, "round", TRUE]
-    )
-  }) %>% bind_rows() %>%
-    mutate(scenario_name = gsub("\\`", "", scenario_name))
-
-  return(scen_round_info)
-
-}
+#scen_round_info <- function(
+#  repo_path = "midas-network/covid19-scenario-modeling-hub/", branch = "master",
+#  add_readme = NULL) {
+#
+#  df <- scenario_path_round(repo_path, branch = branch,
+#                            add_readme = add_readme)
+#
+#  scen_round_info <- lapply(seq_len(dim(df)[1]), function(x) {
+#    # Read README
+#    scenario <- read.delim(df[x, "url", TRUE], sep = "\n",
+#                           header = FALSE)
+#    # extract start date of the projection and calculate the first week ahead
+#    # date value
+#    start_date <- scenario[which(grepl("Start date", scenario[,1])),] %>%
+#      stringr::str_extract("[:alpha:]+ \\d+, \\d\\d\\d\\d") %>%
+#      as.Date("%B %d, %Y") + 6
+#    # extract scenario id and name depending on the format of the
+#    # README (change after round 4 for COVID SMH repo)
+#    if (!is.null(add_readme) & (df[x, "round_number", TRUE] %in% c(1, 2, 3, 4))) {
+#        scenario_id <- scenario[which(grepl("Scenario id", scenario[,1])),] %>%
+#          stringr::str_extract(".-\\d{4}-\\d{2}-\\d{2}")
+#        scenario_name <- scenario[which(grepl("Scenario name",
+#                                              scenario[,1])),] %>%
+#          stringr::str_extract("\\`.+\\`")
+#      }  else {
+#      table_info <- scenario[grep("\\|", scenario[,1]), 1] %>% strsplit("\\|")
+#      scenario_id <- table_info %>%
+#        unlist() %>% .[grep(".-\\d{4}-\\d{2}-\\d{2}", .)] %>% trimws()
+#      scenario_name <- purrr::map(table_info, table_info[grep(
+#        "scenario name", table_info, ignore.case = TRUE)] %>% unlist() %>%
+#          grep("scenario name", ., ignore.case = TRUE)) %>%
+#        grep("[[:alpha:]]", ., value = TRUE) %>%
+#        grep("scenario name|NULL", ., value = TRUE, invert = TRUE,
+#             ignore.case = TRUE) %>%
+#        trimws()
+#    }
+#    # regroup all the information in a table
+#    df <- data.frame(
+#      first_week_ahead = start_date,
+#      scenario_id = scenario_id,
+#      scenario_name = scenario_name,
+#      round = df[x, "round", TRUE]
+#    )
+#  }) %>% bind_rows() %>%
+#    mutate(scenario_name = gsub("\\`", "", scenario_name))
+#
+#  return(scen_round_info)
+#
+#}

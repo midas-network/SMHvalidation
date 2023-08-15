@@ -260,7 +260,6 @@ plot_projections <- function(data, st, projection_date, legend_rows = 1,
 #' @importFrom dplyr full_join desc slice_head pull
 #' @importFrom tibble as_tibble
 #' @importFrom tidyr separate pivot_wider
-#' @importFrom readr read_csv
 #' @importFrom lubridate as_date
 #' @importFrom ggpubr get_legend
 #' @importFrom grDevices pdf dev.off

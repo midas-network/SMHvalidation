@@ -28,7 +28,6 @@ Imports: arrow,
          dplyr, 
          ggplot2,
          ggpubr,
-         gh, 
          glue,
          grDevices,
          grid,
@@ -38,7 +37,6 @@ Imports: arrow,
          jsonlite,
          lubridate, 
          purrr, 
-         readr,
          scales,
          stringr, 
          tibble,
@@ -47,6 +45,7 @@ Imports: arrow,
 Remotes:
     Infectious-Disease-Modeling-Hubs/hubUtils
 Suggests:
+    gh, 
     knitr,
     rmarkdown,
     testthat (>= 3.0.0)
