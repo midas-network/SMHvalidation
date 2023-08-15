@@ -4,7 +4,7 @@
 \alias{test_location}
 \title{Runs Validation Checks on the Location column}
 \usage{
-test_location(df, number2location, task_ids)
+test_location(df, number2location, model_task)
 }
 \arguments{
 \item{df}{data frame to test}
@@ -12,7 +12,8 @@ test_location(df, number2location, task_ids)
 \item{number2location}{named vector containing the FIPS as name and the
 corresponding location name as value (example: name: "01", value: "Alabama")}
 
-\item{task_ids}{list containing round information for each id columns}
+\item{model_task}{list containing round information for each id columns
+and model output (type, format, etc.)}
 }
 \description{
 Validate Scenario Modeling Hub submissions: test if the  `location` column

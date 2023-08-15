@@ -60,7 +60,7 @@ test_target <- function(df, model_task) {
     opt_horizon <- x$task_ids$horizon$optional
 
     df_target <- data.table::data.table(df)[target %in% unique(unlist(
-      x$task_ids$target))]
+      x$task_ids$target)) & output_type %in% names(x$output_type)]
     if (any(nchar(df_target$location) == 1)) {
       df_target$location[which(nchar(df_target$location) == 1)] <- paste0(
         0, df_target$location[which(nchar(df_target$location) == 1)])
@@ -175,11 +175,13 @@ test_target <- function(df, model_task) {
       if (any(grepl("required", missing_target))) {
         target_test <- paste0(
           "\U000274c Error 602: No value found associated with the targets: ",
-          missing_target, ". please verify.")
+          missing_target, "; output_type: ",
+          paste(names(x$output_type), collapse = ", "), ". Please verify.")
       } else {
         target_test <- paste0(
           "\U0001f7e1 Warning 602: No value found associated with the targets",
-          ": " , missing_target, ". please verify.")
+          ": " , missing_target, "; output_type: ",
+          paste(names(x$output_type), collapse = ", "), ".")
       }
 
     }

@@ -38,7 +38,8 @@ test_quantiles <- function(df, model_task) {
       opt_quantile <- x$output_type$quantile$output_type_id$optional
       all_quantile <- unique(c(req_quantile, opt_quantile))
       df_test <- data.table::data.table(
-        df)[output_type == "quantile" & target %in% unique(unlist(x$task_ids$target))]
+        df)[output_type == "quantile" &
+              target %in% unique(unlist(x$task_ids$target))]
       if (dim(df_test)[1] > 0) {
         sub_quantile <- unlist(distinct(df_test[, "output_type_id"]))
 

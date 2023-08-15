@@ -44,7 +44,7 @@ run_all_validation <- function(df, path, pop, last_lst_gs,
   #}
 
   # Test on Scenario information
-  out_scen <- test_scenario(df, task_ids)
+  out_scen <- test_scenario(df, model_task)
 
   # Test origin date information
   out_ord <- test_origindate(df, path, id = js_def$round_id)
@@ -68,7 +68,7 @@ run_all_validation <- function(df, path, pop, last_lst_gs,
   out_target <- test_target(df, model_task)
 
   # Test on location information
-  out_loc <- test_location(df, number2location, task_ids)
+  out_loc <- test_location(df, number2location, model_task)
 
   # Test for additional column
   if (any(grepl("age_group", names(df)))) {
@@ -234,7 +234,7 @@ validate_submission <- function(path, js_def, lst_gs, pop_path) {
 
   # Select the associated round (add error message if no match)
    team_round <- as.Date(df$origin_date[[1]])
-   js_date <- as.Date(hubUtils::get_round_ids(js_def))
+   js_date <- unique(as.Date(hubUtils::get_round_ids(js_def)))
    if (team_round %in% js_date) {
      js_def <- js_def$rounds[js_date %in% team_round]
      js_def <- js_def[[1]]

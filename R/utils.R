@@ -42,7 +42,7 @@ is.wholenumber <- function(x, tol = .Machine$double.eps^0.5) {
 }
 
 # Internal function to filter data frame according to a set of task_id value
-filter_df <- function(df, task_id, exclusion, required = FALSE,
+filter_df <- function(df, task_id, exclusion = NULL, required = FALSE,
                       location_fix = TRUE) {
   # transform to data.table format
   df_test <- as.data.frame(df)
@@ -54,7 +54,11 @@ filter_df <- function(df, task_id, exclusion, required = FALSE,
     }
   }
   # filter
-  col_names <- grep(exclusion, names(task_id), invert = TRUE, value = TRUE)
+  if (is.null(exclusion)) {
+    col_names <- names(task_id)
+  } else {
+    col_names <- grep(exclusion, names(task_id), invert = TRUE, value = TRUE)
+  }
   if (required) {
     filter_var <- setNames(lapply(col_names, function(y)
       unique(unlist(task_id[[y]]$required))), col_names)

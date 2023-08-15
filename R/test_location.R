@@ -6,7 +6,8 @@
 #'@param df data frame to test
 #'@param number2location named vector containing the FIPS as name and the
 #'  corresponding location name as value (example: name: "01", value: "Alabama")
-#'@param task_ids list containing round information for each id columns
+#'@param model_task list containing round information for each id columns
+#' and model output (type, format, etc.)
 #'
 #'@details  This function contains 2 tests:
 #'\itemize{
@@ -24,7 +25,7 @@
 #'@importFrom purrr keep map discard
 #'@importFrom dplyr filter
 #'@export
-test_location <- function(df, number2location, task_ids) {
+test_location <- function(df, number2location, model_task) {
   # - correspond to the table in the GitHub
   if (isFALSE(!any(is.na(number2location[unique(df$location)])))) {
     vect <- vect0 <- df$location
@@ -49,11 +50,12 @@ test_location <- function(df, number2location, task_ids) {
   }
 
   #- targets with specific location does not contains additional location
-  loc_test <- lapply(task_ids, function(x) {
+  loc_test <- lapply(model_task, function(x) {
     # Prerequisite
-    req_loc <- x$location$required
-    opt_loc <- x$location$optional
-    df_test <- data.table::data.table(df)[target %in% unique(unlist(x$target))]
+    req_loc <- x$task_ids$location$required
+    opt_loc <- x$task_ids$location$optional
+    df_test <- data.table::data.table(df)[target %in% unique(unlist(
+      x$task_ids$target)) & output_type %in% names(x$output_type)]
     if (any(nchar(df_test$location) == 1)) {
       df_test$location[which(nchar(df_test$location) == 1)] <- paste0(
         0, df_test$location[which(nchar(df_test$location) == 1)])
@@ -67,7 +69,7 @@ test_location <- function(df, number2location, task_ids) {
               "\U000274c Error 703: The submission should only contain",
               " information for the location(s): ",
               paste(opt_loc, collapse = ", "), ", for the target(s): ",
-              paste(unique(unlist(x$target)), collapse = ", "),
+              paste(unique(unlist(x$task_ids$target)), collapse = ", "),
               ". The data frame contains other locations (",
               paste(unique(df_test$location)[!unique(
                 df_test$location) %in% opt_loc], collapse = ", "),
@@ -81,7 +83,7 @@ test_location <- function(df, number2location, task_ids) {
               "\U000274c Error 703: The submission should contain information",
               " for the location(s): ",  paste(req_loc, collapse = ", "),
               ", for the target(s): ",
-              paste(unique(unlist(x$target)), collapse = ", "),
+              paste(unique(unlist(x$task_ids$target)), collapse = ", "),
               ". The data frame is missing: ",
               paste(req_loc[!req_loc %in% unique(df_test$location)],
                     collapse = ", "), ", please verify.")
@@ -118,10 +120,17 @@ test_location <- function(df, number2location, task_ids) {
         }
       }
     } else {
-      loc_test <-  paste0(
-        "\U0001f7e1 Warning 513: No value found associated with the targets: ",
-        paste(unique(unlist(x$target)), collapse = ", "),
-        ". please verify.")
+      #if (!is.null(x$task_ids$target$required)) {
+        #      test_age <-  paste0(
+        #        "\U0001f7e1 Warning 513: No value found associated with the ",
+        #        "targets: ", paste(unique(unlist(x$task_ids$target)),
+        #                           collapse = ", "), ". Please verify.")
+      #  loc_test <-  paste0(
+      #    "\U0001f7e1 Warning 513: No value found associated with the targets: ",
+      #    paste(unique(unlist(x$target)), collapse = ", "),
+      #    ". please verify.")
+      #}
+      loc_test <- NA
     }
     return(loc_test)
   })

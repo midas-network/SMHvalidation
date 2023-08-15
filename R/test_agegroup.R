@@ -32,8 +32,8 @@ test_agegroup <- function(df, model_task) {
     req_agegroup <- x$task_ids$age_group$required
     opt_agegroup <- unique(x$task_ids$age_group$optional)
     all_agegroup <- unique(c(req_agegroup, opt_agegroup))
-    df_test <- data.table::data.table(
-      df)[ target %in% unique(unlist(x$task_ids$target))]
+    df_test <- data.table::data.table(df)[target %in% unique(unlist(
+      x$task_ids$target)) & output_type %in% names(x$output_type)]
 
     if (dim(df_test)[1] > 0) {
       # - age group written `<AGEMIN>-<AGEMAX>`
@@ -74,10 +74,15 @@ test_agegroup <- function(df, model_task) {
       }
       test_age <- unique(na.omit(c(age_writ, age_all, age_req)))
     } else {
-      test_age <-  paste0(
-        "\U0001f7e1 Warning 513: No value found associated with the targets: ",
-        paste(unique(unlist(x$task_ids$target)), collapse = ", "),
-        ". please verify.")
+  #    if (!is.null(x$task_ids$target$required)) {
+  #      test_age <-  paste0(
+  #        "\U0001f7e1 Warning 513: No value found associated with the ",
+  #        "targets: ", paste(unique(unlist(x$task_ids$target)),
+  #                           collapse = ", "), ". Please verify.")
+  #    } else {
+        test_age <- NA
+  #    }
+
     }
     return(test_age)
   })

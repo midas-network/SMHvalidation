@@ -29,15 +29,16 @@ test_sample <- function(df, model_task) {
     if ("sample" %in% names(x$output_type)) {
       # prerequisite
       df_sample <- data.table::data.table(
-        df)[output_type == "sample" & target %in% unique(unlist(x$task_ids$target))]
+        df)[output_type == "sample" &
+              target %in% unique(unlist(x$task_ids$target))]
       vector_sample <- unlist(unique(df_sample[, output_type_id]))
       task_ids <- x$task_ids
       # - sample column should be an integer
       if (dim(df_sample)[1] > 0) {
         if (isFALSE(all(is.wholenumber(vector_sample)))) {
           sample_type <-  paste0(
-            "\U000274c Error 903: The column 'output_type_id' should contains integer ",
-            "values only for type 'sample'. Please verify")
+            "\U000274c Error 903: The column 'output_type_id' should contains ",
+            "integer values only for type 'sample'. Please verify")
         } else {
           sample_type <- NA
         }
@@ -63,8 +64,8 @@ test_sample <- function(df, model_task) {
           x$output_type$sample$output_type_id))) {
           sample_value <- c(
             sample_value,
-            paste0("\U0001f7e1 Warning 901: The column 'output_type_id' contains less",
-                   " unique `sample` ID then expected. Up to ",
+            paste0("\U0001f7e1 Warning 901: The column 'output_type_id' contains",
+                   " less unique `sample` ID then expected. Up to ",
                    length(unique(unlist(x$output_type$sample$output_type_id))),
                    " unique 'samples' for each scenario/target/location",
                    "(/age_group) can be submitted."))
