@@ -53,7 +53,9 @@ For hospitalization data, we use:
 }
 }
 \examples{
-lst_df <- pull_gs_data()
-lst_df
-str(lst_df)
+\dontrun{
+ lst_df <- pull_gs_data()
+ lst_df
+ str(lst_df)
+}
 }
