@@ -99,7 +99,8 @@ Before running the function, we will prepare the required and optional
 parameter as explained above:
 
 ```{r prerequisite, message=FALSE, warning=FALSE}
-lst_gs <- pull_gs_data()
+# lst_gs <- pull_gs_data() the first week to observed data
+lst_gs <- NULL
 pop_path <- "https://raw.githubusercontent.com/midas-network/covid19-scenario-modeling-hub/master/data-locations/locations.csv"
 js_def <- system.file("extdata", "covid_tasks.json", package = "SMHvalidation")
 ```
