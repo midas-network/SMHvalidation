@@ -201,10 +201,11 @@ validate_submission <- function(path, js_def, lst_gs, pop_path) {
 
   # Process file to test and associated information --------
   # Read file
-  if (length(path) == 1) {
+  if (length(path) == 1 &
+      all(grepl(".csv$|.zip$|.gz$|.pqt$|.parquet$", path))) {
     df <- read_files(path) %>%
       dplyr::mutate_if(is.factor, as.character)
-  } else if (all(grepl("parquet", path))) {
+  } else if (all(grepl("parquet$", path))) {
     ds <- arrow::open_dataset(path, format = "parquet")
     df <- dplyr::collect(ds)  %>%
       dplyr::mutate_if(is.factor, as.character)
