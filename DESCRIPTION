@@ -1,7 +1,7 @@
 Package: SMHvalidation
 TType: Package
 Title: Scenario Modeling Hub Validations & Visualizations
-Version: 0.0.0.9100
+Version: 0.0.2
 Authors@R: 
      c(person(given = "Lucie", 
             family = "Contamin", 
