@@ -1,5 +1,5 @@
 Package: SMHvalidation
-TType: Package
+Type: Package
 Title: Scenario Modeling Hub Validations & Visualizations
 Version: 0.0.2
 Authors@R: 
