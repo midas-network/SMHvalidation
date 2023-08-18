@@ -157,9 +157,11 @@ sel_last_day_week <- function(df, date_sel, sel = "week") {
 #' }
 #'
 #' @examples
-#' lst_df <- pull_gs_data()
-#' lst_df
-#' str(lst_df)
+#' \dontrun{
+#'  lst_df <- pull_gs_data()
+#'  lst_df
+#'  str(lst_df)
+#' }
 pull_gs_data <- function() {
   # date prerequisite
   # Date limit for Gold Standard data (to have data until the last full epiweek):

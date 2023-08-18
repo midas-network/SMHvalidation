@@ -4,12 +4,13 @@
 \alias{test_scenario}
 \title{Runs Validation Checks on Scenario ID and Scenario Name columns}
 \usage{
-test_scenario(df, task_ids)
+test_scenario(df, model_task)
 }
 \arguments{
 \item{df}{data frame to test}
 
-\item{task_ids}{list containing round information for each id columns}
+\item{model_task}{list containing round information for each id columns
+and model output (type, format, etc.)}
 }
 \description{
 Validate Scenario Modeling Hub submissions: test if the name and id of the

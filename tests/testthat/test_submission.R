@@ -30,7 +30,7 @@ test_that("Test validation process", {
   testthat::expect_equal(
     extract_err_code(validate_submission(
       "training_data/2022-01-09_addcol.pqt", js_def, lst_gs, pop_path)),
-    c("101", "102"))
+    c("102"))
   # File with "location" column renamed "fips"
   testthat::expect_equal(
     extract_err_code(validate_submission(
@@ -218,7 +218,7 @@ test_that("Test validation process", {
   testthat::expect_equal(
     extract_err_code(validate_submission(
       "training_data/2022-08-14_flu_misstarget.csv", js_def_flu, lst_gs_flu,
-      pop_path_flu)), c("204", "513", "602"))
+      pop_path_flu)), c("602"))
   # For "size" target, horizon = 1
   testthat::expect_equal(
     extract_err_code(validate_submission(
@@ -247,7 +247,7 @@ test_that("Test validation process", {
   testthat::expect_equal(
     extract_err_code(validate_submission(
       "training_data/2022-08-14_flu_noage.csv", js_def_flu, lst_gs_flu,
-      pop_path_flu)), c("102"))
+      pop_path_flu)), c("103"))
 
   # Test sample ----
   # Filter sample < 90 and remove inc death and peak_time target
@@ -255,8 +255,39 @@ test_that("Test validation process", {
   testthat::expect_equal(
     extract_err_code(validate_submission(
       "training_data/2022-08-14_flu_badsample.csv", js_def_flu, lst_gs_flu,
-      pop_path_flu)), c("204", "513", "5040", "510", "602", "901", "902",
+      pop_path_flu)), c("204", "5040", "510", "602", "901", "902",
                         "903", "401"))
 
+  # Test value ---
+  # Missing inc death (sample required) for all task_ids
+  # CDF values (optional) > 1
+  testthat::expect_equal(
+    extract_err_code(validate_submission(
+      "training_data/2023-09-03_noincdeath_timevalue.parquet", js_def_flu,
+      lst_gs_flu, pop_path_flu)), c("204", "5041", "602", "904"))
+
+  # Missing inc death (sample required) for all task_ids
+  # Only sample as output_type
+  testthat::expect_equal(
+    extract_err_code(validate_submission(
+      "training_data/2023-09-03_noincdeath_sample.parquet", js_def_flu,
+      lst_gs_flu, pop_path_flu)), c("204", "602", "904"))
+
+  # Contains both parquet files:
+  # Missing inc death (sample required) for all task_ids
+  # CDF values (optional) > 1
+  # double sample inc hosp
+  testthat::expect_equal(
+    extract_err_code(validate_submission(
+      dir("training_data/", pattern = "2023-09-03",
+          full.names = TRUE), js_def_flu, lst_gs_flu, pop_path_flu)),
+    c("204", "510", "5041", "602", "902", "904"))
+
+  ### Error files ####
+  # Bad link
+  testthat::expect_equal(
+    extract_err_code(validate_submission(
+      "training_data/2023-09-03_noincdeath_sample.txt", js_def_flu,
+      lst_gs_flu, pop_path_flu)), c("005"))
 
 })

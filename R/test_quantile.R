@@ -34,13 +34,14 @@ test_quantiles <- function(df, model_task) {
   quantiles_test <- lapply(model_task, function(x) {
     if ("quantile" %in% names(x$output_type)) {
       # Prerequisite
-      req_quantile <- x$output_type$quantile$type_id$required
-      opt_quantile <- x$output_type$quantile$type_id$optional
+      req_quantile <- x$output_type$quantile$output_type_id$required
+      opt_quantile <- x$output_type$quantile$output_type_id$optional
       all_quantile <- unique(c(req_quantile, opt_quantile))
       df_test <- data.table::data.table(
-        df)[type == "quantile" & target %in% unique(unlist(x$task_ids$target))]
+        df)[output_type == "quantile" &
+              target %in% unique(unlist(x$task_ids$target))]
       if (dim(df_test)[1] > 0) {
-        sub_quantile <- unlist(distinct(df_test[, "type_id"]))
+        sub_quantile <- unlist(distinct(df_test[, "output_type_id"]))
 
         # - test all quantiles value are expected
         if (isFALSE(all(all_quantile %in% sub_quantile))) {
@@ -69,12 +70,12 @@ test_quantiles <- function(df, model_task) {
 
         # target(s) contains all the required quantiles
         sel_group <- names(x$task_ids)
-        df_test[, sel := ifelse(all(req_quantile %in% type_id), 0, 1),
+        df_test[, sel := ifelse(all(req_quantile %in% output_type_id), 0, 1),
                 by = sel_group]
         df_test2 <- df_test[sel > 0]
         if (dim(df_test2)[1] > 0) {
-          err_groups <- dplyr::select(df_test2, -sel, -value, -type,
-                                      -type_id) %>%
+          err_groups <- dplyr::select(df_test2, -sel, -value, -output_type,
+                                      -output_type_id) %>%
             dplyr::distinct() %>% tidyr::unite("group", dplyr::everything(),
                                                sep = ", ") %>% unlist()
           qmissing_test <-  paste0(
@@ -94,13 +95,13 @@ test_quantiles <- function(df, model_task) {
         }
 
         # - value increases with the quantiles
-        df_qval <- df_test[order(type_id)][, !"sel"]
+        df_qval <- df_test[order(output_type_id)][, !"sel"]
         df_qval[ , diff := value - data.table::shift(value, 1, type = "lag"),
                  by = sel_group]
         df_qval <- df_qval[diff < 0]
         if (dim(df_qval)[1] > 0) {
-          err_groups <- df_qval %>% dplyr::select(-diff, -value, -type,
-                                                  -type_id) %>%
+          err_groups <- df_qval %>% dplyr::select(-diff, -value, -output_type,
+                                                  -output_type_id) %>%
             dplyr::distinct() %>% tidyr::unite("group", dplyr::everything(),
                                                sep = ", ") %>% unlist()
           qval_test <-   paste0(
@@ -121,7 +122,7 @@ test_quantiles <- function(df, model_task) {
                                     qval_test))
       } else {
         if (!is.null(x$task_ids$target$required) &
-            !is.null(x$output_type$quantile$type_id$required)) {
+            !is.null(x$output_type$quantile$output_type_id$required)) {
           quantiles_test <- paste0(
             "\U000274c Error 401: Quantiles are expected in the submission for ",
             "the target(s): ", paste(unique(unlist(x$task_ids$target$required)),

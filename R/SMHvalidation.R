@@ -1,16 +1,14 @@
-utils::globalVariables(c("type", "target", "target_end_date", "start_date_t",
-                         "location", "population", "value", "pop_test", ".",
-                         "location_name", "scenario_id", "last_value", "files",
-                         "cum_test", "time_value", "fips", "target_name",
-                         "scenario_name", "geo_value", "year", "week",
-                         "geo_value_fullname", "A", "NA", "abbreviation",
-                         "diff_gt", "ground", "truth", "high", "incid_cum",
-                         "logratio_gt", "low", "median", "outcome", "path_test",
-                         "model_projection_date", "point", "prctdiff_gt",
-                         "pre_gs_end", "proj_plot_data_calib_cum", "quantile",
-                         "ratio_gt", "state value_gt", "value_gt", "state",
-                         "ground truth", "X", "age_group", "sel", "type_id",
-                         "horizon", "N", "..sel_group", "origin_date"))
+utils::globalVariables(c(
+  "output_type", "target", "target_end_date", "start_date_t", "location",
+  "population", "value", "pop_test", ".", "location_name", "scenario_id",
+  "last_value", "files", "cum_test", "time_value", "fips", "target_name",
+  "scenario_name", "geo_value", "year", "week", "geo_value_fullname", "A",
+  "NA", "abbreviation", "diff_gt", "ground", "truth", "high", "incid_cum",
+  "logratio_gt", "low", "median", "outcome", "path_test",
+  "model_projection_date", "point", "prctdiff_gt", "pre_gs_end",
+  "proj_plot_data_calib_cum", "quantile", "ratio_gt", "state value_gt",
+  "value_gt", "state", "ground truth", "X", "age_group", "sel",
+  "output_type_id", "horizon", "N", "..sel_group", "origin_date"))
 
 #' SMHvalidation: Scenario Modeling Hub Validations & Visualizations
 #'

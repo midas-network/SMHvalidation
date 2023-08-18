@@ -29,18 +29,13 @@ run_all_validation <- function(df, path, pop, last_lst_gs,
   ### Prerequisite
   model_task <- js_def$model_tasks
   task_ids <- purrr::map(model_task, "task_ids")
-  req_colnames <-  c(unique(names(unlist(task_ids, FALSE))), "type", "type_id",
-                     "value")
+  req_colnames <-  c(unique(names(unlist(task_ids, FALSE))),
+                     "output_type", "output_type_id", "value")
 
   ### Tests:
   # Test on column information (name and number)
   out_col <- test_column(df, req_colnames)
-  # update to stop if any missing column
-  if (length(colnames(df)) < length(req_colnames)) {
-    cat(out_col)
-    stop(" The submission contains an issue, the validation was not run, please",
-         " see information above.")
-  }
+
   # select only required column for the other tests
   df <- df[, req_colnames]
 
@@ -49,18 +44,18 @@ run_all_validation <- function(df, path, pop, last_lst_gs,
   #}
 
   # Test on Scenario information
-  out_scen <- test_scenario(df, task_ids)
+  out_scen <- test_scenario(df, model_task)
 
   # Test origin date information
   out_ord <- test_origindate(df, path, id = js_def$round_id)
 
   # Test by type
-  if (any(grepl("quantile", unlist(distinct(df[ ,"type", FALSE])))) |
+  if (any(grepl("quantile", unlist(distinct(df[ ,"output_type", FALSE])))) |
       any("quantile" %in% names(unlist(purrr::map(model_task, "output_type"),
                                        FALSE)))) {
     out_quant <- test_quantiles(df, model_task)
   }
-  if (any(grepl("sample", unlist(distinct(df[ ,"type", FALSE])))) |
+  if (any(grepl("sample", unlist(distinct(df[ ,"output_type", FALSE])))) |
       any("sample" %in% names(unlist(purrr::map(model_task, "output_type"),
                                      FALSE)))) {
     out_sample <- test_sample(df, model_task)
@@ -73,7 +68,7 @@ run_all_validation <- function(df, path, pop, last_lst_gs,
   out_target <- test_target(df, model_task)
 
   # Test on location information
-  out_loc <- test_location(df, number2location, task_ids)
+  out_loc <- test_location(df, number2location, model_task)
 
   # Test for additional column
   if (any(grepl("age_group", names(df)))) {
@@ -88,13 +83,13 @@ run_all_validation <- function(df, path, pop, last_lst_gs,
     "\n\n## Value and Type Columns: \n\n", paste(out_val, collapse = "\n"),
     "\n\n## Target Columns: \n\n", paste(out_target, collapse = "\n"),
     "\n\n## Locations: \n\n", paste(out_loc, collapse = "\n"))
-  if (any(grepl("sample", unlist(distinct(df[ ,"type", FALSE])))) |
+  if (any(grepl("sample", unlist(distinct(df[ ,"output_type", FALSE])))) |
       any("sample" %in% names(unlist(purrr::map(model_task, "output_type"),
                                      FALSE))))  {
     test_report <- paste(
       test_report, "\n\n## Sample: \n\n", paste(out_sample, collapse = "\n"))
   }
-  if (any(grepl("quantile", unlist(distinct(df[ ,"type", FALSE])))) |
+  if (any(grepl("quantile", unlist(distinct(df[ ,"output_type", FALSE])))) |
       any("quantile" %in% names(unlist(purrr::map(model_task, "output_type"),
                                      FALSE))))  {
     test_report <- paste(
@@ -168,6 +163,7 @@ run_all_validation <- function(df, path, pop, last_lst_gs,
 #' @importFrom stats setNames
 #' @importFrom jsonlite fromJSON
 #' @importFrom arrow open_dataset
+#' @importFrom purrr list_simplify
 #'
 #'@examples
 #' \dontrun{
@@ -205,21 +201,12 @@ validate_submission <- function(path, js_def, lst_gs, pop_path) {
 
   # Process file to test and associated information --------
   # Read file
-  if (length(path) == 1) {
+  if (length(path) == 1 &
+      all(grepl(".csv$|.zip$|.gz$|.pqt$|.parquet$", path))) {
     df <- read_files(path) %>%
       dplyr::mutate_if(is.factor, as.character)
-  } else if (all(grepl("parquet", path))) {
-    ds <- arrow::open_dataset(path, format = "parquet",
-                              schema = arrow::schema(
-                                arrow::field("origin_date", arrow::string()),
-                                arrow::field("scenario_id", arrow::string()),
-                                arrow::field("location", arrow::string()),
-                                arrow::field("target", arrow::string()),
-                                arrow::field("horizon", double()),
-                                arrow::field("type", arrow::string()),
-                                arrow::field("type_id", double()),
-                                arrow::field("value", double()),
-                              ))
+  } else if (all(grepl("parquet$", path))) {
+    ds <- arrow::open_dataset(path, format = "parquet")
     df <- dplyr::collect(ds)  %>%
       dplyr::mutate_if(is.factor, as.character)
   } else {
@@ -247,20 +234,20 @@ validate_submission <- function(path, js_def, lst_gs, pop_path) {
   }
 
   # Select the associated round (add error message if no match)
-  js_def <- js_def$rounds[unlist(purrr::map(
-    js_def$rounds, "round_id")) == df$origin_date[[1]]]
-
-  if (length(js_def) < 1) {
-    err004 <- paste0(
-      "\U000274c Error 004: The origin_date in the submission file was not ",
-      "associated with any task_ids round. Please verify the date information",
-      " in the origin_date column corresponds to the expected value.\n")
-    cat(err004)
-    stop(" The submission contains an issue, the validation was not run, ",
-         "please see information above.")
-  } else {
-    js_def <- js_def[[1]]
-  }
+   team_round <- as.Date(df$origin_date[[1]])
+   js_date <- unique(as.Date(hubUtils::get_round_ids(js_def)))
+   if (team_round %in% js_date) {
+     js_def <- js_def$rounds[js_date %in% team_round]
+     js_def <- js_def[[1]]
+   } else {
+     err004 <- paste0(
+       "\U000274c Error 004: The origin_date in the submission file was not ",
+       "associated with any task_ids round. Please verify the date information",
+       " in the origin_date column corresponds to the expected value.\n")
+     cat(err004)
+     stop(" The submission contains an issue, the validation was not run, ",
+          "please see information above.")
+   }
 
   # Extract week 0 or week -1 of observed data
   last_week_gs <-  lapply(lst_gs, function(x) {
@@ -270,7 +257,7 @@ validate_submission <- function(path, js_def, lst_gs, pop_path) {
   })
 
   # Run tests --------
-  run_all_validation(df, path = path, pop = pop,
+   run_all_validation(df, path = path, pop = pop,
                      last_lst_gs = last_week_gs,
                      number2location = number2location, js_def = js_def)
 }

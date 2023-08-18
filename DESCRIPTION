@@ -1,7 +1,7 @@
 Package: SMHvalidation
-TType: Package
+Type: Package
 Title: Scenario Modeling Hub Validations & Visualizations
-Version: 0.0.1
+Version: 0.0.2
 Authors@R: 
      c(person(given = "Lucie", 
             family = "Contamin", 
@@ -28,22 +28,24 @@ Imports: arrow,
          dplyr, 
          ggplot2,
          ggpubr,
-         gh, 
          glue,
          grDevices,
          grid,
          gridExtra,
          gtable,
+         hubUtils,
          jsonlite,
          lubridate, 
          purrr, 
-         readr,
          scales,
          stringr, 
          tibble,
          tidyr,
          tidyselect
+Remotes:
+    Infectious-Disease-Modeling-Hubs/hubUtils
 Suggests:
+    gh, 
     knitr,
     rmarkdown,
     testthat (>= 3.0.0)

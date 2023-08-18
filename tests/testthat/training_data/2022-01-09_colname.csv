@@ -1,4 +1,4 @@
-"fips","type_id","scenario_id","origin_date","target","horizon","type","value"
+"fips","output_type_id","scenario_id","origin_date","target","horizon","output_type","value"
 "US",NA,"A-2022-01-09",2022-01-09,"inc death",1,"median",12000
 "US",NA,"B-2022-01-09",2022-01-09,"inc death",1,"median",12600
 "US",NA,"C-2022-01-09",2022-01-09,"inc death",1,"median",13200

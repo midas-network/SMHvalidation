@@ -62,12 +62,12 @@ test_val <- function(df, pop, last_lst_gs, model_task) {
   value_test <- lapply(model_task, function(x) {
     # Prerequisite
     req_type <- purrr::map(purrr::map(purrr::map(x$output_type, `[`),
-                                      "type_id"), "required")
+                                      "output_type_id"), "required")
     req_type <- req_type[!unlist(purrr::map(req_type, is.null))]
     req_type <- unique(names(req_type))
-    output_type <- names(x$output_type)
+    outputtype <- names(x$output_type)
     df_test <- data.table::data.table(df)[target %in% unique(unlist(
-      x$task_ids$target)) & type %in% output_type]
+      x$task_ids$target)) & output_type %in% outputtype]
     if (dim(df_test)[1] > 0) {
       # If necessary fix location column to avoid issue
       if (any(nchar(df_test$location) == 1)) {
@@ -76,14 +76,14 @@ test_val <- function(df, pop, last_lst_gs, model_task) {
       }
       # - all value are in the expected format and the column value does not
       # contain any NA
-      format_test <- lapply(output_type, function(y) {
-        if (isFALSE(all(unique(df_test[type == y, type_id]) %in%
-                        unique(unlist(x$output_type[[y]]$type_id))))) {
+      format_test <- lapply(outputtype, function(y) {
+        if (isFALSE(all(unique(df_test[output_type == y, output_type_id]) %in%
+                        unique(unlist(x$output_type[[y]]$output_type_id))))) {
           err_mess_id <- paste0(
-            "\U000274c Error 5040: For the type '", y, "', the type_id should ",
-            "correspond to: ",  paste(unique(unlist(
-              x$output_type[[y]]$type_id)), collapse = ", "), " at least",
-            " one id is incorrect, please verify")
+            "\U000274c Error 5040: For the type '", y, "', the output_type_id ",
+            "should correspond to: ",  paste(unique(unlist(
+              x$output_type[[y]]$output_type_id)), collapse = ", "),
+            " at least one id is incorrect, please verify")
         } else {
           err_mess_id <- NA
         }
@@ -150,13 +150,13 @@ test_val <- function(df, pop, last_lst_gs, model_task) {
       test_loc <- grep("66|69|60|74", unique(df_test$location), invert = TRUE,
                        value = TRUE)
       df_loc <- df_test[location %in% test_loc]
-      sel_group <- c(grep("horizon|target_end_date|type", names(x$task_ids),
+      sel_group <- c(grep("horizon|target_end_date|output_type", names(x$task_ids),
                           value = TRUE, invert = TRUE))
       df_loc[, var := var(value), by = sel_group]
       df_loc <- df_loc[var == 0]
       if (dim(df_loc)[1] > 0) {
-        err_groups <- df_loc %>% dplyr::select(-var, -value, -type,
-                                               -type_id, -horizon) %>%
+        err_groups <- df_loc %>% dplyr::select(-var, -value, -output_type,
+                                               -output_type_id, -horizon) %>%
           dplyr::distinct() %>% tidyr::unite("group", dplyr::everything(),
                                              sep = ", ") %>% unlist()
         pointuniq_test <-  paste0(
@@ -277,6 +277,11 @@ test_val <- function(df, pop, last_lst_gs, model_task) {
         sel_group <- grep(
           "value|target_end_date|model_projection_date|scenario_name|horizon",
           names(df_cum), invert = TRUE, value = TRUE)
+        if (all(outputtype %in% "cdf")) {
+          sel_group <- grep("output_type_id", sel_group, value = TRUE,
+                            invert = TRUE)
+          df_cum <- df_cum[order(df_cum, target, horizon, output_type_id)]
+        }
         df_cum[, diff := (value - data.table::shift(value, 1, type = "lag")),
                by = sel_group]
         df_cum <- df_cum[diff < 0]
@@ -303,7 +308,7 @@ test_val <- function(df, pop, last_lst_gs, model_task) {
       }
 
       # - required type(s) are present in the submission file
-      if (!all(req_type %in% unique(df_test[, type]))) {
+      if (!all(req_type %in% unique(df_test[, output_type]))) {
         type_test <- paste0(
           "\U000274c Error 512: The data frame is missing at least one ",
           "required output. The submission file should contains information",
@@ -316,14 +321,15 @@ test_val <- function(df, pop, last_lst_gs, model_task) {
                                pointuniq_test, pointpop_test, valcumcase_test,
                                valcumdeath_test, valunique_test, valcum_test))
     } else {
-      if (!is.null(x$task_ids$target$required)) {
-        value_test <- paste0(
-          "\U0001f7e1 Warning 513: No value found associated with the targets: ",
-          paste(unique(x$task_ids$target$required), collapse = ", "),
-          ". please verify.")
-      } else {
+     # if (!is.null(x$task_ids$target$required)) {
+    #    value_test <- paste0(
+    #      "\U0001f7e1 Warning 513: No value found associated with the required",
+    #      " targets: ", paste(unique(x$task_ids$target$required),
+    #                          collapse = ", "),
+    #      ". please verify.")
+    #  } else {
         value_test <- NA
-      }
+     # }
     }
     return(value_test)
   })
