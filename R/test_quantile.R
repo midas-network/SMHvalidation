@@ -42,7 +42,7 @@ test_quantiles <- function(df, model_task) {
               target %in% unique(unlist(x$task_ids$target))]
       if (dim(df_test)[1] > 0) {
         sub_quantile <- unlist(distinct(df_test[, "output_type_id"]))
-
+        sub_quantile <- as.numeric(sub_quantile)
         # - test all quantiles value are expected
         if (isFALSE(all(all_quantile %in% sub_quantile))) {
           if (all(req_quantile %in% sub_quantile)) {
@@ -70,7 +70,8 @@ test_quantiles <- function(df, model_task) {
 
         # target(s) contains all the required quantiles
         sel_group <- names(x$task_ids)
-        df_test[, sel := ifelse(all(req_quantile %in% output_type_id), 0, 1),
+        df_test[, sel := ifelse(all(req_quantile %in%
+                                      as.numeric(output_type_id)), 0, 1),
                 by = sel_group]
         df_test2 <- df_test[sel > 0]
         if (dim(df_test2)[1] > 0) {
@@ -95,7 +96,7 @@ test_quantiles <- function(df, model_task) {
         }
 
         # - value increases with the quantiles
-        df_qval <- df_test[order(output_type_id)][, !"sel"]
+        df_qval <- df_test[order(as.numeric(output_type_id))][, !"sel"]
         df_qval[ , diff := value - data.table::shift(value, 1, type = "lag"),
                  by = sel_group]
         df_qval <- df_qval[diff < 0]

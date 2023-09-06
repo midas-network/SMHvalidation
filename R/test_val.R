@@ -77,7 +77,11 @@ test_val <- function(df, pop, last_lst_gs, model_task) {
       # - all value are in the expected format and the column value does not
       # contain any NA
       format_test <- lapply(outputtype, function(y) {
-        if (isFALSE(all(unique(df_test[output_type == y, output_type_id]) %in%
+        sum_test_format <- df_test[output_type == y, output_type_id]
+        if (y %in% c("quantile", "sample")) {
+          sum_test_format <- as.numeric(sum_test_format)
+        }
+        if (isFALSE(all(unique(sum_test_format) %in%
                         unique(unlist(x$output_type[[y]]$output_type_id))))) {
           err_mess_id <- paste0(
             "\U000274c Error 5040: For the type '", y, "', the output_type_id ",
