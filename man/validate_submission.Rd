@@ -4,7 +4,7 @@
 \alias{validate_submission}
 \title{Validate SMH (Scenario Modeling Hub) Submissions}
 \usage{
-validate_submission(path, js_def, lst_gs, pop_path)
+validate_submission(path, js_def, lst_gs, pop_path, merge_sample_col = FALSE)
 }
 \arguments{
 \item{path}{path to the submissions file to test or string of parquet files (
@@ -22,6 +22,11 @@ frame should be named with the corresponding covidcast signal except
 
 \item{pop_path}{path to a table containing the population size of each
 geographical entities by FIPS (in a column "location") and by location name.}
+
+\item{merge_sample_col}{boolean to indicate if the for the output type
+"sample", the output_type_id column is set to NA and the information is
+contained into 2 columns: "run_grouping" and "stochastic_run". By default,
+`FALSE`}
 }
 \description{
 Runs all the different validation checks functions (test_column,
@@ -33,7 +38,7 @@ submission: warning(s), error(s) or message if all the tests were successful.
 \details{
 For more information on all tests run on the submission, please refer
 to the documentation of each "test_*" function. A vignette with all the
-information might be created later.
+information is available in the package and is called: "validation-checks".
 
 The function accepts submission in PARQUET, CSV, ZIP or GZ file formats.
 

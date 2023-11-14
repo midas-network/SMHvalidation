@@ -4,13 +4,16 @@
 \alias{test_sample}
 \title{Runs Validation Checks on the sample column}
 \usage{
-test_sample(df, model_task)
+test_sample(df, model_task, pairing_col = "horizon")
 }
 \arguments{
 \item{df}{data frame to test}
 
 \item{model_task}{list containing round information for each id columns
 and model output (type, format, etc.)}
+
+\item{pairing_col}{column names indicating the sample pairing information. By
+default: "horizon".}
 }
 \description{
 Validate Scenario Modeling Hub submissions: test if the  `sample` column
@@ -19,10 +22,14 @@ contains the expected  value.
 \details{
 This function contains 3 tests:
 \itemize{
- \item{sample value: }{The submission should contain a sample column with
- expected value.}
- \item{unique sample: }{The submission should contain a unique sample
- identifier for each scenario/target/location/horizon (age_group) group.}
+ \item{sample number: }{The submission should contain a sample column with
+ the expected number of trajectory for each
+ scenario/target/location/horizon (age_group) group}
+ \item{unique sample: }{The submission should at least contain a unique
+ sample identifier by pairing group, for example if pairing_col = "horizon",
+ the sample identifier `1` should contain all the possible horizon value,
+ and optionally can contain the specific and multiple value for the other
+ task id column}
  \item{sample integer: }{The submission should contain a sample column with
  integer only.}
  \item{required sample:}{If a target expected sample type output, the
