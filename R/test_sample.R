@@ -97,7 +97,7 @@ test_sample <- function(df, model_task, pairing_col = "horizon") {
 
         # - sample id should contains the expected number of repetition
         # for each group (task_ids)
-        # For pairing information: test if only minimum pairing repeted the
+        # For pairing information: test if only minimum pairing repeated the
         # expected number of times
         in_list <- function(df, list) {
           bool_list <- lapply(seq_along(list), function(x) {

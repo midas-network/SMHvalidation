@@ -54,11 +54,11 @@ run_all_validation <- function(df, path, pop, last_lst_gs,
     }
     if (isFALSE(all(is.wholenumber(na.omit(df$run_grouping)))) |
         isFALSE(all(is.wholenumber(na.omit(df$stochastic_run))))) {
-      sample_type <-  paste0(
+      add_message <-  paste0(
         "\U000274c Error 903: The column 'run_grouping' and 'stochastic_run' ",
         "should contain integer values only for type 'sample'. Please verify")
     } else {
-      sample_type <- NA
+      add_message <- NULL
     }
     df <- dplyr::mutate(
       df,
@@ -66,7 +66,15 @@ run_all_validation <- function(df, path, pop, last_lst_gs,
         output_type == "sample",
         as.numeric(as.factor(paste0(run_grouping, "-", stochastic_run))),
         output_type_id))
+    df_sample_id <- dplyr::filter(df, output_type == "sample")
+    if (length(unique(df_sample_id$output_type_id)) <= 1) {
+      add_message <- paste0(add_message, "\n",
+        "\U000274c Error 902: The submission should contains multiple sample",
+        " output type groups, please verify.\n")
+    }
     df <- dplyr::select(df, -run_grouping, -stochastic_run)
+  } else {
+    add_message <- NULL
   }
 
   ### Tests:
@@ -123,8 +131,21 @@ run_all_validation <- function(df, path, pop, last_lst_gs,
   if (any(grepl("sample", unlist(distinct(df[ ,"output_type", FALSE])))) |
       any("sample" %in% names(unlist(purrr::map(model_task, "output_type"),
                                      FALSE))))  {
-    test_report <- paste(
-      test_report, "\n\n## Sample: \n\n", paste(out_sample, collapse = "\n"))
+    if (!is.null(add_message)) {
+      if (any(grepl("No errors or warnings", out_sample))) {
+        test_report <- paste(
+          test_report, "\n\n## Sample: \n\n", paste(add_message,
+                                                    collapse = "\n"))
+      } else {
+        test_report <- paste(
+          test_report, "\n\n## Sample: \n\n", paste(
+            add_message, out_sample, collapse = "\n"))
+      }
+    } else {
+      test_report <- paste(
+        test_report, "\n\n## Sample: \n\n", paste(out_sample, collapse = "\n"))
+    }
+
   }
   if (any(grepl("quantile", unlist(distinct(df[ ,"output_type", FALSE])))) |
       any("quantile" %in% names(unlist(purrr::map(model_task, "output_type"),
