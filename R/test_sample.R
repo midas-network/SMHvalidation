@@ -111,11 +111,10 @@ test_sample <- function(df, model_task, pairing_col = "horizon") {
         exp_list <- setNames(lapply(
           c(pairing_col), function(x) unique(df_sample[[x]])),
           c(pairing_col))
-        exp_grid <- expand.grid(exp_list)
-        sample_group <- group_by(sample_group, output_type_id) %>%
-          dplyr::mutate(sel = ifelse(in_list(., exp_list), 1, 0))
-        sample_group <- dplyr::filter(sample_group, sel == 0)
-        if (nrow(sample_group) > 0) {
+        sample_group_test <- sample_group %>%
+          split(sample_group$output_type_id) %>%
+          purrr::map(in_list, exp_list) %>% unlist()
+        if (any(!sample_group_test)) {
           sample_unique <- paste0(
             "\U000274c Error 902: The minimal accepted grouping includes the ",
             "column(s): ", paste(pairing_col, collapse = ", "),
