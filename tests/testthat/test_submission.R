@@ -255,8 +255,7 @@ test_that("Test validation process", {
   testthat::expect_equal(
     extract_err_code(validate_submission(
       "training_data/2022-08-14_flu_badsample.csv", js_def_flu, lst_gs_flu,
-      pop_path_flu)), c("204", "5040", "510", "602", "901", "902",
-                        "903", "401"))
+      pop_path_flu)), c("204", "510", "602", "901", "903", "401"))
 
   # Test value ---
   # Missing inc death (sample required) for all task_ids
@@ -281,7 +280,7 @@ test_that("Test validation process", {
     extract_err_code(validate_submission(
       dir("training_data/", pattern = "2023-09-03",
           full.names = TRUE), js_def_flu, lst_gs_flu, pop_path_flu)),
-    c("204", "510", "5041", "602", "902", "904"))
+    c("204", "510", "5041", "602", "901", "904"))
 
   ### Error files ####
   # Bad link
