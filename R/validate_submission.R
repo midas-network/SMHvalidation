@@ -17,6 +17,12 @@
 #'  projection
 #'@param js_def list containing round definitions: names of columns,
 #' target names, ...
+#'@param merge_sample_col boolean to indicate if the for the output type
+#' "sample", the output_type_id column is set to NA and the information is
+#' contained into 2 columns: "run_grouping" and "stochastic_run". By default,
+#' `FALSE`
+#'@param pairing_col column names indicating the sample pairing information. By
+#' default: "horizon".
 #'
 #'@details Internal function called in the `validation_submission()` function.
 #' For more information on all tests run on the submission, please refer to the
@@ -25,12 +31,43 @@
 #'
 #' @noRd
 run_all_validation <- function(df, path, pop, last_lst_gs,
-                               number2location, js_def) {
+                               number2location, js_def,
+                               merge_sample_col = FALSE,
+                               pairing_col = "horizon") {
   ### Prerequisite
   model_task <- js_def$model_tasks
   task_ids <- purrr::map(model_task, "task_ids")
   req_colnames <-  c(unique(names(unlist(task_ids, FALSE))),
                      "output_type", "output_type_id", "value")
+  if (isTRUE(merge_sample_col)) {
+    if (!(all(c(req_colnames, "run_grouping", "stochastic_run") %in%
+              names(df)))) {
+      fail_col <- req_colnames[!req_colnames %in% names(df)]
+      colnames_test <- paste0(
+        "\U000274c Error 101: At least one column name is misspelled or does ",
+        "not correspond to the expected column names. The column(s) ",
+        paste(fail_col, collapse = ", "),
+        " do(es) not correspond to the standard")
+      cat(colnames_test)
+      stop(" The submission contains an issue, the validation was not run, ",
+           "please see information above.")
+    }
+    if (isFALSE(all(is.wholenumber(na.omit(df$run_grouping)))) |
+        isFALSE(all(is.wholenumber(na.omit(df$stochastic_run))))) {
+      sample_type <-  paste0(
+        "\U000274c Error 903: The column 'run_grouping' and 'stochastic_run' ",
+        "should contain integer values only for type 'sample'. Please verify")
+    } else {
+      sample_type <- NA
+    }
+    df <- dplyr::mutate(
+      df,
+      output_type_id = ifelse(
+        output_type == "sample",
+        as.numeric(as.factor(paste0(run_grouping, "-", stochastic_run))),
+        output_type_id))
+    df <- dplyr::select(df, -run_grouping, -stochastic_run)
+  }
 
   ### Tests:
   # Test on column information (name and number)
@@ -58,7 +95,7 @@ run_all_validation <- function(df, path, pop, last_lst_gs,
   if (any(grepl("sample", unlist(distinct(df[ ,"output_type", FALSE])))) |
       any("sample" %in% names(unlist(purrr::map(model_task, "output_type"),
                                      FALSE)))) {
-    out_sample <- test_sample(df, model_task)
+    out_sample <- test_sample(df, model_task, pairing_col = pairing_col)
   }
 
   # Test on value
@@ -139,10 +176,14 @@ run_all_validation <- function(df, path, pop, last_lst_gs,
 #' "hospitalization" instead of "confirmed_admissions_covid_1d".
 #'@param pop_path path to a table containing the population size of each
 #'  geographical entities by FIPS (in a column "location") and by location name.
+#'@param merge_sample_col boolean to indicate if the for the output type
+#' "sample", the output_type_id column is set to NA and the information is
+#' contained into 2 columns: "run_grouping" and "stochastic_run". By default,
+#' `FALSE`
 #'
 #'@details For more information on all tests run on the submission, please refer
 #' to the documentation of each "test_*" function. A vignette with all the
-#' information might be created later.
+#' information is available in the package and is called: "validation-checks".
 #'
 #' The function accepts submission in PARQUET, CSV, ZIP or GZ file formats.
 #'
@@ -177,7 +218,8 @@ run_all_validation <- function(df, path, pop, last_lst_gs,
 #'
 #' }
 #'@export
-validate_submission <- function(path, js_def, lst_gs, pop_path) {
+validate_submission <- function(path, js_def, lst_gs, pop_path,
+                                merge_sample_col = FALSE) {
 
   # Prerequisite --------
   # Load gold standard data
@@ -249,6 +291,21 @@ validate_submission <- function(path, js_def, lst_gs, pop_path) {
           "please see information above.")
    }
 
+   sample_js <- unique(purrr::map(purrr::map(js_def$model_tasks,
+                                             "output_type"), "sample"))
+   if (!all(is.null(sample_js))) {
+     sample_list <- purrr::map(sample_js, "output_type_id")
+     if (!all(is.null(unique(purrr::map(sample_list,
+                                        "samples_joint_across"))))) {
+       pairing_col <- unique(unlist(purrr::map(sample_list,
+                                               "samples_joint_across")))
+     } else {
+       pairing_col <- "horizon"
+     }
+   }
+
+   # Select the pairing columns
+
   # Extract week 0 or week -1 of observed data
   last_week_gs <-  lapply(lst_gs, function(x) {
     lastw_df <- dplyr::filter(x, time_value < as.Date(js_def$round_id) + 6) %>%
@@ -259,6 +316,8 @@ validate_submission <- function(path, js_def, lst_gs, pop_path) {
   # Run tests --------
    run_all_validation(df, path = path, pop = pop,
                      last_lst_gs = last_week_gs,
-                     number2location = number2location, js_def = js_def)
+                     number2location = number2location, js_def = js_def,
+                     merge_sample_col = merge_sample_col,
+                     pairing_col = pairing_col)
 }
 

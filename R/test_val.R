@@ -82,7 +82,8 @@ test_val <- function(df, pop, last_lst_gs, model_task) {
           sum_test_format <- as.numeric(sum_test_format)
         }
         if (isFALSE(all(unique(sum_test_format) %in%
-                        unique(unlist(x$output_type[[y]]$output_type_id))))) {
+                        unique(unlist(x$output_type[[y]]$output_type_id)))) &
+            y != "sample") {
           err_mess_id <- paste0(
             "\U000274c Error 5040: For the type '", y, "', the output_type_id ",
             "should correspond to: ",  paste(unique(unlist(

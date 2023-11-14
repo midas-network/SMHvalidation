@@ -45,11 +45,11 @@ In each section, the tests are describes with detailed information that
 should be provided in the json files inputted in the validation
 function. This information will be noted in each section.
 
-*Remarks:* After round 16 of COVID-19, the submission file format and
-js_def file format has been updated to follow the "hub infrastructure"
-format and to adapt to future rounds. The documentation is about the
-last version of the data. For previous version, please consult past
-version of the package (version 0.0.0.9).
+*Remarks:* After round 16 of COVID-19 (Jan 2023), the submission file format 
+and js_def file format has been updated to follow the 
+[Hubverse](https://hubdocs.readthedocs.io/en/latest/) format. 
+The documentation is about the last version of the data. For previous version, 
+please consult past version of the package (version 0.0.0.9).
 
 ### `Validate_submission()` function
 
@@ -74,6 +74,32 @@ To test a submission file, the function requires multiple parameters:
 -   `pop_path`: path to a table containing the population size of each
     geographical entities by FIPS (in a column "location") and by
     location name.
+    
+Optional parameter (only use for `"sample"` output type):
+
+In the Scenario Modeling Hub file format two possible format are used for the
+"sample" output type:
+
+(1) All the submissions for a specific round should follow the same format 
+with a predefined `output_type_id` column content. 
+
+(2) For a specific round, the hub collect the sample "pairing" (or
+joint distribution) information each team uses to generate the trajectories. In
+this case, the `output_type_id` column is set to `"NA"` for the `"sample"` 
+output type and the "pairing" information is collected into two columns: 
+`"run_grouping"` and `"stochastic_run"`. For more information on this format,
+please consult the 
+[RSV Scenario Modeling Hub](https://github.com/midas-network/rsv-scenario-modeling-hub) 
+
+To adapt to this format a parameter has been added to the validation function:
+
+-   `merge_sample_col`: Boolean to indicate if the for the output type 
+    `"sample"`, the output_type_id column is set to NA and the information is
+    contained into 2 columns: `"run_grouping"` and `"stochastic_run"`. 
+    By default, `FALSE`.
+
+These parameter is ignored is the submission does not contains `"sample"` 
+output type information.
 
 ##### `js_def` parameter:
 
@@ -95,10 +121,10 @@ It should contains information by rounds for:
 
     -   "output_types": Object defining valid model output types for a
         given modeling task. The name of each property corresponds to
-        valid values in column 'type' while the 'type_id' property of
-        each output type defines the valid values of the 'type_id'
-        column and the 'value' property defines the valid values of the
-        'value' column for a given output type.
+        valid values in column 'output_type' while the 'output_type_id' 
+        property of each output type defines the valid values of the 
+        'output_type_id' column and the 'value' property defines the 
+        valid values of the 'value' column for a given output type.
 
     -   "target_metadata": Array of objects containing metadata about
         each unique target, one object for each unique target value.
@@ -119,10 +145,15 @@ The function returns a message with:
 The name and number of the columns are corresponding to the expected
 format, for example:
 
-
-|origin_date|scenario_id|target|horizon|location|type|type_id|value|
+|origin_date|scenario_id|target|horizon|location|output_type|output_type_id|value|
 |:-----:|:-----:|:----:|:----:|:----:|:---:|:---:|:---:|
 |||||||||
+
+or 
+
+|origin_date|scenario_id|target|horizon|location|output_type|output_type_id|run_grouping|stochastic_run|value|
+|:-----:|:-----:|:----:|:----:|:----:|:---:|:---:|:---:|:---:|:---:|
+|||||||||||
 
 The order of the column is not important but it should contain the
 expected number of columns with each name correctly spelled.
@@ -171,8 +202,8 @@ information.
 
 ### Value and Types information (`test_val()`)
 
--   Each type/type_id/target/scenario/location/(age_group, etc.) group
-    combination has one unique value projected. For example: only 1
+-   Each output_type/output_type_id/target/scenario/location/(age_group, etc.) 
+    group combination has one unique value projected. For example: only 1
     value for quantile `0.5`, location `US`, target `inc hosp`, horizon
     `1` and, scenario `A`)
 
@@ -250,9 +281,7 @@ please feel free to ignore it.
     defined as `<AGEMIN>-<AGEMAX>`, <AGEMIN> cannot be equal or greater
     than <AGEMAX>.
 
--   The submission should either contain one age group `0-130` or
-    multiple age groups adding to `0-130` + the overall value for the
-    age group `0-130`.
+-   The submission should contain the expected `age_group`
 
 -   For the target requiring only specific age group(s), no additional
     age group is provided in the submission file. **If additional age
@@ -265,11 +294,18 @@ please feel free to ignore it.
 
 ### Samples information and value (`test_sample()`)
 
--   The column `type_id` for the type 'sample' rows should only contain
-    expected integer values.
+-   The column `output_type_id` for the type 'sample' rows should only contain
+    integer values.
+    
+-   The submission should contain a sample column with the expected number of 
+    trajectory for each scenario/target/location/horizon (age_group) group
 
--   The submission should contain a unique sample identifier for each
-    scenario/target/location/horizon (age_group) combination.
+-   The submission should at least contain a unique sample identifier 
+    by pairing group, for example if pairing_col = "horizon",
+    the sample identifier `1` should contain at least all the possible 
+    horizon value once, and optionally can contain the specific and multiple 
+    value for the other task id column (`origin_date`, `scenario`, `location`, 
+    `target`, `horizon`, (`age_group`, etc.))
 
 *Remarks:* These tests are only run if the submission contains a
 `sample` column.
@@ -294,31 +330,31 @@ please feel free to ignore it.
 |405 - **[Not implemented]**|Error|Run in `test_quantile()` function|For each group (origin_date, scenario_id, location, target, horizon (and other potential task_id variable), not all the quantile is equal to the same associated value (except if all equal to 0)|
 |406|Error|Run in `test_quantile()` function|For each group ( `origin_date`, `scenario_id`, `location`, `target`, `horizon` (and other potential `task_id` variable), all the required quantiles are present|
 |407|Error|Run in `test_quantile()` function|No additional quantile are provided in the projection file|
-|5040|Error|Run in `test_val()` function|The `type_id` column corresponds to the expected content and format for each type|
+|5040|Error|Run in `test_val()` function|The `output_type_id` column corresponds to the expected content and format for each type (not tested for `"sample"` output type)|
 |5041|Error|Run in `test_val()` function|All values have the expected value format (for example, numeric superior or equal at 0)|
 |5042|Error|Run in `test_val()` function|`NA `values are not accepted|
 |505|Warning|Run in `test_val()` function (except for location: `60`, `66`, `69`, `74`)|For each group of `location`, `target`, `scenario_id` (and `age_group`, etc. if necessary) , the value are not identical for the complete time series and for all types. For example, `0` for all quantile and complete time series for a specific scenario, location and target|
 |507|Warning|Run in `test_val()` function|The projected value is lower or equal to the population size of the associated geographical unit|
 |508|Error|Run in `test_val()` function|The projected value for the "cumulative case count" is equal or higher than the observed cumulative case count for the previous week (week 0) or previous past week (week - 1) (depending on availability) before projection starting date.|
 |509|Error|Run in `test_val()` function|The projected value for the "cumulative death count" is equal or higher than the observed cumulative death count for the previous week (week 0) or previous past week (week - 1) (depending on availability) before projection starting date.|
-|510|Error|Run in `test_val()` function|For each group of `task_id` column (`location`, `target`, `horizon`, `scenario_id`, etc.) and output type (`type`, `type_id`), no more than one value is associated|
-|511|Error|Run in `test_val()` function|For each group of `task_id` column exclusion of `horizon` (`location`, `target`, `scenario_id`, etc.) and output type (`type`, `type_id`) and only for the "cumulative" targets, the projected value are not decreasing with time|
+|510|Error|Run in `test_val()` function|For each group of `task_id` column (`location`, `target`, `horizon`, `scenario_id`, etc.) and output type (`output_type`, `output_type_id`), no more than one value is associated|
+|511|Error|Run in `test_val()` function|For each group of `task_id` column exclusion of `horizon` (`location`, `target`, `scenario_id`, etc.) and output type (`output_type`, `output_type_id`) and only for the "cumulative" targets, the projected value are not decreasing with time|
 |512|Error|Run in `test_val()` function|The submission file contains all the required output type (for example: `quantile`, etc.)|
 |513|Error or Warning|Run in `test_val()` function|For each `model_task` required target, the submission contains associated output information. For example, if `inc case` is required, the submission without `inc case` information will return an error. sA redundant warning might be issued in other output section|
 |601|Error|Run in `test_target()` function|All targets in the submission file are included in the round specification (no typo, no addition)|
 |602|Warning or Error|Run in `test_target()` function|For each `model_task` group, no target is missing in the submission file (warning for missing optional target, error for missing required target)|
 |605|Warning|Run in `test_target()` function|The number of weeks projected should be equal or higher than the required horizon|
 |606|Warning|Run in `test_target()` function|The number of weeks projected is not greater than the maximum number of weeks in the horizon specification (required and optional included)|
-|607|Error|Run in `test_target()` function|For each target qualified as `is_step_ahead` equal `TRUE`, the projected time series is not missing any weeks (complete time series) for each group of `task_id` columns (`location`, `target`, `scenario_id`, etc.) and by output type (`type`, `type_id`), exclusion of `horizon`|
+|607|Error|Run in `test_target()` function|For each target qualified as `is_step_ahead` equal `TRUE`, the projected time series is not missing any weeks (complete time series) for each group of `task_id` columns (`location`, `target`, `scenario_id`, etc.) and by output type (`output_type`, `output_type_id`), exclusion of `horizon`|
 |612|Error|Run in `test_target()` function|The projection contains `NA` value for all "horizon" for the target requiring no time series information.|
 |701|Error|Run in `test_location()` function|Each location code corresponds to the expected value.|
 |702|Warning|Run in `test_location()` function|The location code value is not missing any trailing 0.|
 |703|Error|Run in `test_location()` function|No required location is missing or no additional location is provided in the submission file per `model_task` target group|
 |801|Error|Run in `test_agegroup()` function|The submission should contain a column `age_group` with values defined as `<AGEMIN>-<AGEMAX>`|
 |802|Error|Run in `test_agegroup()` function|Each `age_group` value corresponds to the expected value (no missing required value and no additional value)|
-|901|Warning|Run in `test_sample()` function|The column `type_id` for the type 'sample' rows contains expected value (all required and possible optional value)|
-|902|Error|Run in `test_sample()` function|The submission should contain a unique sample identifier for each `task_id` group (`scenario_id`, `horizon`, `target`, `ocation`, `origin_date`, (`age_group`, etc.))|
-|903|Error|Run in `test_sample()` function|The column 'type_id' contains only integer value|
+|901|Warning|Run in `test_sample()` function|The column `output_type_id` for the type 'sample' rows contains the expected number of sample (all required and possible optional value)|
+|902|Error|Run in `test_sample()` function|The submission should at least contain a unique sample identifier by pairing group, for example if `pairing_col = "horizon"`, the sample identifier `1` should contain all the possible horizon value, and optionally can contain the specific and multiple value for the other task id column `location`, `target`, `scenario_id`, etc.)|
+|903|Error|Run in `test_sample()` function|The column `output_type_id` contains only integer value|
 |904|Error|Run in `test_sample()` function|For `model_task` with required target (not null) AND required sample, the submission contains sample information for the required targets|
 |001 - [Deprecated]|Error|Information extracted before running the validation, if any issue, stop and will not run the validation|`scen_info` parameter should either be: a path to a file containing the round and scenario information, or a data frame, or NULL. If NULL, the information will be automatically extracted from the Scenario Modeling Hub GitHub repository.|
 |002 - [Deprecated]|Error|Information extracted before running the validation, if any issue, stop and will not run the validation|Cannot extract round number information from the files, test that the file name contains the expected date and the scenario id column contains the expected information.|
@@ -336,7 +372,7 @@ please feel free to ignore it.
 |608 - [Deprecated]|Error|Run in `test_target()` function|The first week `target_end_date` corresponds to the expected value.|
 |609 - [Deprecated]|Error|Run in `test_target()` function|Each `target_end_date` corresponds to the expected value.|
 |610 - [Deprecated]|Warning|Run in `test_target()` function|Only for COVID-19 round 14, the value associated with the optional target `prop X` is between 0 and 1.|
-|611 - [Deprecated]|Warning|Run in `test_target()` function|Only for COVID-19 round 14, the value associated with the optional target `prop X` is noted with `quantile` = `NA` and `type` = `"point"`.|
+|611 - [Deprecated]|Warning|Run in `test_target()` function|Only for COVID-19 round 14, the value associated with the optional target `prop X` is noted with `quantile` = `NA` and `output_type` = `"point"`.|
 |803 - [Deprecated]|Error|Run in `test_agegroup()` function|`<AGEMIN>` cannot be equal or greater than `<AGEMAX>`|
 |804 - [Deprecated]|Error|Run in `test_agegroup()` function|The submission should at least contain one age group `0-130` for each scenario/target/location/quantile group|
 |805 - [Deprecated]|Warning|Run in `test_agegroup()` function|When multiple age groups are provided for the same scenario/target/location/quantile group, the multiple age groups are adding to `0-130|`
