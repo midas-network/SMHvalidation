@@ -10,13 +10,17 @@
 #'@param path character vector path of the file being tested
 #'@param id character date "id" of the corresponding round
 #'
-#'@details  This function contains 2 tests:
+#'@details  This function contains 3 tests:
 #'\itemize{
 #'  \item{Unique value: }{The `origin_date` column contains a unique
 #'  value.}
 #'  \item{Correspondance to the name of the file: }{The `origin_date`
 #'  column contains a unique date value matching the date in the name of the
 #'  submission file}
+#'  \tiem{Format: }{The `origin_date`
+#'  column contains a unique date value in either a character ("YYYY-MM-DD") or
+#'  a Date format. If the date is in a datetime format, a warning will be
+#'  returned}
 #'}
 #'
 #' Function called in the `validate_submission()` function.
@@ -36,6 +40,17 @@ test_origindate <- function(df, path, id) {
   } else {
     ordone_test <- NA
   }
+
+  # Test the column origin_date in not in Datetime format
+  if (any(c("POSIXt", "POSIXct", "POSIXlt") %in% class(vector_date))) {
+    ord_warn <- paste0(
+      "\U0001f7e1 Warning 305: 'origin_date' is in the datetime format (",
+      "include time, timezone). To avoid issue please use a  a character ",
+      "(`YYYY-MM-DD`) or a date format.")
+  } else {
+    ord_warn <- NA
+  }
+
   # The origin_date value should correspond to the name of the file
   if (isFALSE(all(as.Date(
     stringr::str_extract(
@@ -49,7 +64,7 @@ test_origindate <- function(df, path, id) {
     ordname_test <- NA
   }
 
-  ord_test <- na.omit(c(ordone_test, ordname_test))
+  ord_test <- na.omit(c(ordone_test, ordname_test, ord_warn))
   ord_test <- unique(ord_test)
   if (length(ord_test) == 0)
     ord_test  <- paste0("No errors or warnings found on the column ",
