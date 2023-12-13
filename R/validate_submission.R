@@ -39,6 +39,19 @@ run_all_validation <- function(df, path, pop, last_lst_gs,
   task_ids <- purrr::map(model_task, "task_ids")
   req_colnames <-  c(unique(names(unlist(task_ids, FALSE))),
                      "output_type", "output_type_id", "value")
+
+  # Test if any factor columns
+  if (any(sapply(colnames(df), function(x) is.factor(df[[x]])))) {
+    col_message <- paste0("\n",
+      "\U000274c Error 104: At least one column is in a format: 'factor', ",
+      "please verify")
+  } else {
+    col_message <- NULL
+  }
+  df <- dplyr::mutate_if(df, is.factor, as.character)
+
+  # Merge sample ID column
+  add_message <- NULL
   if (isTRUE(merge_sample_col)) {
     if (!(all(c(req_colnames, "run_grouping", "stochastic_run") %in%
               names(df)))) {
@@ -54,11 +67,10 @@ run_all_validation <- function(df, path, pop, last_lst_gs,
     }
     if (isFALSE(all(is.wholenumber(na.omit(df$run_grouping)))) |
         isFALSE(all(is.wholenumber(na.omit(df$stochastic_run))))) {
-      add_message <-  paste0(
+      err_message <-  paste0(
         "\U000274c Error 903: The column 'run_grouping' and 'stochastic_run' ",
         "should contain integer values only for type 'sample'. Please verify")
-    } else {
-      add_message <- NULL
+      add_message <- paste(add_message, err_message, sep = "\n")
     }
     df <- dplyr::mutate(
       df,
@@ -73,8 +85,6 @@ run_all_validation <- function(df, path, pop, last_lst_gs,
         " output type groups, please verify.\n")
     }
     df <- dplyr::select(df, -run_grouping, -stochastic_run)
-  } else {
-    add_message <- NULL
   }
 
   ### Tests:
@@ -122,7 +132,7 @@ run_all_validation <- function(df, path, pop, last_lst_gs,
 
   # Report:
   test_report <- paste(
-    "\n ## Columns: \n\n", paste(out_col, collapse = "\n"),
+    "\n ## Columns: \n\n", paste(out_col, col_message, collapse = "\n"),
     "\n\n## Scenarios: \n\n", paste(out_scen, collapse = "\n"),
     "\n\n## Origin Date Column:  \n\n", paste(out_ord, collapse = "\n"),
     "\n\n## Value and Type Columns: \n\n", paste(out_val, collapse = "\n"),
@@ -266,19 +276,18 @@ validate_submission <- function(path, js_def, lst_gs, pop_path,
   # Read file
   if (length(path) == 1 &
       all(grepl(".csv$|.zip$|.gz$|.pqt$|.parquet$", path))) {
-    df <- read_files(path) %>%
-      dplyr::mutate_if(is.factor, as.character)
+    df <- read_files(path)
   } else if (all(grepl("parquet$", path))) {
     ds <- arrow::open_dataset(path, format = "parquet")
     df <- dplyr::collect(ds)  %>%
       dplyr::mutate_if(is.factor, as.character)
   } else {
-    err003 <- paste0(
+    err005 <- paste0(
       "\U000274c Error 005: The file format of the submission was not ",
       "recognized, please use one unique files or multiple parquet file",
       ". For more information, please look at the documentation of the ",
       "hub. \n")
-    cat(err003)
+    cat(err005)
     stop(" The submission contains an issue, the validation was not run, ",
          "please see information above.")
   }

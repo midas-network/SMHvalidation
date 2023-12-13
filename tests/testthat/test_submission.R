@@ -30,7 +30,7 @@ test_that("Test validation process", {
   testthat::expect_equal(
     extract_err_code(validate_submission(
       "training_data/2022-01-09_addcol.pqt", js_def, lst_gs, pop_path)),
-    c("102"))
+    c("102", "104"))
   # File with "location" column renamed "fips"
   testthat::expect_equal(
     extract_err_code(validate_submission(
