@@ -20,13 +20,17 @@ to the projection start date of the round and also corresponds to the date
 in the name of the submission file.
 }
 \details{
-This function contains 2 tests:
+This function contains 3 tests:
 \itemize{
  \item{Unique value: }{The `origin_date` column contains a unique
  value.}
  \item{Correspondance to the name of the file: }{The `origin_date`
  column contains a unique date value matching the date in the name of the
  submission file}
+ \tiem{Format: }{The `origin_date`
+ column contains a unique date value in either a character ("YYYY-MM-DD") or
+ a Date format. If the date is in a datetime format, a warning will be
+ returned}
 }
 
 Function called in the `validate_submission()` function.
