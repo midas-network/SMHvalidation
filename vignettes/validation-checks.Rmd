@@ -320,10 +320,12 @@ please feel free to ignore it.
 |101|Error|Run in `test_column()` function|No column name is misspelled or does not correspond to the expected column names|
 |102|Error|Run in `test_column()` function|The data frame should contain the expected number of columns|
 |103|Error|Run in `test_column()` function, if error 101, if a column is missing, **stop and will not run the validation**|For the expected number of column, no column name is misspelled or does not correspond to the expected column names. An error will stop the rest of the validation.|The submission will also stop if a required column is missing|
+|104|Error|Run in internal function|No column is in a format: 'factor'|
 |202|Error|Run in `test_scenario()` function|The `scenario_id` values are correct (correspond to the optional and expected `scenario_id` format)|
 |204|Error|Run in `test_scenario()` function|All the required `scenario_id` are present in the submission file|
 |302|Error|Run in `test_origindate()` function|The `origin_date` value is unique|
 |303|Error|Run in `test_origindate()` function|The `origin_date` value is corresponding to the date in the name of the submission file|
+|304|Warning|Run in `test_origindate()` function|The `origin_date` is in a Date or character format ("YYYY-MM-DD"), not in a datetime format.|
 |401|Error|Run in `test_quantile()` function|For model_task with required target (not null) AND required quantile, the submission contains quantile information for the required targets|
 |402|Error|Run in `test_quantile()` function|No quantile is missing in the projection file|
 |403|Error|Run in `test_quantile()` function|For each group (`origin_date`, `scenario`, `location`, `target`, `horizon` (and other potential `task_id` variable), the associated value is equal or is increasing with the quantile value. For example, the value associated with the quantile `0.5` is less or equal to the value associated with the quantile `0.55`|
@@ -354,7 +356,7 @@ please feel free to ignore it.
 |802|Error|Run in `test_agegroup()` function|Each `age_group` value corresponds to the expected value (no missing required value and no additional value)|
 |901|Warning|Run in `test_sample()` function|The column `output_type_id` for the type 'sample' rows contains the expected number of sample (all required and possible optional value)|
 |902|Error|Run in `test_sample()` function|The submission should at least contain a unique sample identifier by pairing group, for example if `pairing_col = "horizon"`, the sample identifier `1` should contain all the possible horizon value, and optionally can contain the specific and multiple value for the other task id column `location`, `target`, `scenario_id`, etc.)|
-|903|Error|Run in `test_sample()` function|The column `output_type_id` contains only integer value|
+|903|Error|Run in internal function|The column `output_type_id` contains only integer value|
 |904|Error|Run in `test_sample()` function|For `model_task` with required target (not null) AND required sample, the submission contains sample information for the required targets|
 |001 - [Deprecated]|Error|Information extracted before running the validation, if any issue, stop and will not run the validation|`scen_info` parameter should either be: a path to a file containing the round and scenario information, or a data frame, or NULL. If NULL, the information will be automatically extracted from the Scenario Modeling Hub GitHub repository.|
 |002 - [Deprecated]|Error|Information extracted before running the validation, if any issue, stop and will not run the validation|Cannot extract round number information from the files, test that the file name contains the expected date and the scenario id column contains the expected information.|
