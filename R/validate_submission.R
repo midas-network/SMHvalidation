@@ -42,9 +42,8 @@ run_all_validation <- function(df, path, pop, last_lst_gs,
 
   # Test if any factor columns
   if (any(sapply(colnames(df), function(x) is.factor(df[[x]])))) {
-    col_message <- paste0("\n",
-      "\U000274c Error 104: At least one column is in a format: 'factor', ",
-      "please verify")
+    col_message <- paste0("\n\U000274c Error 104: At least one column is in a ",
+                          "format: 'factor', please verify")
   } else {
     col_message <- NULL
   }
@@ -54,35 +53,40 @@ run_all_validation <- function(df, path, pop, last_lst_gs,
   add_message <- NULL
   if (isTRUE(merge_sample_col)) {
     if (!(all(c(req_colnames, "run_grouping", "stochastic_run") %in%
-              names(df)))) {
+                names(df)))) {
       fail_col <- req_colnames[!req_colnames %in% names(df)]
-      colnames_test <- paste0(
-        "\U000274c Error 101: At least one column name is misspelled or does ",
-        "not correspond to the expected column names. The column(s) ",
-        paste(fail_col, collapse = ", "),
-        " do(es) not correspond to the standard")
+      colnames_test <-
+        paste0("\U000274c Error 101: At least one column name is misspelled or",
+               " does not correspond to the expected column names. The ",
+               "column(s) ", paste(fail_col, collapse = ", "),
+               " do(es) not correspond to the standard")
       cat(colnames_test)
       stop(" The submission contains an issue, the validation was not run, ",
            "please see information above.")
     }
-    if (isFALSE(all(is.wholenumber(na.omit(df$run_grouping)))) |
-        isFALSE(all(is.wholenumber(na.omit(df$stochastic_run))))) {
-      err_message <-  paste0(
-        "\U000274c Error 903: The column 'run_grouping' and 'stochastic_run' ",
-        "should contain integer values only for type 'sample'. Please verify")
+    if (isFALSE(all(is_wholenumber(na.omit(df$run_grouping)))) ||
+          isFALSE(all(is_wholenumber(na.omit(df$stochastic_run))))) {
+      err_message <-
+        paste0("\U000274c Error 903: The column 'run_grouping' and ",
+               "'stochastic_run' should contain integer values only for type ",
+               "'sample'. Please verify")
       add_message <- paste(add_message, err_message, sep = "\n")
     }
-    df <- dplyr::mutate(
-      df,
-      output_type_id = ifelse(
-        output_type == "sample",
-        as.numeric(as.factor(paste0(run_grouping, "-", stochastic_run))),
-        output_type_id))
+    df <-
+      dplyr::mutate(df,
+                    output_type_id = ifelse(output_type == "sample",
+                                            as.factor(paste0(run_grouping, "-",
+                                                             stochastic_run)),
+                                            output_type_id)) %>%
+      dplyr::mutate(output_type_id = ifelse(output_type == "sample",
+                                            as.numeric(output_type_id),
+                                            output_type_id))
     df_sample_id <- dplyr::filter(df, output_type == "sample")
     if (length(unique(df_sample_id$output_type_id)) <= 1) {
-      add_message <- paste0(add_message, "\n",
-        "\U000274c Error 902: The submission should contains multiple sample",
-        " output type groups, please verify.\n")
+      add_message <- paste0(add_message,
+                            "\n\U000274c Error 902: The submission should ",
+                            "contains multiple sample output type groups, ",
+                            "please verify.\n")
     }
     df <- dplyr::select(df, -run_grouping, -stochastic_run)
   }
@@ -94,10 +98,6 @@ run_all_validation <- function(df, path, pop, last_lst_gs,
   # select only required column for the other tests
   df <- df[, req_colnames]
 
-  #if (isFALSE(dim(df[!duplicated(df),])[1] == dim(df)[1])) {
-  #  warning("The submission file contains some duplicated row.")
-  #}
-
   # Test on Scenario information
   out_scen <- test_scenario(df, model_task)
 
@@ -105,14 +105,14 @@ run_all_validation <- function(df, path, pop, last_lst_gs,
   out_ord <- test_origindate(df, path, id = js_def$round_id)
 
   # Test by type
-  if (any(grepl("quantile", unlist(distinct(df[ ,"output_type", FALSE])))) |
-      any("quantile" %in% names(unlist(purrr::map(model_task, "output_type"),
-                                       FALSE)))) {
+  if (any(grepl("quantile", unlist(distinct(df[, "output_type", FALSE])))) ||
+        any("quantile" %in% names(unlist(purrr::map(model_task, "output_type"),
+                                         FALSE)))) {
     out_quant <- test_quantiles(df, model_task)
   }
-  if (any(grepl("sample", unlist(distinct(df[ ,"output_type", FALSE])))) |
-      any("sample" %in% names(unlist(purrr::map(model_task, "output_type"),
-                                     FALSE)))) {
+  if (any(grepl("sample", unlist(distinct(df[, "output_type", FALSE])))) ||
+        any("sample" %in% names(unlist(purrr::map(model_task, "output_type"),
+                                       FALSE)))) {
     out_sample <- test_sample(df, model_task, pairing_col = pairing_col)
   }
 
@@ -131,42 +131,39 @@ run_all_validation <- function(df, path, pop, last_lst_gs,
   }
 
   # Report:
-  test_report <- paste(
-    "\n ## Columns: \n\n", paste(out_col, col_message, collapse = "\n"),
-    "\n\n## Scenarios: \n\n", paste(out_scen, collapse = "\n"),
-    "\n\n## Origin Date Column:  \n\n", paste(out_ord, collapse = "\n"),
-    "\n\n## Value and Type Columns: \n\n", paste(out_val, collapse = "\n"),
-    "\n\n## Target Columns: \n\n", paste(out_target, collapse = "\n"),
-    "\n\n## Locations: \n\n", paste(out_loc, collapse = "\n"))
-  if (any(grepl("sample", unlist(distinct(df[ ,"output_type", FALSE])))) |
-      any("sample" %in% names(unlist(purrr::map(model_task, "output_type"),
-                                     FALSE))))  {
+  test_report <-
+    paste("\n ## Columns: \n", paste(out_col, col_message, collapse = "\n"),
+          "\n\n## Scenarios: \n", paste(out_scen, collapse = "\n"),
+          "\n\n## Origin Date Column:  \n", paste(out_ord, collapse = "\n"),
+          "\n\n## Value and Type Columns: \n", paste(out_val, collapse = "\n"),
+          "\n\n## Target Columns: \n", paste(out_target, collapse = "\n"),
+          "\n\n## Locations: \n", paste(out_loc, collapse = "\n"))
+  if (any(grepl("sample", unlist(distinct(df[, "output_type", FALSE])))) ||
+        any("sample" %in% names(unlist(purrr::map(model_task, "output_type"),
+                                       FALSE))))  {
     if (!is.null(add_message)) {
       if (any(grepl("No errors or warnings", out_sample))) {
-        test_report <- paste(
-          test_report, "\n\n## Sample: \n\n", paste(add_message,
-                                                    collapse = "\n"))
+        test_report <- paste(test_report, "\n\n## Sample: \n",
+                             paste(add_message, collapse = "\n"))
       } else {
-        test_report <- paste(
-          test_report, "\n\n## Sample: \n\n", paste(
-            add_message, out_sample, collapse = "\n"))
+        test_report <- paste(test_report, "\n\n## Sample: \n",
+                             paste(add_message, out_sample, collapse = "\n"))
       }
     } else {
-      test_report <- paste(
-        test_report, "\n\n## Sample: \n\n", paste(out_sample, collapse = "\n"))
+      test_report <- paste(test_report, "\n\n## Sample: \n",
+                           paste(out_sample, collapse = "\n"))
     }
 
   }
-  if (any(grepl("quantile", unlist(distinct(df[ ,"output_type", FALSE])))) |
-      any("quantile" %in% names(unlist(purrr::map(model_task, "output_type"),
-                                     FALSE))))  {
-    test_report <- paste(
-      test_report, "\n\n## Quantiles: \n\n", paste(out_quant, collapse = "\n"))
+  if (any(grepl("quantile", unlist(distinct(df[, "output_type", FALSE])))) ||
+        any("quantile" %in% names(unlist(purrr::map(model_task, "output_type"),
+                                         FALSE))))  {
+    test_report <- paste(test_report, "\n\n## Quantiles: \n",
+                         paste(out_quant, collapse = "\n"))
   }
   if (any(grepl("age_group", names(df)))) {
-    test_report <- paste(
-      test_report,
-      "\n\n## Age Group: \n\n", paste(out_agegroup, collapse = "\n"))
+    test_report <- paste(test_report, "\n\n## Age Group: \n",
+                         paste(out_agegroup, collapse = "\n"))
   }
   test_report <- paste0(test_report, "\n\n")
 
@@ -258,6 +255,7 @@ validate_submission <- function(path, js_def, lst_gs, pop_path,
     df_gs <- dplyr::mutate(lst_gs[[x]],
                            target_name = names(lst_gs[x])) %>%
       dplyr::select(time_value, value, location = fips, target_name)
+    return(df_gs)
   }) %>%
     setNames(names(lst_gs))
 
@@ -274,19 +272,19 @@ validate_submission <- function(path, js_def, lst_gs, pop_path,
 
   # Process file to test and associated information --------
   # Read file
-  if (length(path) == 1 &
-      all(grepl(".csv$|.zip$|.gz$|.pqt$|.parquet$", path))) {
+  if (length(path) == 1 &&
+        all(grepl(".csv$|.zip$|.gz$|.pqt$|.parquet$", path))) {
     df <- read_files(path)
   } else if (all(grepl("parquet$", path))) {
     ds <- arrow::open_dataset(path, format = "parquet")
     df <- dplyr::collect(ds)  %>%
       dplyr::mutate_if(is.factor, as.character)
   } else {
-    err005 <- paste0(
-      "\U000274c Error 005: The file format of the submission was not ",
-      "recognized, please use one unique files or multiple parquet file",
-      ". For more information, please look at the documentation of the ",
-      "hub. \n")
+    err005 <-
+      paste0("\U000274c Error 005: The file format of the submission was not ",
+             "recognized, please use one unique files or multiple parquet file",
+             ". For more information, please look at the documentation of the ",
+             "hub. \n")
     cat(err005)
     stop(" The submission contains an issue, the validation was not run, ",
          "please see information above.")
@@ -294,60 +292,58 @@ validate_submission <- function(path, js_def, lst_gs, pop_path,
 
   # test date format
   df <- as.data.frame(df)
-  if (any(is.na(as.Date(na.omit(unlist(dplyr::mutate_all(
-    dplyr::distinct(df[, grepl("date", names(df)), FALSE]), as.character))),
-    "%Y-%m-%d")))) {
-    err003 <- paste0(
-      "\U000274c Error 003: The columns containing date information should be
-      in a date format `YYYY-MM-DD`. Please verify \n")
+  test_date <- df[, grepl("date", names(df)), FALSE]
+  test_date <- unlist(dplyr::mutate_all(dplyr::distinct(test_date),
+                                        as.character))
+  if (any(is.na(as.Date(na.omit(test_date), "%Y-%m-%d")))) {
+    err003 <-
+      paste0("\U000274c Error 003: The columns containing date information ",
+             "should be in a date format `YYYY-MM-DD`. Please verify \n")
     cat(err003)
     stop(" The submission contains an issue, the validation was not run, ",
          "please see information above.")
   }
 
   # Select the associated round (add error message if no match)
-   team_round <- as.Date(df$origin_date[[1]])
-   js_date <- unique(as.Date(hubUtils::get_round_ids(js_def)))
-   if (team_round %in% js_date) {
-     js_def <- js_def$rounds[js_date %in% team_round]
-     js_def <- js_def[[1]]
-   } else {
-     err004 <- paste0(
-       "\U000274c Error 004: The origin_date in the submission file was not ",
-       "associated with any task_ids round. Please verify the date information",
-       " in the origin_date column corresponds to the expected value.\n")
-     cat(err004)
-     stop(" The submission contains an issue, the validation was not run, ",
-          "please see information above.")
-   }
+  team_round <- as.Date(df$origin_date[[1]])
+  js_date <- unique(as.Date(hubUtils::get_round_ids(js_def)))
+  if (team_round %in% js_date) {
+    js_def <- js_def$rounds[js_date %in% team_round]
+    js_def <- js_def[[1]]
+  } else {
+    err004 <-
+      paste0("\U000274c Error 004: The origin_date in the submission file was",
+             " not associated with any task_ids round. Please verify the date",
+             " information in the origin_date column corresponds to the ",
+             "expected value.\n")
+    cat(err004)
+    stop(" The submission contains an issue, the validation was not run, ",
+         "please see information above.")
+  }
 
-   sample_js <- unique(purrr::map(purrr::map(js_def$model_tasks,
-                                             "output_type"), "sample"))
-   if (!all(is.null(sample_js))) {
-     sample_list <- purrr::map(sample_js, "output_type_id")
-     if (!all(is.null(unique(purrr::map(sample_list,
-                                        "samples_joint_across"))))) {
-       pairing_col <- unique(unlist(purrr::map(sample_list,
-                                               "samples_joint_across")))
-     } else {
-       pairing_col <- "horizon"
-     }
-   }
-
-   # Select the pairing columns
-
+  sample_js <- unique(purrr::map(purrr::map(js_def$model_tasks,
+                                            "output_type"), "sample"))
+  if (!all(is.null(sample_js))) {
+    sample_list <- purrr::map(sample_js, "output_type_id")
+    if (!all(is.null(unique(purrr::map(sample_list,
+                                       "samples_joint_across"))))) {
+      pairing_col <- unique(unlist(purrr::map(sample_list,
+                                              "samples_joint_across")))
+    } else {
+      pairing_col <- "horizon"
+    }
+  }
   # Extract week 0 or week -1 of observed data
   last_week_gs <-  lapply(lst_gs, function(x) {
     lastw_df <- dplyr::filter(x, time_value < as.Date(js_def$round_id) + 6) %>%
       dplyr::filter(time_value == max(time_value)) %>%
       dplyr::select(last_value = value, location, target_name)
+    return(lastw_df)
   })
 
   # Run tests --------
-   run_all_validation(df, path = path, pop = pop,
-                     last_lst_gs = last_week_gs,
+  run_all_validation(df, path = path, pop = pop, last_lst_gs = last_week_gs,
                      number2location = number2location, js_def = js_def,
                      merge_sample_col = merge_sample_col,
                      pairing_col = pairing_col)
 }
-

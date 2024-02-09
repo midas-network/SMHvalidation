@@ -1,7 +1,7 @@
 git_path <- "https://raw.githubusercontent.com/midas-network/"
-smh_locs <- read.csv(paste0(
-  git_path,
-  "covid19-scenario-modeling-hub/master/data-locations/locations.csv"))
+smh_locs <- read.csv(paste0(git_path,
+                            "covid19-scenario-modeling-hub/master/",
+                            "data-locations/locations.csv"))
 number2location <- setNames(smh_locs$location_name, smh_locs$location)
 number2abbr <- setNames(smh_locs$abbreviation, smh_locs$location)
 

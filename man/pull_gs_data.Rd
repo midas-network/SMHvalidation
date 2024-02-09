@@ -33,22 +33,24 @@ for more information.
 * For the incidence numbers: use the `confirmed_incidence_num` and
   `deaths_incidence_num` signals from `jhu-csse` and
   `confirmed_admissions_covid_1d` from `hhs`. As the data are expressed per
-  day and the Scenario Modeling Hub use cumulative data by epiweek, the sum of
-  the incidences is calculated by epiweek and by location, and the values are
-  added between all states to obtains the US level data.
+  day and the Scenario Modeling Hub use cumulative data by epiweek, the sum
+  of the incidences is calculated by epiweek and by location, and the values
+  are added between all states to obtains the US level data.
 
 **Source data:**
 
 For case/death data, we use:
 \itemize{
-    \item{Link: }{\url{https://cmu-delphi.github.io/delphi-epidata/api/covidcast-signals/jhu-csse.html}}
+    \item{Link: }{\url{
+     https://cmu-delphi.github.io/delphi-epidata/api/covidcast-signals/jhu-csse.html}}
     \item{Signals: }{"deaths_cumulative_num", "confirmed_cumulative_num",
     "confirmed_incidence_num", "deaths_incidence_num" }
 }
 
 For hospitalization data, we use:
 \itemize{
-    \item{Link: }{\url{https://cmu-delphi.github.io/delphi-epidata/api/covidcast-signals/hhs.html}}
+    \item{Link: }{\url{
+     https://cmu-delphi.github.io/delphi-epidata/api/covidcast-signals/hhs.html}}
     \item{Signals: }{"confirmed_admissions_covid_1d"}
 }
 }

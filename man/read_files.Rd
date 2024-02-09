@@ -10,8 +10,8 @@ read_files(path)
 \item{path}{path of the files which the date are to be read from}
 }
 \description{
-Reads a file and output a data frame. The function can read files in CSV, ZIP,
-GZ and PQT format
+Reads a file and output a data frame. The function can read files in CSV,
+ ZIP, GZ and PQT format
 }
 \examples{
 \dontrun{

@@ -33,33 +33,32 @@ test_origindate <- function(df, path, id) {
   vector_date <- unique(unlist(df[, "origin_date", TRUE]))
   # Test the format of the column: should be an unique value
   if (isFALSE(length(vector_date) == 1)) {
-    ordone_test <- paste0(
-      "\U000274c Error 302: 'origin_date' should contains 1 unique ",
-      "date. The file contains multiple `origin_date' values: '",
-      paste(vector_date, collapse = ", "), "'.")
+    ordone_test <-
+      paste0("\U000274c Error 302: 'origin_date' should contains 1 unique ",
+             "date. The file contains multiple `origin_date' values: '",
+             paste(vector_date, collapse = ", "), "'.")
   } else {
     ordone_test <- NA
   }
 
   # Test the column origin_date in not in Datetime format
   if (any(c("POSIXt", "POSIXct", "POSIXlt") %in% class(vector_date))) {
-    ord_warn <- paste0(
-      "\U0001f7e1 Warning 305: 'origin_date' is in the datetime format (",
-      "include time, timezone). To avoid issue please use a  a character ",
-      "(`YYYY-MM-DD`) or a date format.")
+    ord_warn <-
+      paste0("\U0001f7e1 Warning 305: 'origin_date' is in the datetime format ",
+             "(include time, timezone). To avoid issue please use a character ",
+             "(`YYYY-MM-DD`) or a date format.")
   } else {
     ord_warn <- NA
   }
 
   # The origin_date value should correspond to the name of the file
-  if (isFALSE(all(as.Date(
-    stringr::str_extract(
-      basename(path), "[[:digit:]]{4}-[[:digit:]]{2}-[[:digit:]]{2}")) ==
-    vector_date))) {
-    ordname_test <- paste0(
-      "\U000274c Error 303: 'origin_date' is not corresponding to ",
-      "the name in the file, the 'origin_date' date value and the ",
-      "date in the filename should correspond to: '", id, "'.")
+  date_pttr <- "[[:digit:]]{4}-[[:digit:]]{2}-[[:digit:]]{2}"
+  if (isFALSE(all(as.Date(stringr::str_extract(basename(path), date_pttr)) ==
+                    vector_date))) {
+    ordname_test <-
+      paste0("\U000274c Error 303: 'origin_date' is not corresponding to ",
+             "the name in the file, the 'origin_date' date value and the ",
+             "date in the filename should correspond to: '", id, "'.")
   } else {
     ordname_test <- NA
   }
@@ -69,6 +68,5 @@ test_origindate <- function(df, path, id) {
   if (length(ord_test) == 0)
     ord_test  <- paste0("No errors or warnings found on the column ",
                         "'origin_date'")
-
   return(ord_test)
 }
