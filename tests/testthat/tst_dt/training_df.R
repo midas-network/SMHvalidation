@@ -145,7 +145,7 @@ ak_base_df <- lapply(lst_df, function(x) {
                                  x[which(output_type_id == 0.5), "value"],
                                  value))
   sort_type_id <- sort(na.omit(unique(df$output_type_id)))
-  for (i in seq_length(length(sort_type_id))) {
+  for (i in seq_len(length(sort_type_id))) {
     if (is.na(df[which(df$output_type_id == sort_type_id[i]), "value"])) {
       if (sort_type_id[i] < 0.5 & sort_type_id[i] > 0) {
         df[which(df$output_type_id == sort_type_id[i]), "value"] <-
@@ -223,7 +223,7 @@ al_base_df <- lapply(lst_df, function(x) {
                                  x[which(output_type_id == 0.5), "value"],
                                  value))
   sort_type_id <- sort(na.omit(unique(df$output_type_id)))
-  for (i in seq_length(length(sort_type_id))) {
+  for (i in seq_len(length(sort_type_id))) {
     if (is.na(df[which(df$output_type_id == sort_type_id[i]), "value"])) {
       if (sort_type_id[i] < 0.5 & sort_type_id[i] > 0) {
         df[which(df$output_type_id == sort_type_id[i]), "value"] <-
@@ -506,7 +506,7 @@ us_base_df <- lapply(lst_df, function(x) {
                                  x[which(output_type_id == 0.5), "value"],
                                  value))
   sort_type_id <- sort(na.omit(unique(df$output_type_id)))
-  for (i in seq_length(length(sort_type_id))) {
+  for (i in seq_len(length(sort_type_id))) {
     if (is.na(df[which(df$output_type_id == sort_type_id[i]), "value"])) {
       if (sort_type_id[i] < 0.5 & sort_type_id[i] > 0) {
         df[which(df$output_type_id == sort_type_id[i]), "value"] <-
