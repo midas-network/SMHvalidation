@@ -109,7 +109,7 @@ test_location <- function(df, number2location, model_task) {
                      "information for the location(s): ",
                      paste(req_loc,  collapse = ", "), " (required)",
                      opt_loc_text, ", for the target(s): ",
-                     paste(unique(unlist(x$target)), collapse = ", "),
+                     paste(unique(unlist(x$task_ids$target)), collapse = ", "),
                      ". The data frame contains other locations (", loc_mess,
                      "), please verify.")
           } else {
@@ -121,7 +121,7 @@ test_location <- function(df, number2location, model_task) {
           loc_test <-
             paste0("\U000274c Error 703: No location should be associated with",
                    " the targets: ",
-                   paste(unique(unlist(x$target)), collapse = ", "),
+                   paste(unique(unlist(x$task_ids$target)), collapse = ", "),
                    ". please verify.")
         } else {
           loc_test <- NA
