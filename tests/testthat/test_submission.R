@@ -50,8 +50,8 @@ test_that("Test validation process", {
                                           js_def, lst_gs, pop_path)),
                c("302", "303", "607"))
   # File with incorrect origin date column value (unique value: 2922 instead of
-  # 2022)
-  expect_equal(err_cd(validate_submission("tst_dt/2022-01-09_mpd_error.csv",
+  # 2022) and filename
+  expect_equal(err_cd(validate_submission("tst_dt/2922-01-09_mpd_error.csv",
                                           js_def, lst_gs, pop_path)), c("004"))
   # File with incorrect origin date column format (DD/MM/YYYY instead of
   # YYYY-MM-DD)

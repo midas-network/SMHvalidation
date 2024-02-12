@@ -279,7 +279,7 @@ write.csv(base_df %>%
 write.csv(base_df %>%
             filter(location == "US") %>%
             mutate(origin_date = as.Date("2922-01-09")),
-          "tests/testthat/tst_dt/2022-01-09_mpd_error.csv", row.names = FALSE)
+          "tests/testthat/tst_dt/2922-01-09_mpd_error.csv", row.names = FALSE)
 write.csv(base_df %>%
             filter(location == "US") %>%
             mutate(origin_date = "01/09/2022"),

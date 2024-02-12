@@ -305,7 +305,9 @@ validate_submission <- function(path, js_def, lst_gs, pop_path,
   }
 
   # Select the associated round (add error message if no match)
-  team_round <- as.Date(df$origin_date[[1]])
+  team_round <- as.Date(stringr::str_extract(basename(path),
+                                             "\\d{4}-\\d{2}-\\d{2}"))
+  team_round <- unique(team_round)
   js_date <- unique(as.Date(hubUtils::get_round_ids(js_def)))
   if (team_round %in% js_date) {
     js_def <- js_def$rounds[js_date %in% team_round]
