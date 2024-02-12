@@ -77,9 +77,6 @@ run_all_validation <- function(df, path, pop, last_lst_gs,
                     output_type_id = ifelse(output_type == "sample",
                                             as.factor(paste0(run_grouping, "-",
                                                              stochastic_run)),
-                                            output_type_id)) %>%
-      dplyr::mutate(output_type_id = ifelse(output_type == "sample",
-                                            as.numeric(output_type_id),
                                             output_type_id))
     df_sample_id <- dplyr::filter(df, output_type == "sample")
     if (length(unique(df_sample_id$output_type_id)) <= 1) {
@@ -102,7 +99,9 @@ run_all_validation <- function(df, path, pop, last_lst_gs,
   out_scen <- test_scenario(df, model_task)
 
   # Test origin date information
-  out_ord <- test_origindate(df, path, id = js_def$round_id)
+  date_id <- unique(unlist(purrr::map(purrr::map(model_task, "task_ids"),
+                                      "origin_date")))
+  out_ord <- test_origindate(df, path, id = date_id)
 
   # Test by type
   if (any(grepl("quantile", unlist(distinct(df[, "output_type", FALSE])))) ||

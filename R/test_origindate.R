@@ -52,13 +52,11 @@ test_origindate <- function(df, path, id) {
   }
 
   # The origin_date value should correspond to the name of the file
-  date_pttr <- "[[:digit:]]{4}-[[:digit:]]{2}-[[:digit:]]{2}"
-  if (isFALSE(all(as.Date(stringr::str_extract(basename(path), date_pttr)) ==
-                    vector_date))) {
+  if (isFALSE(all(as.Date(id) == as.Date(vector_date)))) {
     ordname_test <-
       paste0("\U000274c Error 303: 'origin_date' is not corresponding to ",
-             "the name in the file, the 'origin_date' date value and the ",
-             "date in the filename should correspond to: '", id, "'.")
+             "the expected value, the 'origin_date' date value ",
+             "should correspond to: '", id, "'.")
   } else {
     ordname_test <- NA
   }
