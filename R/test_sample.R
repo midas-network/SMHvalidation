@@ -34,9 +34,19 @@ test_sample <- function(df, model_task, pairing_col = "horizon") {
   test_sample <- lapply(model_task, function(x) {
     if ("sample" %in% names(x$output_type)) {
       # prerequisite
-      df_sample <- data.table::data.table(df)
-      df_sample <- df_sample[output_type == "sample" &
-                               target %in% unique(unlist(x$task_ids$target))]
+      df_sample <- data.table::data.table(df) %>%
+        dplyr::mutate(origin_date = as.Date(origin_date))
+      tasks_list <- setNames(lapply(names(x$task_ids),
+                                    function(z) unique(unlist(x$task_id[[z]]))),
+                             names(x$task_ids))
+      test_df <- expand.grid(tasks_list) %>%
+        dplyr::mutate_if(is.factor, as.character) %>%
+        dplyr::mutate(origin_date = as.Date(origin_date))
+      test_df$sel <- 1
+      df_sample <- dplyr::left_join(df_sample, test_df,
+                                    by = names(tasks_list)) %>%
+        dplyr::filter(sel == 1, output_type == "sample") %>%
+        dplyr::select(-sel)
       vector_sample <- unlist(unique(df_sample[, output_type_id]))
       task_ids <- x$task_ids
       # - sample column should be an integer

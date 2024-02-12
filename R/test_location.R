@@ -52,22 +52,29 @@ test_location <- function(df, number2location, model_task) {
   }
 
   #- targets with specific location does not contains additional location
-  loc_test <- lapply(model_task, function(x) {
-    # Prerequisite
-    req_loc <- x$task_ids$location$required
-    opt_loc <- x$task_ids$location$optional
-    df_test <- data.table::data.table(df)[target %in%
-                                            unique(unlist(x$task_ids$target)) &
-                                            output_type %in%
-                                              names(x$output_type)]
+  targ_list <- purrr::map(model_task, list("task_ids", "target"))
+  req_target <- unique(unlist(purrr::map(targ_list, "required")))
+  opt_target <- unique(unlist(purrr::map(targ_list, "optional")))
+  loc_test <- lapply(c(req_target, opt_target), function(x) {
+    test_task <- model_task[unlist(purrr::map(targ_list,
+                                              function(y) any(grepl(x, y))))]
+    loc_list <- purrr::map(test_task, list("task_ids", "location"))
+    req_loc <- unique(unlist(purrr::map(loc_list, "required")))
+    opt_loc <- unique(unlist(purrr::map(loc_list, "optional")))
+    outpt_type <- unique(names(unlist(purrr::map(test_task, "output_type"),
+                                      FALSE)))
+    df_test <- data.table::data.table(df)[(target %in% x) &
+                                            (output_type %in% outpt_type)]
     if (any(nchar(df_test$location) == 1)) {
       df_test$location[which(nchar(df_test$location) == 1)] <-
         paste0(0, df_test$location[which(nchar(df_test$location) == 1)])
     }
 
     if (dim(df_test)[1] > 0) {
+      # If at least one location expected
       if (isFALSE(all(is.null(c(req_loc, opt_loc))))) {
-        if (all(is.null(req_loc)) & !is.null(opt_loc)) {
+        # If all location optional
+        if (all(is.null(req_loc) & !is.null(opt_loc))) {
           if (isFALSE(all(unique(df_test$location) %in% opt_loc))) {
             loc_mess <-
               paste(unique(df_test$location)[!unique(df_test$location) %in%
@@ -75,23 +82,24 @@ test_location <- function(df, number2location, model_task) {
             loc_test <-
               paste0("\U000274c Error 703: The submission should ",
                      "only contain information for the location(s): ",
-                     paste(opt_loc, collapse = ", "), ", for the target(s): ",
-                     paste(unique(unlist(x$task_ids$target)), collapse = ", "),
-                     ". The data frame contains other locations (", loc_mess,
+                     paste(opt_loc, collapse = ", "), ", for the target: ",
+                     x, ". The data frame contains other locations (", loc_mess,
                      "), please verify.")
           } else {
             loc_test <- NA
           }
+          # If not all location optional
         } else {
+          # if all required location contains in the data frame
           if (isFALSE(all(req_loc %in% unique(df_test$location)))) {
             loc_test <-
               paste0("\U000274c Error 703: The submission should contain ",
                      "information for the location(s): ",
-                     paste(req_loc, collapse = ", "), ", for the target(s): ",
-                     paste(unique(unlist(x$task_ids$target)), collapse = ", "),
-                     ". The data frame is missing: ",
+                     paste(req_loc, collapse = ", "), ", for the target: ",
+                     x, ". The data frame is missing: ",
                      paste(req_loc[!req_loc %in% unique(df_test$location)],
                            collapse = ", "), ", please verify.")
+            # if all location in optional and required
           } else if (isFALSE(all(unique(df_test$location) %in%
                                    c(opt_loc, req_loc)))) {
             if (is.null(opt_loc)) {
@@ -108,8 +116,7 @@ test_location <- function(df, number2location, model_task) {
               paste0("\U000274c Error 703: The submission should only contain ",
                      "information for the location(s): ",
                      paste(req_loc,  collapse = ", "), " (required)",
-                     opt_loc_text, ", for the target(s): ",
-                     paste(unique(unlist(x$task_ids$target)), collapse = ", "),
+                     opt_loc_text, ", for the target: ", x,
                      ". The data frame contains other locations (", loc_mess,
                      "), please verify.")
           } else {
@@ -117,12 +124,10 @@ test_location <- function(df, number2location, model_task) {
           }
         }
       } else {
-        if (!all(is.na(df_test))) {
+        if (!all(is.na(df_test$location))) {
           loc_test <-
             paste0("\U000274c Error 703: No location should be associated with",
-                   " the targets: ",
-                   paste(unique(unlist(x$task_ids$target)), collapse = ", "),
-                   ". please verify.")
+                   " the target: ", x, ". please verify.")
         } else {
           loc_test <- NA
         }
