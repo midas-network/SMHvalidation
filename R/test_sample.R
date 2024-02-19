@@ -36,6 +36,10 @@ test_sample <- function(df, model_task, pairing_col = "horizon") {
       # prerequisite
       df_sample <- data.table::data.table(df) %>%
         dplyr::mutate(origin_date = as.Date(origin_date))
+      if (any(nchar(df_sample$location) == 1)) {
+        df_sample$location[which(nchar(df_sample$location) == 1)] <-
+          paste0(0, df_sample$location[which(nchar(df_sample$location) == 1)])
+      }
       tasks_list <- setNames(lapply(names(x$task_ids),
                                     function(z) unique(unlist(x$task_id[[z]]))),
                              names(x$task_ids))
@@ -82,7 +86,7 @@ test_sample <- function(df, model_task, pairing_col = "horizon") {
 
         if (length(n_sample) > 1) {
           sample_value <-
-            paste0("\U0001f7e1 Error 904: All the groups should contains the ",
+            paste0("\U000274c Error 904: All the groups should contains the ",
                    "same number of trajectories per group. Please verify.")
         } else if (n_sample != max(exp_sample)) {
           if (n_sample < max(as.numeric(req_sample_max))) {

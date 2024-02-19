@@ -1,3 +1,84 @@
+
+merge_sample_id <- function(df, req_colnames, add_message = NULL) {
+  if (!(all(c(req_colnames, "run_grouping", "stochastic_run") %in%
+              names(df)))) {
+    fail_col <- req_colnames[!req_colnames %in% names(df)]
+    colnames_test <-
+      paste0("\U000274c Error 101: At least one column name is misspelled or",
+             " does not correspond to the expected column names. The ",
+             "column(s) ", paste(fail_col, collapse = ", "),
+             " do(es) not correspond to the standard")
+    cat(colnames_test)
+    stop(" The submission contains an issue, the validation was not run, ",
+         "please see information above.")
+  }
+  if (isFALSE(all(is_wholenumber(na.omit(df$run_grouping)))) ||
+        isFALSE(all(is_wholenumber(na.omit(df$stochastic_run))))) {
+    err_message <-
+      paste0("\U000274c Error 903: The column 'run_grouping' and ",
+             "'stochastic_run' should contain integer values only for type ",
+             "'sample'. Please verify")
+    add_message <- paste(add_message, err_message, sep = "\n")
+  }
+  df <-
+    dplyr::mutate(df,
+                  output_type_id = ifelse(output_type == "sample",
+                                          as.factor(paste0(run_grouping, "-",
+                                                           stochastic_run)),
+                                          output_type_id))
+  df_sample_id <- dplyr::filter(df, output_type == "sample")
+  if (length(unique(df_sample_id$output_type_id)) <= 1) {
+    add_message <- paste0(add_message,
+                          "\n\U000274c Error 902: The submission should ",
+                          "contains multiple sample output type groups, ",
+                          "please verify.\n")
+  }
+  df <- dplyr::select(df, -run_grouping, -stochastic_run)
+  return(list("df" = df,
+              "add_message" = add_message))
+}
+
+create_report <- function(df, model_task, col_message, out_col, out_scen,
+                          out_ord, out_val, out_target, out_loc, out_sample,
+                          out_quant, out_agegroup, add_message = NULL) {
+  test_report <-
+    paste("\n ## Columns: \n", paste(out_col, col_message, collapse = "\n"),
+          "\n\n## Scenarios: \n", paste(out_scen, collapse = "\n"),
+          "\n\n## Origin Date Column:  \n", paste(out_ord, collapse = "\n"),
+          "\n\n## Value and Type Columns: \n", paste(out_val, collapse = "\n"),
+          "\n\n## Target Columns: \n", paste(out_target, collapse = "\n"),
+          "\n\n## Locations: \n", paste(out_loc, collapse = "\n"))
+  if (any(grepl("sample", unlist(distinct(df[, "output_type", FALSE])))) ||
+        any("sample" %in% names(unlist(purrr::map(model_task, "output_type"),
+                                       FALSE))))  {
+    if (!is.null(add_message)) {
+      if (any(grepl("No errors or warnings", out_sample))) {
+        test_report <- paste(test_report, "\n\n## Sample: \n",
+                             paste(add_message, collapse = "\n"))
+      } else {
+        test_report <- paste(test_report, "\n\n## Sample: \n",
+                             paste(add_message, out_sample, collapse = "\n"))
+      }
+    } else {
+      test_report <- paste(test_report, "\n\n## Sample: \n",
+                           paste(out_sample, collapse = "\n"))
+    }
+
+  }
+  if (any(grepl("quantile", unlist(distinct(df[, "output_type", FALSE])))) ||
+        any("quantile" %in% names(unlist(purrr::map(model_task, "output_type"),
+                                         FALSE))))  {
+    test_report <- paste(test_report, "\n\n## Quantiles: \n",
+                         paste(out_quant, collapse = "\n"))
+  }
+  if (any(grepl("age_group", names(df)))) {
+    test_report <- paste(test_report, "\n\n## Age Group: \n",
+                         paste(out_agegroup, collapse = "\n"))
+  }
+  test_report <- paste0(test_report, "\n\n")
+  return(test_report)
+}
+
 #' Run all validation checks and output a report
 #'
 #' Runs all the different validation checks functions (test_column,
@@ -50,42 +131,12 @@ run_all_validation <- function(df, path, pop, last_lst_gs,
   df <- dplyr::mutate_if(df, is.factor, as.character)
 
   # Merge sample ID column
-  add_message <- NULL
   if (isTRUE(merge_sample_col)) {
-    if (!(all(c(req_colnames, "run_grouping", "stochastic_run") %in%
-                names(df)))) {
-      fail_col <- req_colnames[!req_colnames %in% names(df)]
-      colnames_test <-
-        paste0("\U000274c Error 101: At least one column name is misspelled or",
-               " does not correspond to the expected column names. The ",
-               "column(s) ", paste(fail_col, collapse = ", "),
-               " do(es) not correspond to the standard")
-      cat(colnames_test)
-      stop(" The submission contains an issue, the validation was not run, ",
-           "please see information above.")
-    }
-    if (isFALSE(all(is_wholenumber(na.omit(df$run_grouping)))) ||
-          isFALSE(all(is_wholenumber(na.omit(df$stochastic_run))))) {
-      err_message <-
-        paste0("\U000274c Error 903: The column 'run_grouping' and ",
-               "'stochastic_run' should contain integer values only for type ",
-               "'sample'. Please verify")
-      add_message <- paste(add_message, err_message, sep = "\n")
-    }
-    df <-
-      dplyr::mutate(df,
-                    output_type_id = ifelse(output_type == "sample",
-                                            as.factor(paste0(run_grouping, "-",
-                                                             stochastic_run)),
-                                            output_type_id))
-    df_sample_id <- dplyr::filter(df, output_type == "sample")
-    if (length(unique(df_sample_id$output_type_id)) <= 1) {
-      add_message <- paste0(add_message,
-                            "\n\U000274c Error 902: The submission should ",
-                            "contains multiple sample output type groups, ",
-                            "please verify.\n")
-    }
-    df <- dplyr::select(df, -run_grouping, -stochastic_run)
+    sample_update <- merge_sample_id(df, req_colnames, add_message = NULL)
+    df <- sample_update[["df"]]
+    add_message <- sample_update[["add_message"]]
+  } else {
+    add_message <- NULL
   }
 
   ### Tests:
@@ -130,41 +181,10 @@ run_all_validation <- function(df, path, pop, last_lst_gs,
   }
 
   # Report:
-  test_report <-
-    paste("\n ## Columns: \n", paste(out_col, col_message, collapse = "\n"),
-          "\n\n## Scenarios: \n", paste(out_scen, collapse = "\n"),
-          "\n\n## Origin Date Column:  \n", paste(out_ord, collapse = "\n"),
-          "\n\n## Value and Type Columns: \n", paste(out_val, collapse = "\n"),
-          "\n\n## Target Columns: \n", paste(out_target, collapse = "\n"),
-          "\n\n## Locations: \n", paste(out_loc, collapse = "\n"))
-  if (any(grepl("sample", unlist(distinct(df[, "output_type", FALSE])))) ||
-        any("sample" %in% names(unlist(purrr::map(model_task, "output_type"),
-                                       FALSE))))  {
-    if (!is.null(add_message)) {
-      if (any(grepl("No errors or warnings", out_sample))) {
-        test_report <- paste(test_report, "\n\n## Sample: \n",
-                             paste(add_message, collapse = "\n"))
-      } else {
-        test_report <- paste(test_report, "\n\n## Sample: \n",
-                             paste(add_message, out_sample, collapse = "\n"))
-      }
-    } else {
-      test_report <- paste(test_report, "\n\n## Sample: \n",
-                           paste(out_sample, collapse = "\n"))
-    }
-
-  }
-  if (any(grepl("quantile", unlist(distinct(df[, "output_type", FALSE])))) ||
-        any("quantile" %in% names(unlist(purrr::map(model_task, "output_type"),
-                                         FALSE))))  {
-    test_report <- paste(test_report, "\n\n## Quantiles: \n",
-                         paste(out_quant, collapse = "\n"))
-  }
-  if (any(grepl("age_group", names(df)))) {
-    test_report <- paste(test_report, "\n\n## Age Group: \n",
-                         paste(out_agegroup, collapse = "\n"))
-  }
-  test_report <- paste0(test_report, "\n\n")
+  test_report <- create_report(df, model_task, col_message, out_col, out_scen,
+                               out_ord, out_val, out_target, out_loc,
+                               out_sample, out_quant, out_agegroup,
+                               add_message = add_message)
 
   # Output:
   if (any(grepl("\\\U000274c Error|\\\U0001f7e1 Warning", test_report))) {

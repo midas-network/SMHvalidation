@@ -1,3 +1,208 @@
+#' Validate `value` format column
+#'
+#' Validate that all the required type output are present in the submission
+#' file and all `value` have the expected format (for example, double greater
+#' than 0, etc.)
+#'
+#' @param df_test data frame to validate
+#' @param model_tasks list containing round information for each id columns
+#' and model output (type, format, etc.)
+#' @param outputtype vector of output type to validate
+#' @noRd
+#'
+value_format_test <- function(df_test, model_tasks, outputtype) {
+  # - all value are in the expected format and the column value does not
+  # contain any NA
+  format_test <- lapply(outputtype, function(y) {
+    sum_test_format <- df_test[output_type == y, output_type_id]
+    out_type <- unique(unlist(model_tasks$output_type[[y]]$output_type_id))
+    if (y %in% c("quantile", "sample")) {
+      sum_test_format <- as.numeric(sum_test_format)
+    }
+    if (isFALSE(all(unique(sum_test_format) %in% out_type)) & y != "sample") {
+      err_mess_id <-
+        paste0("\U000274c Error 5040: For the type '", y,  "', the ",
+               "output_type_id should correspond to: ", paste(out_type,
+                                                              collapse = ", "),
+               " at least one id is incorrect, please verify")
+    } else {
+      err_mess_id <- NA
+    }
+
+    value_format <- model_tasks$output_type[[y]]$value
+    valtype_test <- ifelse(value_format$type == "integer",
+                           all(is_wholenumber(df_test$value)),
+                           ifelse(value_format$type == "numeric",
+                                  all(is.numeric(df_test$value)),
+                                  ifelse(value_format$type == "double",
+                                         all(is.double(df_test$value)),
+                                         NA)))
+    if (isFALSE(valtype_test)) {
+      err_mess <- paste0("\U000274c Error 5041: All values should be '",
+                         value_format$type, "' the data frame contains ",
+                         "some error, please verify.")
+    } else {
+      err_mess <- NA
+    }
+    if (!is.null(value_format$minimum)) {
+      min_test <- all(df_test$value >= value_format$minimum)
+      if (isFALSE(min_test)) {
+        if (is.na(err_mess)) {
+          err_mess <-
+            paste0("\U000274c Error 5041: All values should be greater or",
+                   " equal to ", value_format$minimum,
+                   " the data frame contains some error, please verify.")
+        } else {
+          err_mess <- gsub(" the data frame",
+                           paste0(", greater or equal to ",
+                                  value_format$minimum, " the data frame"),
+                           err_mess)
+        }
+      }
+    }
+    if (!is.null(value_format$maximum)) {
+      max_test <- all(df_test$value <= value_format$maximum)
+      if (isFALSE(max_test)) {
+        if (is.na(err_mess)) {
+          err_mess <- paste0("\U000274c Error 5041: All values should be ",
+                             "less or equal to ", value_format$maximum,
+                             " the data frame contains some error, ",
+                             "please verify.")
+        } else {
+          err_mess <-
+            gsub(" the data frame",
+                 paste0(", less or equal to ", value_format$maximum,
+                        " the data frame"), err_mess)
+        }
+      }
+    }
+    return(c(err_mess, err_mess_id))
+  })
+  return(format_test)
+}
+
+
+#' Validate cumulative `value`
+#'
+#' Validate that all the cumulative projection are not lower than the
+#' provided cumulative value (start of the projection). An error of five
+#' percent is accepted.
+#'
+#' @param df_test data frame to validate
+#' @param last_lst_gs list of data frame, named with the corresponding target
+#'  and containing the last avaible week of observed data  before start of the
+#'  projection
+#'
+#' @noRd
+#' @importFrom dplyr filter left_join mutate distinct select
+#'
+cumul_value_test <- function(df_test, last_lst_gs) {
+  # - Cumulative value should not be lower than GS cumulative data
+  # (deaths; cases only)
+  cum_gs <- last_lst_gs[grepl("cumulative", names(last_lst_gs))]
+  ## Cases:
+  if (!is.null(cum_gs$confirmed_cumulative_num) &&
+        any("cum case" %in% df_test$target)) {
+    df_cum_case <- dplyr::filter(df_test, grepl("cum case", target))
+    test <- dplyr::left_join(df_cum_case, cum_gs$confirmed_cumulative_num,
+                             by = "location") %>%
+      dplyr::mutate(cum_test = ifelse((last_value - value) >
+                                        (last_value * 0.05), 1, 0)) %>%
+      dplyr::filter(cum_test > 0)
+
+    if (dim(test)[1] > 0) {
+      valcumcase_test <-
+        paste0("\U000274c Error 508: Some values are less than the last ",
+               "observed cumulative cases count. Please check location(s):",
+               " ", dplyr::distinct(dplyr::select(test, location)))
+    } else {
+      valcumcase_test <- NA
+    }
+  } else {
+    valcumcase_test <- NA
+  }
+  ## Deaths:
+  if (!is.null(cum_gs$deaths_cumulative_num)  &&
+        any("cum death" %in% df_test$target)) {
+    df_cum_death <- dplyr::filter(df_test, grepl("cum death", target))
+    test <- dplyr::left_join(df_cum_death, cum_gs$deaths_cumulative_num,
+                             by = "location") %>%
+      dplyr::mutate(cum_test = ifelse((last_value - value) >
+                                        (last_value * 0.05), 1, 0)) %>%
+      dplyr::filter(cum_test > 0)
+    if (dim(test)[1] > 0) {
+      valcumdeath_test <-
+        paste0("\U000274c Error 509: Some values are less than the last ",
+               "observed cumulative deaths count. Please check location(s)",
+               ", ", dplyr::distinct(dplyr::select(test, location)))
+    } else {
+      valcumdeath_test <- NA
+    }
+  } else {
+    valcumdeath_test <- NA
+  }
+  return(list(valcumcase_test, valcumdeath_test))
+}
+
+
+#' Validate cumulative `value` is not decreasing
+#'
+#' Validate that all the cumulative projection are not decreasing with time
+#' for the same task id group
+#'
+#' @param df_test data frame to validate
+#' @param target_sel vector of name of target name containing cumulative
+#'  projections
+#' @param outputtype vector of output type to validate
+#'
+#' @noRd
+#' @importFrom data.table shift
+#' @importFrom dplyr select distinct everything
+#' @importFrom tidyr unite
+#' @importFrom purrr map
+#'
+cumul_decrease_test <- function(df_test, target_sel, outputtype) {
+  if (length(target_sel) > 0) {
+    df_cum <- df_test[grepl(paste(target_sel, collapse = "|"), target)]
+    df_cum <- df_cum[order(df_cum, target, horizon)]
+    sel_group <- grep(paste0("value|target_end_date|model_projection_date",
+                             "|scenario_name|horizon"), names(df_cum),
+                      invert = TRUE, value = TRUE)
+    if (all(outputtype %in% "cdf")) {
+      sel_group <- grep("output_type_id", sel_group, value = TRUE,
+                        invert = TRUE)
+      df_cum <- df_cum[order(df_cum, target, horizon, output_type_id)]
+    }
+    df_cum[, diff := (value - data.table::shift(value, 1, type = "lag")),
+           by = sel_group]
+    df_cum <- df_cum[diff < 0]
+    if (dim(df_cum)[1] > 0) {
+      err_groups <- df_cum %>%
+        dplyr::select(-diff, -value) %>%
+        dplyr::distinct() %>%
+        tidyr::unite("group", dplyr::everything(), sep = ", ") %>%
+        unlist()
+      valcum_test <-
+        paste0("\U000274c Error 511: The cumulative values are decreasing,",
+               " please verify the group: ", err_groups)
+    } else {
+      valcum_test <- NA
+    }
+    if (length(na.omit(unlist(valcum_test))) > 100) {
+      valcum_test <-
+        paste0(unique(unlist(purrr::map(strsplit(valcum_test,
+                                                 "please verify "), 1))),
+               length(valcum_test), " unique groups have been identified ",
+               "with this issue. For example:\n",
+               paste(head(purrr::map(strsplit(valcum_test, "verify the "),
+                                     2), 3), collapse = ";\n"), "; \netc.")
+    }
+  } else {
+    valcum_test <- NA
+  }
+  return(valcum_test)
+}
+
 #' Runs Validation Checks on the Projection value and type point columns
 #'
 #' Validate Scenario Modeling Hub submissions: test if the
@@ -77,73 +282,7 @@ test_val <- function(df, pop, last_lst_gs, model_task) {
       }
       # - all value are in the expected format and the column value does not
       # contain any NA
-      format_test <- lapply(outputtype, function(y) {
-        sum_test_format <- df_test[output_type == y, output_type_id]
-        if (y %in% c("quantile", "sample")) {
-          sum_test_format <- as.numeric(sum_test_format)
-        }
-        if (isFALSE(all(unique(sum_test_format) %in%
-                          unique(unlist(x$output_type[[y]]$output_type_id)))) &
-              y != "sample") {
-          err_mess_id <-
-            paste0("\U000274c Error 5040: For the type '", y,
-                   "', the output_type_id should correspond to: ",
-                   paste(unique(unlist(x$output_type[[y]]$output_type_id)),
-                         collapse = ", "),
-                   " at least one id is incorrect, please verify")
-        } else {
-          err_mess_id <- NA
-        }
-
-        value_format <- x$output_type[[y]]$value
-        valtype_test <- ifelse(value_format$type == "integer",
-                               all(is_wholenumber(df_test$value)),
-                               ifelse(value_format$type == "numeric",
-                                      all(is.numeric(df_test$value)),
-                                      ifelse(value_format$type == "double",
-                                             all(is.double(df_test$value)),
-                                             NA)))
-        if (isFALSE(valtype_test)) {
-          err_mess <- paste0("\U000274c Error 5041: All values should be '",
-                             value_format$type, "' the data frame contains ",
-                             "some error, please verify.")
-        } else {
-          err_mess <- NA
-        }
-        if (!is.null(value_format$minimum)) {
-          min_test <- all(df_test$value >= value_format$minimum)
-          if (isFALSE(min_test)) {
-            if (is.na(err_mess)) {
-              err_mess <-
-                paste0("\U000274c Error 5041: All values should be greater or",
-                       " equal to ", value_format$minimum,
-                       " the data frame contains some error, please verify.")
-            } else {
-              err_mess <- gsub(" the data frame",
-                               paste0(", greater or equal to ",
-                                      value_format$minimum, " the data frame"),
-                               err_mess)
-            }
-          }
-        }
-        if (!is.null(value_format$maximum)) {
-          max_test <- all(df_test$value <= value_format$maximum)
-          if (isFALSE(max_test)) {
-            if (is.na(err_mess)) {
-              err_mess <- paste0("\U000274c Error 5041: All values should be ",
-                                 "less or equal to ", value_format$maximum,
-                                 " the data frame contains some error, ",
-                                 "please verify.")
-            } else {
-              err_mess <-
-                gsub(" the data frame",
-                     paste0(", less or equal to ", value_format$maximum,
-                            " the data frame"), err_mess)
-            }
-          }
-        }
-        return(c(err_mess, err_mess_id))
-      })
+      format_test <- value_format_test(df_test, x, outputtype)
       if (isTRUE(any(is.na(df_test$value)))) {
         df_test <- df_test[!is.na(value)]
         na_test <- paste0("\U000274c Error 5042: All values should be numeric,",
@@ -164,8 +303,8 @@ test_val <- function(df, pop, last_lst_gs, model_task) {
       df_loc <- df_loc[var == 0]
       if (dim(df_loc)[1] > 0) {
         err_groups <- df_loc %>%
-          dplyr::select(- var, - value, - output_type, - output_type_id,
-                        - horizon) %>%
+          dplyr::select(-var, -value, -output_type, -output_type_id,
+                        -horizon) %>%
           dplyr::distinct() %>%
           tidyr::unite("group", dplyr::everything(), sep = ", ") %>%
           unlist()
@@ -176,7 +315,7 @@ test_val <- function(df, pop, last_lst_gs, model_task) {
       } else {
         pointuniq_test <- NA
       }
-      if (length(na.omit(unlist(pointuniq_test))) > 100) {
+      if (length(na.omit(unlist(pointuniq_test))) > 100) { # nocov start
         pointuniq_test <-
           paste0(unique(unlist(purrr::map(strsplit(pointuniq_test,
                                                    "Please verify: "), 1))),
@@ -185,7 +324,7 @@ test_val <- function(df, pop, last_lst_gs, model_task) {
                  paste("group: ", head(purrr::map(strsplit(pointuniq_test,
                                                            "verify: "), 2), 3),
                        collapse = ";\n"), "; \netc.")
-      }
+      } # nocov end
 
       # - Value should be lower than population size
       test <- dplyr::left_join(df_test, pop, by = "location") %>%
@@ -196,12 +335,14 @@ test_val <- function(df, pop, last_lst_gs, model_task) {
           dplyr::distinct(dplyr::select(test, target, location_name,
                                         scenario_id,
                                         matches("quantile|sample")))
+        # nocov start
         if (dim(test)[1] > 100)
           test <- dplyr::distinct(dplyr::select(test, target, location_name,
                                                 scenario_id))
         if (dim(test)[1] > 100)
           test <- dplyr::distinct(dplyr::select(test, scenario_id,
                                                 location_name))
+        # nocov end
         pointpop_test <-
           paste0("\U0001f7e1 Warning 507: Some value(s) are greater than the ",
                  "population size. Please verify: ",
@@ -212,48 +353,7 @@ test_val <- function(df, pop, last_lst_gs, model_task) {
 
       # - Cumulative value should not be lower than GS cumulative data
       # (deaths; cases only)
-      cum_gs <- last_lst_gs[grepl("cumulative", names(last_lst_gs))]
-      ## Cases:
-      if (!is.null(cum_gs$confirmed_cumulative_num) &
-            any("cum case" %in% df_test$target)) {
-        df_cum_case <- dplyr::filter(df_test, grepl("cum case", target))
-        test <- dplyr::left_join(df_cum_case, cum_gs$confirmed_cumulative_num,
-                                 by = "location") %>%
-          dplyr::mutate(cum_test = ifelse((last_value - value) >
-                                            (last_value * 0.05), 1, 0)) %>%
-          dplyr::filter(cum_test > 0)
-
-        if (dim(test)[1] > 0) {
-          valcumcase_test <-
-            paste0("\U000274c Error 508: Some values are less than the last ",
-                   "observed cumulative cases count. Please check location(s):",
-                   " ", dplyr::distinct(dplyr::select(test, location)))
-        } else {
-          valcumcase_test <- NA
-        }
-      } else {
-        valcumcase_test <- NA
-      }
-      ## Deaths:
-      if (!is.null(cum_gs$deaths_cumulative_num)  &
-            any("cum death" %in% df_test$target)) {
-        df_cum_death <- dplyr::filter(df_test, grepl("cum death", target))
-        test <- dplyr::left_join(df_cum_death, cum_gs$deaths_cumulative_num,
-                                 by = "location") %>%
-          dplyr::mutate(cum_test = ifelse((last_value - value) >
-                                            (last_value * 0.05), 1, 0)) %>%
-          dplyr::filter(cum_test > 0)
-        if (dim(test)[1] > 0) {
-          valcumdeath_test <-
-            paste0("\U000274c Error 509: Some values are less than the last ",
-                   "observed cumulative deaths count. Please check location(s)",
-                   ", ", dplyr::distinct(dplyr::select(test, location)))
-        } else {
-          valcumdeath_test <- NA
-        }
-      } else {
-        valcumdeath_test <- NA
-      }
+      cumul_val_test <- cumul_value_test(df_test, last_lst_gs)
 
       # - unique projection for each combination
       sel_group <- grep("value|model_projection_date|scenario_name",
@@ -291,44 +391,7 @@ test_val <- function(df, pop, last_lst_gs, model_task) {
                    function(y) grepl("cumulative", y, ignore.case = TRUE))
       target_sel <-
         unique(unlist(purrr::map(targ_meta[unlist(trg_meta)], "target_id")))
-      if (length(target_sel) > 0) {
-        df_cum <- df_test[grepl(paste(target_sel, collapse = "|"), target)]
-        df_cum <- df_cum[order(df_cum, target, horizon)]
-        sel_group <- grep(paste0("value|target_end_date|model_projection_date",
-                                 "|scenario_name|horizon"), names(df_cum),
-                          invert = TRUE, value = TRUE)
-        if (all(outputtype %in% "cdf")) {
-          sel_group <- grep("output_type_id", sel_group, value = TRUE,
-                            invert = TRUE)
-          df_cum <- df_cum[order(df_cum, target, horizon, output_type_id)]
-        }
-        df_cum[, diff := (value - data.table::shift(value, 1, type = "lag")),
-               by = sel_group]
-        df_cum <- df_cum[diff < 0]
-        if (dim(df_cum)[1] > 0) {
-          err_groups <- df_cum %>%
-            dplyr::select(-diff, -value) %>%
-            dplyr::distinct() %>%
-            tidyr::unite("group", dplyr::everything(), sep = ", ") %>%
-            unlist()
-          valcum_test <-
-            paste0("\U000274c Error 511: The cumulative values are decreasing,",
-                   " please verify the group: ", err_groups)
-        } else {
-          valcum_test <- NA
-        }
-        if (length(na.omit(unlist(valcum_test))) > 100) {
-          valcum_test <-
-            paste0(unique(unlist(purrr::map(strsplit(valcum_test,
-                                                     "please verify "), 1))),
-                   length(valcum_test), " unique groups have been identified ",
-                   "with this issue. For example:\n",
-                   paste(head(purrr::map(strsplit(valcum_test, "verify the "),
-                                         2), 3), collapse = ";\n"), "; \netc.")
-        }
-      } else {
-        valcum_test <- NA
-      }
+      valcum_test <- cumul_decrease_test(df_test, target_sel, outputtype)
 
       # - required type(s) are present in the submission file
       if (!all(req_type %in% unique(df_test[, output_type]))) {
@@ -342,8 +405,9 @@ test_val <- function(df, pop, last_lst_gs, model_task) {
       }
 
       value_test <-  na.omit(c(type_test, unlist(format_test), na_test,
-                               pointuniq_test, pointpop_test, valcumcase_test,
-                               valcumdeath_test, valunique_test, valcum_test))
+                               pointuniq_test, pointpop_test,
+                               unlist(cumul_val_test), valunique_test,
+                               valcum_test))
     } else {
       value_test <- NA
     }

@@ -36,7 +36,7 @@ test_scenario <- function(df, model_task) {
         if (any(grepl("target : ", text_val))) {
           type_err <- "\U000274c Error "
         } else {
-          type_err <- "\U0001f7e1 Warning "
+          type_err <- "\U0001f7e1 Warning " # nocov
         }
         scen_test <-
           paste0(type_err,

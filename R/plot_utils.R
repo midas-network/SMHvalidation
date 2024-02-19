@@ -3,7 +3,7 @@
 #' @param lst_gs list of dataframe
 #' @param projection_date date
 #'
-#' @export
+#' @noRd
 #'
 #' @importFrom dplyr bind_rows mutate select
 #' @importFrom tidyr separate
@@ -33,6 +33,68 @@ format_gs_data <- function(lst_gs, projection_date) {
   return(gs_data)
 }
 
+#' Format tables
+#'
+#' Internal function to format outlier tables for validation report
+#'
+#' @param tab_data data frame
+#' @param metric character vector, metric
+#'
+#' @importFrom dplyr mutate across %>%
+#' @importFrom scales comma percent
+#' @importFrom tibble tibble
+#' @importFrom tidyselect all_of
+#' @noRd
+format_tables <- function(tab_data, metric, sel_group) {
+  tab_data <- tab_data %>%
+    dplyr::mutate(`ground truth` = scales::comma(`ground truth`, accuracy = 1))
+
+  if (grepl("prct|percent", metric)) {
+    tab_data <- tab_data %>%
+      dplyr::mutate(dplyr::across(tidyselect::all_of(sel_group),
+                                  ~ scales::percent(.x, accuracy = 1)))
+  } else if (grepl("ratio", metric)) {
+    tab_data <- tab_data %>%
+      dplyr::mutate(dplyr::across(tidyselect::all_of(sel_group),
+                                  ~ round(.x, 2)))
+  } else {
+    tab_data <- tab_data %>%
+      dplyr::mutate(dplyr::across(tidyselect::all_of(sel_group),
+                                  ~ scales::comma(.x, accuracy = 1)))
+  }
+
+  if (nrow(tab_data) == 0) {
+    tab_data <-
+      tibble::tibble(value = paste0("There are no projections in this category",
+                                    " for this submission. Well done!"))
+  }
+  return(tab_data)
+}
+
+
+#' Format - Highlight NA cells
+#'
+#' Internal function to format cells containing NA value
+#'
+#' @param tab_data data frame
+#'
+#' @importFrom tibble tibble
+#' @noRd
+na_cells <- function(tab_data, sel_group) {
+  # Cells to highlight
+  nas <- which(is.na(tab_data), arr.ind = TRUE)
+  if (nrow(nas) > 0) {
+    nas <- nas[which(nas[[2]] %in% which(names(tab_data) %in%
+                                           sel_group)), ]
+  }
+  if (nrow(nas) > 0 || is.null(nrow(nas))) {
+    nas <- tibble::tibble(row = nas[["row"]], col = nas[["col"]])
+    nas[[1]] <- nas[[1]] + 1
+
+  }
+  return(nas)
+}
+
 #' Print outlier tables for validation report
 #'
 #' @param data data frame
@@ -41,7 +103,7 @@ format_gs_data <- function(lst_gs, projection_date) {
 #' @param thresholds numeric vector, thresholds
 #' @param colors vector, colors
 #'
-#' @export
+#' @noRd
 #'
 #' @importFrom dplyr select filter mutate across
 #' @importFrom tidyr pivot_wider
@@ -60,6 +122,7 @@ print_table <- function(
     colors = c("red", "orange", "yellow", "orange")) {
 
   data <- data %>% filter(!is.na(scenario_id))
+  sel_group <- unique(data$scenario_id)
   # Format the table
   tab_data <- data %>%
     dplyr::select(scenario_id, state, outcome, `ground truth`,
@@ -67,17 +130,7 @@ print_table <- function(
     tidyr::pivot_wider(names_from = scenario_id, values_from = value)
 
   # Cells to highlight
-  nas <- which(is.na(tab_data), arr.ind = TRUE)
-  if (nrow(nas) > 0) {
-    nas <- nas[which(nas[[2]] %in% which(names(tab_data) %in%
-                                           unique(data$scenario_id))), ]
-  }
-
-  if (nrow(nas) > 0 || is.null(nrow(nas))) {
-    nas <- tibble(row = nas[["row"]],
-                  col = nas[["col"]])
-    nas[[1]] <- nas[[1]] + 1
-  }
+  nas <- na_cells(tab_data, sel_group)
 
   thresh_cols <- lapply(seq_along(thresholds),  function(x) {
     tmp <- which(tab_data >= thresholds[x] &
@@ -86,8 +139,7 @@ print_table <- function(
     tmp <- tibble::as_tibble(tmp)
 
     if (nrow(nas) > 0 & !is.null(nrow(nas))) {
-      tmp <- tmp[which(tmp$col %in%  which(names(tab_data) %in%
-                                             unique(data$scenario_id))), ]
+      tmp <- tmp[which(tmp$col %in%  which(names(tab_data) %in% sel_group)), ]
       tmp$row <- tmp$row + 1
     } else {
       tmp <- NA
@@ -96,28 +148,7 @@ print_table <- function(
   })
 
   # Format
-  tab_data <- tab_data %>%
-    dplyr::mutate(`ground truth` = scales::comma(`ground truth`, accuracy = 1))
-
-  if (grepl("prct|percent", metric)) {
-    tab_data <- tab_data %>%
-      dplyr::mutate(dplyr::across(tidyselect::all_of(unique(data$scenario_id)),
-                                  ~ scales::percent(.x, accuracy = 1)))
-  } else if (grepl("ratio", metric)) {
-    tab_data <- tab_data %>%
-      dplyr::mutate(dplyr::across(tidyselect::all_of(unique(data$scenario_id)),
-                                  ~ round(.x, 2)))
-  } else {
-    tab_data <- tab_data %>%
-      dplyr::mutate(dplyr::across(tidyselect::all_of(unique(data$scenario_is)),
-                                  ~ scales::comma(.x, accuracy = 1)))
-  }
-
-  if (nrow(tab_data) == 0) {
-    tab_data <-
-      tibble::tibble(value = paste0("There are no projections in this category",
-                                    " for this submission. Well done!"))
-  }
+  tab_data <- format_tables(tab_data, metric, sel_group)
 
   # Build the table
   tt <- gridExtra::ttheme_default(base_size = 10)
@@ -173,7 +204,7 @@ print_table <- function(
 #' @param legend_rows numeric, 1 by default
 #' @param y_sqrt boolean, FALSE by default
 #'
-#' @export
+#' @noRd
 #'
 #' @importFrom ggplot2 scale_y_sqrt scale_y_continuous aes ggplot geom_ribbon
 #' @importFrom ggplot2 geom_vline geom_point scale_x_date scale_color_viridis_d
@@ -251,7 +282,7 @@ plot_projections <- function(data, st, projection_date, legend_rows = 1,
 #'    correspond to the quantiles from the `proj_data` parameter)
 #' @param y_sqrt boolean, FALSE by default
 #'
-#' @export
+#' @noRd
 #'
 #' @importFrom dplyr filter mutate select rename arrange bind_rows left_join
 #' @importFrom dplyr full_join desc slice_head pull

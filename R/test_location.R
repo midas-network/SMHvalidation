@@ -104,10 +104,10 @@ test_location <- function(df, number2location, model_task) {
                                    c(opt_loc, req_loc)))) {
             if (is.null(opt_loc)) {
               opt_loc_text <- ""
-            } else {
+            } else { # nocov start
               opt_loc_text <- paste0(" and ", paste(opt_loc, collapse = ", "),
                                      " (optional)")
-            }
+            } # nocov end
             loc_mess <-
               paste(unique(df_test$location)[!unique(df_test$location) %in%
                                                c(opt_loc, req_loc)],

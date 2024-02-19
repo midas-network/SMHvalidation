@@ -107,7 +107,7 @@ test_quantiles <- function(df, model_task) {
         df_qval <- df_qval[diff < 0]
         if (dim(df_qval)[1] > 0) {
           err_groups <- df_qval %>%
-            dplyr::select(- diff, - value, - output_type, - output_type_id) %>%
+            dplyr::select(-diff, -value, -output_type, -output_type_id) %>%
             dplyr::distinct() %>%
             tidyr::unite("group", dplyr::everything(), sep = ", ") %>%
             unlist()
@@ -117,7 +117,7 @@ test_quantiles <- function(df, model_task) {
         } else {
           qval_test <- NA
         }
-        if (length(na.omit(unlist(qval_test))) > 100) {
+        if (length(na.omit(unlist(qval_test))) > 100) { # nocov start
           qval_test <-
             paste0(unique(unlist(purrr::map(strsplit(qval_test,
                                                      "please verify: "), 1))),
@@ -126,7 +126,7 @@ test_quantiles <- function(df, model_task) {
                    paste("group: ", head(purrr::map(strsplit(qval_test,
                                                              "verify: "), 2),
                                          3), collapse = ";\n"), "; \netc.")
-        }
+        } # nocov end
         quantiles_test <- na.omit(c(qvalues_test, qadd_test, qmissing_test,
                                     qval_test))
       } else {

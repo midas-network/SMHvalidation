@@ -41,17 +41,18 @@ for more information.
 
 For case/death data, we use:
 \itemize{
-    \item{Link: }{\url{
-     https://cmu-delphi.github.io/delphi-epidata/api/covidcast-signals/jhu-csse.html}}
-    \item{Signals: }{"deaths_cumulative_num", "confirmed_cumulative_num",
-    "confirmed_incidence_num", "deaths_incidence_num" }
+ \item{Link: }{\url{
+ https://cmu-delphi.github.io/delphi-epidata/api/covidcast-signals/
+ jhu-csse.html}}
+ \item{Signals: }{"deaths_cumulative_num", "confirmed_cumulative_num",
+ "confirmed_incidence_num", "deaths_incidence_num" }
 }
 
 For hospitalization data, we use:
 \itemize{
-    \item{Link: }{\url{
-     https://cmu-delphi.github.io/delphi-epidata/api/covidcast-signals/hhs.html}}
-    \item{Signals: }{"confirmed_admissions_covid_1d"}
+ \item{Link: }{\url{
+ https://cmu-delphi.github.io/delphi-epidata/api/covidcast-signals/hhs.html}}
+ \item{Signals: }{"confirmed_admissions_covid_1d"}
 }
 }
 \examples{
