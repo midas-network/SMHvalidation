@@ -38,7 +38,12 @@ read_files <- function(path) {
 # Function from ?is.integer() function documentation
 is_wholenumber <- function(x, tol = .Machine$double.eps^0.5) {
   x <- as.numeric(x)
-  abs(x - round(x)) < tol
+  if (length(unique(na.omit(x))) > 0) {
+    abs(x - round(x)) < tol
+  } else {
+    return(FALSE)
+  }
+
 }
 
 # Internal function to filter data frame according to a set of task_id value

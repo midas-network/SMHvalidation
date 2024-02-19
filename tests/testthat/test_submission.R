@@ -253,6 +253,13 @@ test_that("Test validation process", {
                                           merge_sample_col = TRUE)),
                c("607", "702", "902"))
 
+  # Unique sample ID
+  test_val <-
+    err_cd(validate_submission("tst_dt/2024-03-26-unilettersample.csv",
+                               js_def, NULL, pop_path,
+                               merge_sample_col = TRUE))
+  expect_equal(test_val, c("510", "702", "903", "902"))
+
   # Test value ---
   # Missing inc death (sample required) for all task_ids
   # CDF values (optional) > 1

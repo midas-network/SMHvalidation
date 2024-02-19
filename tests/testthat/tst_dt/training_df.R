@@ -657,6 +657,10 @@ df_pair$run_grouping <- 1:nrow(df_pair)
 write.csv(df_pair, "tests/testthat/tst_dt/2024-03-26-pair.csv",
           row.names = FALSE)
 
+df_unisample <- dplyr::mutate(df, stochastic_run = 1, run_grouping = "d")  %>%
+  write.csv("tests/testthat/tst_dt/2024-03-26-unilettersample.csv",
+            row.names = FALSE)
+
 
 # Clean environment
 rm(list = ls())
