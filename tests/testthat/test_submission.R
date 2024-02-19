@@ -28,11 +28,22 @@ test_that("Test validation process", {
                paste0("End of validation check: all the validation checks were",
                       " successful"))
 
+  expect_equal(validate_submission("tst_dt/2024-03-26-team1-modela.parquet",
+                                   js_def, NULL, pop_path,
+                                   merge_sample_col = TRUE),
+               paste0("End of validation check: all the validation checks were",
+                      " successful"))
+
   # Test columns error -----
   # File with additional column ("row": row number id)
   expect_equal(err_cd(validate_submission("tst_dt/2022-01-09_addcol.pqt",
                                           js_def, lst_gs, pop_path)),
                c("102", "104"))
+
+  expect_equal(err_cd(validate_submission("tst_dt/2024-03-26-badcol.csv",
+                                          js_def, NULL, pop_path,
+                                          merge_sample_col = TRUE)), "101")
+
   # File with "location" column renamed "fips"
   expect_equal(err_cd(validate_submission("tst_dt/2022-01-09_colname.csv",
                                           js_def, lst_gs, pop_path)), "103")
@@ -57,6 +68,12 @@ test_that("Test validation process", {
   # YYYY-MM-DD)
   expect_equal(err_cd(validate_submission("tst_dt/2022-01-09_mpd_format.csv",
                                           js_def, lst_gs, pop_path)), c("003"))
+
+  # File with date in POSIX format
+  expect_equal(err_cd(validate_submission("tst_dt/2024-03-26-format.parquet",
+                                          js_def, NULL, pop_path,
+                                          merge_sample_col = TRUE)),
+               c("305", "702"))
 
   # Test quantile error -----
   # File with incorrect quantile: replace 0.01 by 0.02 (unexpected value)
@@ -218,6 +235,23 @@ test_that("Test validation process", {
                                           js_def_flu, lst_gs_flu,
                                           pop_path_flu)),
                c("204", "510", "602", "901", "903", "401"))
+
+  # Missing all samples
+  expect_equal(err_cd(validate_submission("tst_dt/2024-03-26-quant.csv",
+                                          js_def, NULL, pop_path)),
+               c("602", "702", "904"))
+
+  # Missing samples for one subgroup of task id
+  expect_equal(err_cd(validate_submission("tst_dt/2024-03-26-misssample.csv",
+                                          js_def, NULL, pop_path,
+                                          merge_sample_col = TRUE)),
+               c("702", "904"))
+
+  # Mistakes in pairing ID
+  expect_equal(err_cd(validate_submission("tst_dt/2024-03-26-pair.csv",
+                                          js_def, NULL, pop_path,
+                                          merge_sample_col = TRUE)),
+               c("607", "702", "902"))
 
   # Test value ---
   # Missing inc death (sample required) for all task_ids

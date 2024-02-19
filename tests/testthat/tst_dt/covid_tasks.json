@@ -711,6 +711,150 @@
         "start": "2022-06-05",
         "end": "2022-07-05"
       }
+    },
+    {
+      "round_id": "2024-03-26",
+      "round_id_from_variable": false,
+      "model_tasks": [
+        {
+          "task_ids": {
+            "origin_date": {
+              "required": ["2020-11-15"],
+              "optional": null
+            },
+             "scenario_id": {
+              "required": ["A-2020-06-05"],
+              "optional": null
+            },
+            "location": {
+              "required": ["06"],
+              "optional": null
+            },
+            "race_ethnicity": {
+                "required": ["latino", "asian", "black", "white", "other"],
+                "optional": null
+            },
+            "target": {
+              "required": ["inc death", "inc hosp"],
+              "optional": null
+            },
+            "horizon": {
+              "required": [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20],
+              "optional":null
+            }
+          },
+          "output_type": {
+            "sample": {
+              "output_type_id": {
+                "min_samples_per_task": 900,
+                "max_samples_per_task": 1000,
+                "samples_joint_across": ["horizon", "race_ethnicity"]
+              },
+              "value" : {
+                "type": "double",
+                "minimum": 0
+              }
+            }
+          },
+          "target_metadata": [
+            {
+              "target_id": "inc death",
+              "target_name": "Incident deaths",
+              "target_units": "count",
+              "target_keys": {
+                "target": "inc death"
+              },
+              "description": "Weekly new deaths due to COVID-19 as reported by state and local departments of public health and aggregated in the NCHS data collection system.",
+              "target_type": "discrete",
+              "is_step_ahead": true,
+              "time_unit": "week"
+            },
+            {
+              "target_id": "inc hosp",
+              "target_name": "Incident hospitalizations",
+              "target_units": "count",
+              "target_keys": {
+                "target": "inc hosp"
+              },
+              "description": "Weekly newly reported hospitalizations where the patient has COVID-19, as reported by hospital facilities and aggregated in the HHS Protect data collection system.",
+              "target_type": "discrete",
+              "is_step_ahead": true,
+              "time_unit": "week"
+            }
+          ]
+        },
+        {
+          "task_ids": {
+            "origin_date": {
+              "required": ["2020-11-15"],
+              "optional": null
+            },
+             "scenario_id": {
+              "required": ["A-2020-06-05"],
+              "optional": null
+            },
+            "location": {
+              "required": ["37"],
+              "optional": null
+            },
+            "race_ethnicity": {
+                "required": ["asian", "black", "white", "other"],
+                "optional": null
+            },
+            "target": {
+              "required": ["inc death", "inc hosp"],
+              "optional": null
+            },
+            "horizon": {
+              "required": [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20],
+              "optional":null
+            }
+          },
+          "output_type": {
+            "sample": {
+              "output_type_id": {
+                "min_samples_per_task": 900,
+                "max_samples_per_task": 1000,
+                "samples_joint_across": ["horizon", "race_ethnicity"]
+              },
+              "value" : {
+                "type": "double",
+                "minimum": 0
+              }
+            }
+          },
+          "target_metadata": [
+            {
+              "target_id": "inc death",
+              "target_name": "Incident deaths",
+              "target_units": "count",
+              "target_keys": {
+                "target": "inc death"
+              },
+              "description": "Weekly new deaths due to COVID-19 as reported by state and local departments of public health and aggregated in the NCHS data collection system.",
+              "target_type": "discrete",
+              "is_step_ahead": true,
+              "time_unit": "week"
+            },
+            {
+              "target_id": "inc hosp",
+              "target_name": "Incident hospitalizations",
+              "target_units": "count",
+              "target_keys": {
+                "target": "inc hosp"
+              },
+              "description": "Weekly newly reported hospitalizations where the patient has COVID-19, as reported by hospital facilities and aggregated in the HHS Protect data collection system.",
+              "target_type": "discrete",
+              "is_step_ahead": true,
+              "time_unit": "week"
+            }
+          ]
+        }
+      ],
+      "submissions_due": {
+        "start": "2023-04-17",
+        "end": "2023-05-17"
+      }
     }
   ]
 }

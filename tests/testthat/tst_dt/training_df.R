@@ -639,5 +639,24 @@ write.csv(dplyr::filter(tot_s, output_type_id < 90,
           "tests/testthat/tst_dt/2022-08-14_flu_badsample.csv",
           row.names = FALSE)
 
+# Sample - Race_ethnicity format
+
+df <-
+  arrow::read_parquet("tests/testthat/tst_dt/2024-03-26-team1-modela.parquet")
+
+df_badcol <- dplyr::rename(df, rn_grp = run_grouping) %>%
+  write.csv("tests/testthat/tst_dt/2024-03-26-badcol.csv", row.names = FALSE)
+df_format <- dplyr::mutate(df, location = as.numeric(location),
+                           origin_date = as.POSIXct("2020-11-15")) %>%
+  arrow::write_parquet("tests/testthat/tst_dt/2024-03-26-format.parquet")
+df_misssample <- dplyr::filter(df, stochastic_run != 99) %>%
+  write.csv("tests/testthat/tst_dt/2024-03-26-misssample.csv",
+            row.names = FALSE)
+df_pair <- dplyr::mutate(df, stochastic_run = 1)
+df_pair$run_grouping <- 1:nrow(df_pair)
+write.csv(df_pair, "tests/testthat/tst_dt/2024-03-26-pair.csv",
+          row.names = FALSE)
+
+
 # Clean environment
 rm(list = ls())
