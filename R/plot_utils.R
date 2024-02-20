@@ -231,9 +231,9 @@ plot_projections <- function(data, st, projection_date, legend_rows = 1,
     ggplot2::geom_ribbon(ggplot2::aes(ymin = low, ymax = high,
                                       fill = scenario_id), alpha = 0.20) +
     ggplot2::geom_line(ggplot2::aes(y = median, color = scenario_id),
-                       size = 1.5, linetype = 1) +
+                       linewidth = 1.5, linetype = 1) +
     ggplot2::geom_vline(ggplot2::aes(xintercept = projection_date),
-                        color = "grey", linetype = 2, size = 1.5)
+                        color = "grey", linetype = 2, linewidth = 1.5)
 
   if (any(grepl("point", colnames(data)))) {
     plot <- plot +

@@ -253,6 +253,12 @@ test_that("Test validation process", {
                                           merge_sample_col = TRUE)),
                c("607", "702", "902"))
 
+  # Double sample ID
+  expect_equal(err_cd(validate_submission("tst_dt/2024-03-26-doublesample.csv",
+                                          js_def, NULL, pop_path,
+                                          merge_sample_col = TRUE)),
+               c("510", "702"))
+
   # Unique sample ID
   test_val <-
     err_cd(validate_submission("tst_dt/2024-03-26-unilettersample.csv",
@@ -284,6 +290,13 @@ test_that("Test validation process", {
                                           js_def_flu, lst_gs_flu,
                                           pop_path_flu)),
                c("204", "510", "5041", "602", "901", "904"))
+
+  ### Internal Functions ###
+  df <- read.csv("tst_dt/2022-08-14_flu_no_error.csv")
+  js <- jsonlite::read_json("tst_dt/flu_tasks.json")
+  js_tasks <- js$rounds[[1]]$model_tasks
+  df_test <- SMHvalidation:::filter_df(df, js_tasks)
+  expect_equal(nrow(dplyr::setdiff(df, df_test)), 0)
 
   ### Error files ####
   # Bad link

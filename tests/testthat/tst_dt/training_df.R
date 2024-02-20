@@ -652,8 +652,14 @@ df_format <- dplyr::mutate(df, location = as.numeric(location),
 df_misssample <- dplyr::filter(df, stochastic_run != 99) %>%
   write.csv("tests/testthat/tst_dt/2024-03-26-misssample.csv",
             row.names = FALSE)
+df_doublesample <- dplyr::mutate(df,
+                                 stochastic_run = ifelse(stochastic_run == 99,
+                                                         100,
+                                                         stochastic_run)) %>%
+  write.csv("tests/testthat/tst_dt/2024-03-26-doublesample.csv",
+            row.names = FALSE)
 df_pair <- dplyr::mutate(df, stochastic_run = 1)
-df_pair$run_grouping <- 1:nrow(df_pair)
+df_pair$run_grouping <- seq_len(nrow(df_pair))
 write.csv(df_pair, "tests/testthat/tst_dt/2024-03-26-pair.csv",
           row.names = FALSE)
 

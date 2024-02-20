@@ -346,8 +346,8 @@ validate_submission <- function(path, js_def, lst_gs, pop_path,
                                             "output_type"), "sample"))
   if (!all(is.null(sample_js))) {
     sample_list <- purrr::map(sample_js, "output_type_id")
-    if (!all(is.null(unique(purrr::map(sample_list,
-                                       "samples_joint_across"))))) {
+    if (!all(is.null(unique(unlist(purrr::map(sample_list,
+                                              "samples_joint_across")))))) {
       pairing_col <- unique(unlist(purrr::map(sample_list,
                                               "samples_joint_across")))
     } else {
