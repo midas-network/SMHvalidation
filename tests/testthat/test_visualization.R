@@ -12,4 +12,5 @@ test_that("Test visualization", {
                                             plot_quantiles = c(0.25, 0.75)))
 
   file.remove(dir(tmp_dir, full.names = TRUE)[grep("plots.pdf", dir(tmp_dir))])
+  file.remove(dir(".", pattern = ".pdf$"))
 })
