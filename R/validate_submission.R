@@ -1,4 +1,20 @@
-
+#' Merge and simple tests of Sample ID columns
+#'
+#' If the submission files contains the two `"run_grouping"` and
+#'  `"stochastic_run"` columns for sample ID, the function will be called to:
+#'  combines the two columns into one `output_type_id` column and tests if:
+#'  the columns names are correct, the two columns contains only integer values
+#'  and not an unique value.
+#'
+#' The function returns a named list with: the output data frame (without the
+#' two columns, `"df"`) and a list of error message, if any issue
+#' (`"add_message"`)
+#'
+#' @param df data frame to test
+#' @param req_colnames character vector of the expected column names
+#' @param add_meesage character vector, error message to append
+#'
+#' @noRd
 merge_sample_id <- function(df, req_colnames, add_message = NULL) {
   if (!(all(c(req_colnames, "run_grouping", "stochastic_run") %in%
               names(df)))) {
@@ -38,6 +54,42 @@ merge_sample_id <- function(df, req_colnames, add_message = NULL) {
               "add_message" = add_message))
 }
 
+#' Create the validation report
+#'
+#' Combine all the test output function into one report
+#'
+#' @param df data frame to test
+#' @param model_task list containing round definitions: names of columns,
+#' target names, ...
+#' @param col_message character vector, error message about the columns names
+#'  to append to the report
+#' @param out_col character vector, error message about the columns
+#'  to append to the report
+#' @param out_scen character vector, error message about the `scenario_id`
+#'  column to append to the report
+#' @param out_ord character vector, error message about the `origin_date` column
+#'  to append to the report
+#' @param out_val character vector, error message about the `value` column
+#'  to append to the report
+#' @param out_target character vector, error message about the `target` column
+#'  to append to the report
+#' @param out_loc character vector, error message about the `location` column
+#'  to append to the report
+#' @param out_sample character vector, error message about `"sample"` output
+#' type to append to the report. Uses only if the submission is expected to
+#' contains `"sample"` values
+#' @param out_quant character vector, error message about `"quantile"` output
+#' type to append to the report. Uses only if the submission is expected to
+#' contains `"quantile"` values
+#' @param out_agegroup character vector, error message about `age_group`
+#' column to append to the report. Uses only if the submission is expected to
+#' contains a `age_group` column
+#' @param out_race_ethnicity character vector, error message about
+#' `race_ethnicity` column to append to the report. Uses only if the submission
+#' is expected to contains a `race_ethnicity` column
+#' @param add_meesage character vector, error message to append to the report
+#'
+#' @noRd
 create_report <- function(df, model_task, col_message, out_col, out_scen,
                           out_ord, out_val, out_target, out_loc, out_sample,
                           out_quant, out_agegroup, out_raceethnicity,
