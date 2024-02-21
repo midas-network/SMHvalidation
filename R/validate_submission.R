@@ -40,7 +40,8 @@ merge_sample_id <- function(df, req_colnames, add_message = NULL) {
 
 create_report <- function(df, model_task, col_message, out_col, out_scen,
                           out_ord, out_val, out_target, out_loc, out_sample,
-                          out_quant, out_agegroup, add_message = NULL) {
+                          out_quant, out_agegroup, out_raceethnicity,
+                          add_message = NULL) {
   test_report <-
     paste("\n ## Columns: \n", paste(out_col, col_message, collapse = "\n"),
           "\n\n## Scenarios: \n", paste(out_scen, collapse = "\n"),
@@ -75,6 +76,11 @@ create_report <- function(df, model_task, col_message, out_col, out_scen,
     test_report <- paste(test_report, "\n\n## Age Group: \n",
                          paste(out_agegroup, collapse = "\n"))
   }
+  if (any(grepl("race_ethnicity", names(df)))) {
+    test_report <- paste(test_report, "\n\n## Race Ethnicity: \n",
+                         paste(out_raceethnicity, collapse = "\n"))
+  }
+
   test_report <- paste0(test_report, "\n\n")
   return(test_report)
 }
@@ -180,11 +186,16 @@ run_all_validation <- function(df, path, pop, last_lst_gs,
     out_agegroup <- test_agegroup(df, model_task)
   }
 
+  # Test for additional column
+  if (any(grepl("race_ethnicity", names(df)))) {
+    out_raceethnicity <- test_raceethnicity(df, model_task)
+  }
+
   # Report:
   test_report <- create_report(df, model_task, col_message, out_col, out_scen,
                                out_ord, out_val, out_target, out_loc,
                                out_sample, out_quant, out_agegroup,
-                               add_message = add_message)
+                               out_raceethnicity, add_message = add_message)
 
   # Output:
   if (any(grepl("\\\U000274c Error|\\\U0001f7e1 Warning", test_report))) {

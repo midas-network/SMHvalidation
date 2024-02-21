@@ -358,6 +358,8 @@ please feel free to ignore it.
 |902|Error|Run in `test_sample()` function|The submission should at least contain a unique sample identifier by pairing group, for example if `pairing_col = "horizon"`, the sample identifier `1` should contain all the possible horizon value, and optionally can contain the specific and multiple value for the other task id column `location`, `target`, `scenario_id`, etc.)|
 |903|Error|Run in internal function|The column `output_type_id` contains only integer value|
 |904|Error|Run in `test_sample()` function|For `model_task` with required target (not null) AND required sample, the submission contains sample information for the required targets|
+|1001|Error|Run in `test_raceethnicity()` function|Each `race_ethnicity` value corresponds to the expected value (no additional value)|
+|1002|Error|Run in `test_raceethnicity()` function|Each `race_ethnicity` value corresponds to the expected value (no missing required value and no additional value)|
 |001 - [Deprecated]|Error|Information extracted before running the validation, if any issue, stop and will not run the validation|`scen_info` parameter should either be: a path to a file containing the round and scenario information, or a data frame, or NULL. If NULL, the information will be automatically extracted from the Scenario Modeling Hub GitHub repository.|
 |002 - [Deprecated]|Error|Information extracted before running the validation, if any issue, stop and will not run the validation|Cannot extract round number information from the files, test that the file name contains the expected date and the scenario id column contains the expected information.|
 |201 - [Deprecated]|Error|Run in `test_scenario()` function|The `scenario_name` values are correct.|

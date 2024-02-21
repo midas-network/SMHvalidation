@@ -667,6 +667,11 @@ df_unisample <- dplyr::mutate(df, stochastic_run = 1, run_grouping = "d")  %>%
   write.csv("tests/testthat/tst_dt/2024-03-26-unilettersample.csv",
             row.names = FALSE)
 
+df_raceethn <- dplyr::mutate(df,
+                             location = ifelse(race_ethnicity == "latino",
+                                               "37", location)) %>%
+  write.csv("tests/testthat/tst_dt/2024-03-26-raceethn.csv",
+            row.names = FALSE)
 
 # Clean environment
 rm(list = ls())

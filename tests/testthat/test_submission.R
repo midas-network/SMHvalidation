@@ -291,6 +291,12 @@ test_that("Test validation process", {
                                           pop_path_flu)),
                c("204", "510", "5041", "602", "901", "904"))
 
+  # Test race/ethnicity -----
+  expect_equal(err_cd(validate_submission("tst_dt/2024-03-26-raceethn.csv",
+                                          js_def, NULL, pop_path,
+                                          merge_sample_col = TRUE)),
+               c("702", "1002", "1001"))
+
   ### Internal Functions ###
   df <- read.csv("tst_dt/2022-08-14_flu_no_error.csv")
   js <- jsonlite::read_json("tst_dt/flu_tasks.json")
