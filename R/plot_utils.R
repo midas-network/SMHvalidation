@@ -468,17 +468,25 @@ make_state_plot_pdf <- function(proj_data, gs_data, team_model_name,
 
   # Curves
   for (st in states_) {
+    p_state <- proj_plot_data %>%
+      dplyr::filter(state == st)
     # INCIDENT
-    p_inc <- proj_plot_data %>%
-      dplyr::filter(state == st) %>%
-      dplyr::filter(incid_cum == "inc") %>%
-      plot_projections(st, projection_date, legend_rows = 1, y_sqrt = y_sqrt)
+    if (any("inc" %in% p_state$incid_cum)) {
+      p_inc <- p_state %>%
+        dplyr::filter(incid_cum == "inc") %>%
+        plot_projections(st, projection_date, legend_rows = 1, y_sqrt = y_sqrt)
+    } else {
+      p_inc <- NULL
+    }
 
     # CUMULATIVE
-    p_cum <- proj_plot_data %>%
-      dplyr::filter(state == st) %>%
-      dplyr::filter(incid_cum == "cum") %>%
-      plot_projections(st, projection_date, legend_rows = 1, y_sqrt = y_sqrt)
+    if (any("cum" %in% p_state$incid_cum)) {
+      p_cum <- p_state %>%
+        dplyr::filter(incid_cum == "cum") %>%
+        plot_projections(st, projection_date, legend_rows = 1, y_sqrt = y_sqrt)
+    } else {
+      p_cum <- NULL
+    }
 
     title <- cowplot::ggdraw() +
       cowplot::draw_label(glue::glue("{st} -- {projection_date} - ",
@@ -500,8 +508,6 @@ make_state_plot_pdf <- function(proj_data, gs_data, team_model_name,
 
 
 
-
-
 #' Generate Validation Plots
 #'
 #' @param path_proj dataframe, format as the Scenario Modeling Hub standard
@@ -516,7 +522,6 @@ make_state_plot_pdf <- function(proj_data, gs_data, team_model_name,
 #'
 #' @export
 #'
-#' @importFrom stringr str_split
 #' @importFrom lubridate as_date
 #' @importFrom dplyr mutate_if mutate
 generate_validation_plots <- function(path_proj, lst_gs,
@@ -526,8 +531,6 @@ generate_validation_plots <- function(path_proj, lst_gs,
 
   # SETUP
   file_ <- basename(path_proj)
-  info_ <- stringr::str_split(file_, pattern = "_")[[1]]
-  print(info_)
   date_pttrn <- "[[:digit:]]{4}-[[:digit:]]{2}-[[:digit:]]{2}"
   projection_date <- lubridate::as_date(stringr::str_extract(file_, date_pttrn))
   team_model_name <- gsub(paste0(date_pttrn, "(_|-)|(.csv|.zip|.gz|.pq)"), "",
