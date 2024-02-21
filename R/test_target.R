@@ -59,10 +59,7 @@ test_target <- function(df, model_task) {
     df_target <- data.table::data.table(df)
     df_target <- df_target[target %in% unique(unlist(x$task_ids$target)) &
                              output_type %in% names(x$output_type)]
-    if (any(nchar(df_target$location) == 1)) {
-      df_target$location[which(nchar(df_target$location) == 1)] <-
-        paste0(0, df_target$location[which(nchar(df_target$location) == 1)])
-    }
+    df_target <- loc_zero(df_target)
     if (dim(df_target)[1] > 0) {
       # - the submission contains all the targets. It is also accepted
       # to submit projections for only certain target (example: only cases,

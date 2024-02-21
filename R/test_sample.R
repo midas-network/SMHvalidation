@@ -35,11 +35,8 @@ test_sample <- function(df, model_task, pairing_col = "horizon") {
     if ("sample" %in% names(x$output_type)) {
       # prerequisite
       df_sample <- data.table::data.table(df) %>%
-        dplyr::mutate(origin_date = as.Date(origin_date))
-      if (any(nchar(df_sample$location) == 1)) {
-        df_sample$location[which(nchar(df_sample$location) == 1)] <-
-          paste0(0, df_sample$location[which(nchar(df_sample$location) == 1)])
-      }
+        dplyr::mutate(origin_date = as.Date(origin_date)) %>%
+        loc_zero()
       tasks_list <- setNames(lapply(names(x$task_ids),
                                     function(z) unique(unlist(x$task_id[[z]]))),
                              names(x$task_ids))

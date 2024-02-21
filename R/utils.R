@@ -46,6 +46,15 @@ is_wholenumber <- function(x, tol = .Machine$double.eps^0.5) {
 
 }
 
+# Function to fix location column (add trailing zero)
+loc_zero <- function(df) {
+  if (any(nchar(df$location) == 1)) {
+    df$location[which(nchar(df$location) == 1)] <-
+      paste0(0, df$location[which(nchar(df$location) == 1)])
+  }
+  return(df)
+}
+
 # Internal function to filter data frame according to a set of task_id value
 filter_df <- function(df, task_id, exclusion = NULL, required = FALSE,
                       location_fix = TRUE) {
@@ -53,10 +62,7 @@ filter_df <- function(df, task_id, exclusion = NULL, required = FALSE,
   df_test <- as.data.frame(df)
   # fix location if wanted
   if (location_fix) {
-    if (any(nchar(df_test$location) == 1)) {
-      df_test$location[which(nchar(df_test$location) == 1)] <-
-        paste0(0, df_test$location[which(nchar(df_test$location) == 1)])
-    }
+    df_test <- loc_zero(df_test)
   }
   # filter
   if (is.null(exclusion)) {

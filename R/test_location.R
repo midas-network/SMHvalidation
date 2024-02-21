@@ -65,10 +65,7 @@ test_location <- function(df, number2location, model_task) {
                                       FALSE)))
     df_test <- data.table::data.table(df)[(target %in% x) &
                                             (output_type %in% outpt_type)]
-    if (any(nchar(df_test$location) == 1)) {
-      df_test$location[which(nchar(df_test$location) == 1)] <-
-        paste0(0, df_test$location[which(nchar(df_test$location) == 1)])
-    }
+    df_test <- loc_zero(df_test)
 
     if (dim(df_test)[1] > 0) {
       # If at least one location expected

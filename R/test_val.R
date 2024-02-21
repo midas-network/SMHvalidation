@@ -276,10 +276,7 @@ test_val <- function(df, pop, last_lst_gs, model_task) {
                          output_type %in% outputtype]
     if (dim(df_test)[1] > 0) {
       # If necessary fix location column to avoid issue
-      if (any(nchar(df_test$location) == 1)) {
-        df_test$location[which(nchar(df_test$location) == 1)] <-
-          paste0(0, df_test$location[which(nchar(df_test$location) == 1)])
-      }
+      df_test <- loc_zero(df_test)
       # - all value are in the expected format and the column value does not
       # contain any NA
       format_test <- value_format_test(df_test, x, outputtype)
