@@ -519,6 +519,9 @@ make_state_plot_pdf <- function(proj_data, gs_data, team_model_name,
 #' @param y_sqrt boolean, by default FALSE
 #' @param plot_quantiles numeric vector, quantiles to use for plotting (should
 #'    correspond to the quantiles from the `proj_data` parameter)
+#' @param partition vector, for csv and parquet files, allow to validate files
+#' in a partition format, see `arrow` package for more information, and
+#' `arrow::write_dataset()`, `arrow::open_dataset()` functions.
 #'
 #' @export
 #'
@@ -527,14 +530,22 @@ make_state_plot_pdf <- function(proj_data, gs_data, team_model_name,
 generate_validation_plots <- function(path_proj, lst_gs,
                                       save_path = dirname(path_proj),
                                       y_sqrt = FALSE,
-                                      plot_quantiles = c(0.025, 0.975)) {
+                                      plot_quantiles = c(0.025, 0.975),
+                                      partition = NULL) {
 
   # SETUP
-  file_ <- basename(path_proj)
   date_pttrn <- "[[:digit:]]{4}-[[:digit:]]{2}-[[:digit:]]{2}"
+  if (is.null(partition)) {
+    file_ <- basename(path_proj)
+    team_model_name <- gsub(paste0(date_pttrn, "(_|-)|(.csv|.zip|.gz|.pq)"), "",
+                            file_)
+  } else {
+    file_ <- path_proj
+    team_model_name <- gsub(paste0(date_pttrn, "(\\/.*)|(.csv|.zip|.gz|.pq)"),
+                            "", basename(file_))
+  }
+
   projection_date <- lubridate::as_date(stringr::str_extract(file_, date_pttrn))
-  team_model_name <- gsub(paste0(date_pttrn, "(_|-)|(.csv|.zip|.gz|.pq)"), "",
-                          file_)
   save_path <- file.path(save_path, paste0(projection_date, "_",
                                            team_model_name, "_plots.pdf"))
 
@@ -546,8 +557,31 @@ generate_validation_plots <- function(path_proj, lst_gs,
   }
 
   # Projections
-  proj_data <- suppressMessages(read_files(path_proj)) %>%
-    dplyr::mutate_if(is.factor, as.character) %>%
+  if (is.null(partition)) {
+    proj_data <- suppressMessages(read_files(path_proj))
+  } else {
+    if (all(grepl("parquet$|.pqt$", dir(path_proj, recursive = TRUE)))) {
+      filef <- "parquet"
+    } else if (all(grepl(".csv$", dir(path_proj, recursive = TRUE)))) {
+      filef <- "csv"
+    } else {
+      err005 <-
+        paste0("\U000274c Error 005: The file format of the submission was not",
+               " recognized, please use one unique file or multiple parquet ",
+               "files. For more information, please look at the documentation ",
+               "of the hub. \n")
+      cat(err005)
+      stop(" The submission contains an issue, the validation was not run, ",
+           "please see information above.")
+    }
+    proj_data <-
+      arrow::open_dataset(path_proj, format = filef, partitioning = partition,
+                          hive_style = FALSE,
+                          factory_options = list(exclude_invalid_files = TRUE)
+                          ) %>%
+      dplyr::collect()
+  }
+  proj_data <- dplyr::mutate_if(proj_data, is.factor, as.character) %>%
     dplyr::mutate(target_end_date = lubridate::as_date(origin_date) - 1 +
                     (horizon * 7),
                   origin_date = lubridate::as_date(origin_date)) %>%

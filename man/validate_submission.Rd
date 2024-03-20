@@ -4,7 +4,14 @@
 \alias{validate_submission}
 \title{Validate SMH (Scenario Modeling Hub) Submissions}
 \usage{
-validate_submission(path, js_def, lst_gs, pop_path, merge_sample_col = FALSE)
+validate_submission(
+  path,
+  js_def,
+  lst_gs,
+  pop_path,
+  merge_sample_col = FALSE,
+  partition = NULL
+)
 }
 \arguments{
 \item{path}{path to the submissions file to test or string of parquet files (
@@ -27,6 +34,10 @@ geographical entities by FIPS (in a column "location") and by location name.}
 "sample", the output_type_id column is set to NA and the information is
 contained into 2 columns: "run_grouping" and "stochastic_run". By default,
 `FALSE`}
+
+\item{partition}{vector, for csv and parquet files, allow to validate files
+in a partition format, see `arrow` package for more information, and
+`arrow::write_dataset()`, `arrow::open_dataset()` functions.}
 }
 \description{
 Runs all the different validation checks functions (test_column,

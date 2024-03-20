@@ -9,7 +9,8 @@ generate_validation_plots(
   lst_gs,
   save_path = dirname(path_proj),
   y_sqrt = FALSE,
-  plot_quantiles = c(0.025, 0.975)
+  plot_quantiles = c(0.025, 0.975),
+  partition = NULL
 )
 }
 \arguments{
@@ -26,6 +27,10 @@ output}
 
 \item{plot_quantiles}{numeric vector, quantiles to use for plotting (should
 correspond to the quantiles from the `proj_data` parameter)}
+
+\item{partition}{vector, for csv and parquet files, allow to validate files
+in a partition format, see `arrow` package for more information, and
+`arrow::write_dataset()`, `arrow::open_dataset()` functions.}
 }
 \description{
 Generate Validation Plots

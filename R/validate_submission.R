@@ -261,7 +261,9 @@ run_all_validation <- function(df, path, pop, last_lst_gs,
               "verify the information above")
     }
   } else {
-    print("End of validation check: all the validation checks were successful")
+    test_report <-
+      "End of validation check: all the validation checks were successful\n"
+    cat(test_report)
   }
 }
 
@@ -290,6 +292,9 @@ run_all_validation <- function(df, path, pop, last_lst_gs,
 #' "sample", the output_type_id column is set to NA and the information is
 #' contained into 2 columns: "run_grouping" and "stochastic_run". By default,
 #' `FALSE`
+#'@param partition vector, for csv and parquet files, allow to validate files
+#' in a partition format, see `arrow` package for more information, and
+#' `arrow::write_dataset()`, `arrow::open_dataset()` functions.
 #'
 #'@details For more information on all tests run on the submission, please refer
 #' to the documentation of each "test_*" function. A vignette with all the
@@ -329,7 +334,7 @@ run_all_validation <- function(df, path, pop, last_lst_gs,
 #' }
 #'@export
 validate_submission <- function(path, js_def, lst_gs, pop_path,
-                                merge_sample_col = FALSE) {
+                                merge_sample_col = FALSE, partition = NULL) {
 
   # Prerequisite --------
   # Load gold standard data
@@ -348,9 +353,38 @@ validate_submission <- function(path, js_def, lst_gs, pop_path,
   # Read JSON file
   js_def <- jsonlite::fromJSON(js_def, simplifyDataFrame = FALSE)
 
-  # Print message --------
-  print(paste0("Run validation on file: ",
-               paste(basename(path), collapse = ", ")))
+  # Select the associated round (add error message if no match)
+  if (!is.null(partition)) {
+    team_round <- as.Date(stringr::str_extract(dir(path, recursive = TRUE),
+                                               "\\d{4}-\\d{2}-\\d{2}"))
+  } else {
+    team_round <- as.Date(stringr::str_extract(basename(path),
+                                               "\\d{4}-\\d{2}-\\d{2}"))
+  }
+  team_round <- unique(team_round)
+  js_date <- unique(as.Date(hubUtils::get_round_ids(js_def)))
+  if (team_round %in% js_date) {
+    js_def <- js_def$rounds[js_date %in% team_round]
+    js_def <- js_def[[1]]
+  } else {
+    err004 <-
+      paste0("\U000274c Error 004: The origin_date in the submission file was",
+             " not associated with any task_ids round. Please verify the date",
+             " information in the origin_date column corresponds to the ",
+             "expected value.\n")
+    cat(err004)
+    stop(" The submission contains an issue, the validation was not run, ",
+         "please see information above.")
+  }
+
+  # Select validation file(s) and print message --------
+  if (!is.null(partition)) {
+    file_path <- grep(team_round, dir(path, recursive = TRUE), value = TRUE)
+  } else {
+    file_path <- basename(path)
+  }
+  cat(paste0("Run validation on files: ", paste(file_path, collapse = ", "),
+             "\n"))
 
   # Process file to test and associated information --------
   # Read file
@@ -359,7 +393,29 @@ validate_submission <- function(path, js_def, lst_gs, pop_path,
     df <- read_files(path)
   } else if (all(grepl("parquet$", path))) {
     ds <- arrow::open_dataset(path, format = "parquet")
-    df <- dplyr::collect(ds)  %>%
+    df <- dplyr::collect(ds) %>%
+      dplyr::mutate_if(is.factor, as.character)
+  } else if (!is.null(partition)) {
+    if (all(grepl("parquet$|.pqt$", dir(path, recursive = TRUE)))) {
+      filef <- "parquet"
+    } else if (all(grepl(".csv$", dir(path, recursive = TRUE)))) {
+      filef <- "csv"
+    } else {
+      err005 <-
+        paste0("\U000274c Error 005: The file format of the submission was not",
+               " recognized, please use one unique file or multiple parquet ",
+               "files. For more information, please look at the documentation ",
+               "of the hub. \n")
+      cat(err005)
+      stop(" The submission contains an issue, the validation was not run, ",
+           "please see information above.")
+    }
+    ds <-
+      arrow::open_dataset(path, format = filef, partitioning = partition,
+                          hive_style = FALSE,
+                          factory_options = list(exclude_invalid_files =
+                                                   TRUE))
+    df <- dplyr::collect(ds) %>%
       dplyr::mutate_if(is.factor, as.character)
   } else {
     err005 <-
@@ -382,25 +438,6 @@ validate_submission <- function(path, js_def, lst_gs, pop_path,
       paste0("\U000274c Error 003: The columns containing date information ",
              "should be in a date format `YYYY-MM-DD`. Please verify \n")
     cat(err003)
-    stop(" The submission contains an issue, the validation was not run, ",
-         "please see information above.")
-  }
-
-  # Select the associated round (add error message if no match)
-  team_round <- as.Date(stringr::str_extract(basename(path),
-                                             "\\d{4}-\\d{2}-\\d{2}"))
-  team_round <- unique(team_round)
-  js_date <- unique(as.Date(hubUtils::get_round_ids(js_def)))
-  if (team_round %in% js_date) {
-    js_def <- js_def$rounds[js_date %in% team_round]
-    js_def <- js_def[[1]]
-  } else {
-    err004 <-
-      paste0("\U000274c Error 004: The origin_date in the submission file was",
-             " not associated with any task_ids round. Please verify the date",
-             " information in the origin_date column corresponds to the ",
-             "expected value.\n")
-    cat(err004)
     stop(" The submission contains an issue, the validation was not run, ",
          "please see information above.")
   }

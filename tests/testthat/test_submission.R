@@ -24,15 +24,11 @@ test_that("Test validation process", {
   ### Test on COVID ###
   # File corresponding to the expected format
   expect_equal(validate_submission("tst_dt/2022-01-09_no_error.csv",
-                                   js_def, lst_gs, pop_path),
-               paste0("End of validation check: all the validation checks were",
-                      " successful"))
+                                   js_def, lst_gs, pop_path), NULL)
 
   expect_equal(validate_submission("tst_dt/2024-03-26-team1-modela.parquet",
                                    js_def, NULL, pop_path,
-                                   merge_sample_col = TRUE),
-               paste0("End of validation check: all the validation checks were",
-                      " successful"))
+                                   merge_sample_col = TRUE), NULL)
 
   # Test columns error -----
   # File with additional column ("row": row number id)
@@ -182,20 +178,13 @@ test_that("Test validation process", {
   ### Tests on FLU ###
   # No error (contains optional point value)
   expect_equal(validate_submission("tst_dt/2022-08-14_flu_no_error.csv",
-                                   js_def_flu, lst_gs_flu, pop_path_flu),
-               paste0("End of validation check: all the validation checks were",
-                      " successful"))
+                                   js_def_flu, lst_gs_flu, pop_path_flu), NULL)
   # No error (missing optional point value)
   expect_equal(validate_submission("tst_dt/2022-08-14_flu_nopoint_noerror.csv",
-                                   js_def_flu, lst_gs_flu, pop_path_flu),
-               paste0("End of validation check: all the validation checks were",
-                      " successful"))
+                                   js_def_flu, lst_gs_flu, pop_path_flu), NULL)
   # No error (contains quantile and optional sample format)
   expect_equal(validate_submission("tst_dt/2022-08-14_flu_sample.csv",
-                                   js_def_flu, lst_gs_flu, pop_path_flu),
-               paste0("End of validation check: all the validation checks were",
-                      " successful"))
-
+                                   js_def_flu, lst_gs_flu, pop_path_flu), NULL)
   # Test on target & horizon -----
   # remove target with "time" in the name
   val_test <- err_cd(validate_submission("tst_dt/2022-08-14_flu_misstarget.csv",
