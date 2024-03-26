@@ -4,7 +4,7 @@
 \alias{test_val}
 \title{Runs Validation Checks on the Projection value and type point columns}
 \usage{
-test_val(df, pop, last_lst_gs, model_task)
+test_val(df, pop, last_lst_gs, model_task, n_decimal = NULL)
 }
 \arguments{
 \item{df}{data frame to test}
@@ -18,13 +18,16 @@ projection}
 
 \item{model_task}{list containing round information for each id columns
 and model output (type, format, etc.)}
+
+\item{n_decimal}{integer,  number of decimal point accepted in the column
+value (only for "sample" output type), if NULL (default) no limit expected.}
 }
 \description{
 Validate Scenario Modeling Hub submissions: test if the
 `value` and `type` columns contain the expected information and value.
 }
 \details{
-This function contains 9 tests:
+This function contains 10 tests:
 \itemize{
  \item{Required type: }{All the required type output are present in the
    submission file}

@@ -577,8 +577,8 @@ generate_validation_plots <- function(path_proj, lst_gs,
     proj_data <-
       arrow::open_dataset(path_proj, format = filef, partitioning = partition,
                           hive_style = FALSE,
-                          factory_options = list(exclude_invalid_files = TRUE)
-                          ) %>%
+                          factory_options =
+                          list(exclude_invalid_files = TRUE)) %>%
       dplyr::collect()
   }
   proj_data <- dplyr::mutate_if(proj_data, is.factor, as.character) %>%

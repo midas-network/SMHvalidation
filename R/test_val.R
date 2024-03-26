@@ -8,9 +8,12 @@
 #' @param model_tasks list containing round information for each id columns
 #' and model output (type, format, etc.)
 #' @param outputtype vector of output type to validate
+#' @param n_decimal integer,  number of decimal point accepted in the column
+#'  value (only for "sample" output type), if NULL (default) no limit expected.
 #' @noRd
 #'
-value_format_test <- function(df_test, model_tasks, outputtype) {
+value_format_test <- function(df_test, model_tasks, outputtype,
+                              n_decimal = NULL) {
   # - all value are in the expected format and the column value does not
   # contain any NA
   format_test <- lapply(outputtype, function(y) {
@@ -44,6 +47,25 @@ value_format_test <- function(df_test, model_tasks, outputtype) {
     } else {
       err_mess <- NA
     }
+
+    war_digi <- NA
+    if (y == "sample" && !is.null(n_decimal)) {
+      unique_val <- unique(df_test$value)
+      unique_val_digit <- abs(unique_val) - floor(abs(unique_val))
+      unique_val_digit <- gsub("0\\.|0+$", "", unique_val_digit, perl = TRUE)
+      sel_digit_rep <- grepl("9{6,}|0{6,}", unique_val_digit)
+      if (any(sel_digit_rep)) {
+        unique_val_digit[sel_digit_rep] <-
+          gsub("(*)9{6,}.*|(*)0{6,}.*", "\\1", unique_val_digit[sel_digit_rep])
+      }
+      if (any(unique(nchar(unique_val_digit)) > n_decimal)) {
+        war_digi <-
+          paste0("\U0001f7e1 Warning 5042: All values associated with output ",
+                 "type 'sample' should have a maximum of ", n_decimal,
+                 " decimal place")
+      }
+    }
+
     if (!is.null(value_format$minimum)) {
       min_test <- all(df_test$value >= value_format$minimum)
       if (isFALSE(min_test)) {
@@ -76,7 +98,7 @@ value_format_test <- function(df_test, model_tasks, outputtype) {
         }
       }
     }
-    return(c(err_mess, err_mess_id))
+    return(c(err_mess, err_mess_id,  war_digi))
   })
   return(format_test)
 }
@@ -216,8 +238,10 @@ cumul_decrease_test <- function(df_test, target_sel, outputtype) {
 #'  projection
 #'@param model_task list containing round information for each id columns
 #' and model output (type, format, etc.)
+#'@param n_decimal integer,  number of decimal point accepted in the column
+#'  value (only for "sample" output type), if NULL (default) no limit expected.
 #'
-#'@details  This function contains 9 tests:
+#'@details  This function contains 10 tests:
 #'\itemize{
 #'  \item{Required type: }{All the required type output are present in the
 #'    submission file}
@@ -262,7 +286,7 @@ cumul_decrease_test <- function(df_test, target_sel, outputtype) {
 #'@importFrom stats var
 #'@importFrom purrr discard map
 #'@export
-test_val <- function(df, pop, last_lst_gs, model_task) {
+test_val <- function(df, pop, last_lst_gs, model_task, n_decimal = NULL) {
 
   value_test <- lapply(model_task, function(x) {
     # Prerequisite
@@ -279,7 +303,8 @@ test_val <- function(df, pop, last_lst_gs, model_task) {
       df_test <- loc_zero(df_test)
       # - all value are in the expected format and the column value does not
       # contain any NA
-      format_test <- value_format_test(df_test, x, outputtype)
+      format_test <- value_format_test(df_test, x, outputtype,
+                                       n_decimal = n_decimal)
       if (isTRUE(any(is.na(df_test$value)))) {
         df_test <- df_test[!is.na(value)]
         na_test <- paste0("\U000274c Error 5042: All values should be numeric,",
@@ -333,12 +358,14 @@ test_val <- function(df, pop, last_lst_gs, model_task) {
                                         scenario_id,
                                         matches("quantile|sample")))
         # nocov start
-        if (dim(test)[1] > 100)
+        if (dim(test)[1] > 10)
           test <- dplyr::distinct(dplyr::select(test, target, location_name,
                                                 scenario_id))
-        if (dim(test)[1] > 100)
+        if (dim(test)[1] > 10)
           test <- dplyr::distinct(dplyr::select(test, scenario_id,
                                                 location_name))
+        if (dim(test)[1] > 10)
+          test <- dplyr::distinct(dplyr::select(test, location_name))
         # nocov end
         pointpop_test <-
           paste0("\U0001f7e1 Warning 507: Some value(s) are greater than the ",

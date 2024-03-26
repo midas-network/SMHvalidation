@@ -33,6 +33,7 @@ Imports: arrow,
          grid,
          gridExtra,
          gtable,
+         hubData,
          hubUtils,
          jsonlite,
          lubridate, 
@@ -43,7 +44,8 @@ Imports: arrow,
          tidyr,
          tidyselect
 Remotes:
-    Infectious-Disease-Modeling-Hubs/hubUtils
+    Infectious-Disease-Modeling-Hubs/hubUtils,
+    Infectious-Disease-Modeling-Hubs/hubData
 Suggests:
     gh, 
     knitr,

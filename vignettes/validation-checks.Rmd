@@ -335,6 +335,7 @@ please feel free to ignore it.
 |5040|Error|Run in `test_val()` function|The `output_type_id` column corresponds to the expected content and format for each type (not tested for `"sample"` output type)|
 |5041|Error|Run in `test_val()` function|All values have the expected value format (for example, numeric superior or equal at 0)|
 |5042|Error|Run in `test_val()` function|`NA `values are not accepted|
+|5043|Warning|(optional) Run in `test_val()` function|values has a limited number of decimal point (`n_digit` parameter, default to `NULL`: no limit)|
 |505|Warning|Run in `test_val()` function (except for location: `60`, `66`, `69`, `74`)|For each group of `location`, `target`, `scenario_id` (and `age_group`, etc. if necessary) , the value are not identical for the complete time series and for all types. For example, `0` for all quantile and complete time series for a specific scenario, location and target|
 |507|Warning|Run in `test_val()` function|The projected value is lower or equal to the population size of the associated geographical unit|
 |508|Error|Run in `test_val()` function|The projected value for the "cumulative case count" is equal or higher than the observed cumulative case count for the previous week (week 0) or previous past week (week - 1) (depending on availability) before projection starting date.|

@@ -162,6 +162,8 @@ create_report <- function(df, model_task, col_message, out_col, out_scen,
 #' `FALSE`
 #'@param pairing_col column names indicating the sample pairing information. By
 #' default: "horizon".
+#'@param n_decimal integer,  number of decimal point accepted in the column
+#'  value (only for "sample" output type), if NULL (default) no limit expected.
 #'
 #'@details Internal function called in the `validation_submission()` function.
 #' For more information on all tests run on the submission, please refer to the
@@ -172,7 +174,7 @@ create_report <- function(df, model_task, col_message, out_col, out_scen,
 run_all_validation <- function(df, path, pop, last_lst_gs,
                                number2location, js_def,
                                merge_sample_col = FALSE,
-                               pairing_col = "horizon") {
+                               pairing_col = "horizon", n_decimal = NULL) {
   ### Prerequisite
   model_task <- js_def$model_tasks
   task_ids <- purrr::map(model_task, "task_ids")
@@ -225,7 +227,7 @@ run_all_validation <- function(df, path, pop, last_lst_gs,
   }
 
   # Test on value
-  out_val <- test_val(df, pop, last_lst_gs, model_task)
+  out_val <- test_val(df, pop, last_lst_gs, model_task, n_decimal = n_decimal)
 
   # Test on targets information
   out_target <- test_target(df, model_task)
@@ -295,6 +297,8 @@ run_all_validation <- function(df, path, pop, last_lst_gs,
 #'@param partition vector, for csv and parquet files, allow to validate files
 #' in a partition format, see `arrow` package for more information, and
 #' `arrow::write_dataset()`, `arrow::open_dataset()` functions.
+#'@param n_decimal integer,  number of decimal point accepted in the column
+#'  value (only for "sample" output type), if NULL (default) no limit expected.
 #'
 #'@details For more information on all tests run on the submission, please refer
 #' to the documentation of each "test_*" function. A vignette with all the
@@ -318,8 +322,10 @@ run_all_validation <- function(df, path, pop, last_lst_gs,
 #' @importFrom dplyr mutate select %>% mutate_all distinct collect
 #' @importFrom stats setNames
 #' @importFrom jsonlite fromJSON
-#' @importFrom arrow open_dataset
+#' @importFrom arrow open_dataset Field int64 schema
 #' @importFrom purrr list_simplify
+#' @importFrom hubData create_hub_schema
+#' @importFrom hubUtils get_round_ids
 #'
 #'@examples
 #' \dontrun{
@@ -334,7 +340,8 @@ run_all_validation <- function(df, path, pop, last_lst_gs,
 #' }
 #'@export
 validate_submission <- function(path, js_def, lst_gs, pop_path,
-                                merge_sample_col = FALSE, partition = NULL) {
+                                merge_sample_col = FALSE, partition = NULL,
+                                n_decimal = NULL) {
 
   # Prerequisite --------
   # Load gold standard data
@@ -351,7 +358,7 @@ validate_submission <- function(path, js_def, lst_gs, pop_path,
   number2location <- setNames(pop$location_name, pop$location)
 
   # Read JSON file
-  js_def <- jsonlite::fromJSON(js_def, simplifyDataFrame = FALSE)
+  js_def0 <- jsonlite::fromJSON(js_def, simplifyDataFrame = FALSE)
 
   # Select the associated round (add error message if no match)
   if (!is.null(partition)) {
@@ -362,9 +369,9 @@ validate_submission <- function(path, js_def, lst_gs, pop_path,
                                                "\\d{4}-\\d{2}-\\d{2}"))
   }
   team_round <- unique(team_round)
-  js_date <- unique(as.Date(hubUtils::get_round_ids(js_def)))
+  js_date <- unique(as.Date(hubUtils::get_round_ids(js_def0)))
   if (team_round %in% js_date) {
-    js_def <- js_def$rounds[js_date %in% team_round]
+    js_def <- js_def0$rounds[js_date %in% team_round]
     js_def <- js_def[[1]]
   } else {
     err004 <-
@@ -410,9 +417,21 @@ validate_submission <- function(path, js_def, lst_gs, pop_path,
       stop(" The submission contains an issue, the validation was not run, ",
            "please see information above.")
     }
+    exp_col <- c(unique(names(unlist(purrr::map(js_def$model_tasks, "task_ids"),
+                                     FALSE))),
+                 "output_type", "output_type_id", "value")
+    schema <- hubData::create_hub_schema(js_def0)
+    if (merge_sample_col) {
+      exp_col <- c(exp_col, "run_grouping", "stochastic_run")
+      schema <- c(schema$fields,
+                  arrow::Field$create("run_grouping", arrow::int64()),
+                  arrow::Field$create("stochastic_run", arrow::int64()))
+      schema <- arrow::schema(schema)
+    }
+    schema <- schema[schema$names %in% exp_col]
     ds <-
       arrow::open_dataset(path, format = filef, partitioning = partition,
-                          hive_style = FALSE,
+                          hive_style = FALSE, schema = schema,
                           factory_options = list(exclude_invalid_files =
                                                    TRUE))
     df <- dplyr::collect(ds) %>%
@@ -466,5 +485,5 @@ validate_submission <- function(path, js_def, lst_gs, pop_path,
   run_all_validation(df, path = path, pop = pop, last_lst_gs = last_week_gs,
                      number2location = number2location, js_def = js_def,
                      merge_sample_col = merge_sample_col,
-                     pairing_col = pairing_col)
+                     pairing_col = pairing_col, n_decimal = n_decimal)
 }

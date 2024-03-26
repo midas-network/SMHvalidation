@@ -10,7 +10,8 @@ validate_submission(
   lst_gs,
   pop_path,
   merge_sample_col = FALSE,
-  partition = NULL
+  partition = NULL,
+  n_decimal = NULL
 )
 }
 \arguments{
@@ -38,6 +39,9 @@ contained into 2 columns: "run_grouping" and "stochastic_run". By default,
 \item{partition}{vector, for csv and parquet files, allow to validate files
 in a partition format, see `arrow` package for more information, and
 `arrow::write_dataset()`, `arrow::open_dataset()` functions.}
+
+\item{n_decimal}{integer,  number of decimal point accepted in the column
+value (only for "sample" output type), if NULL (default) no limit expected.}
 }
 \description{
 Runs all the different validation checks functions (test_column,
