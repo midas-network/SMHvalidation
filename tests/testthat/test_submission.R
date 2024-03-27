@@ -195,6 +195,12 @@ test_that("Test validation process", {
                                           js_def_flu, lst_gs_flu,
                                           pop_path_flu)), c("606", "612"))
 
+  # Test value sample
+  # No error (contains quantile and optional sample format)
+  expect_equal(err_cd(validate_submission("tst_dt/2022-08-14_flu_sample.csv",
+                                          js_def_flu, lst_gs_flu, pop_path_flu,
+                                          n_decimal = 1)), c("5043"))
+
   # Test additional location error -----
   # add location "02" for "death" target(s)
   expect_equal(err_cd(validate_submission("tst_dt/2022-08-14_flu_addloc.csv",

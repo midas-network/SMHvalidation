@@ -60,7 +60,7 @@ value_format_test <- function(df_test, model_tasks, outputtype,
       }
       if (any(unique(nchar(unique_val_digit)) > n_decimal)) {
         war_digi <-
-          paste0("\U0001f7e1 Warning 5042: All values associated with output ",
+          paste0("\U0001f7e1 Warning 5043: All values associated with output ",
                  "type 'sample' should have a maximum of ", n_decimal,
                  " decimal place")
       }
