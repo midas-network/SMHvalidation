@@ -35,6 +35,55 @@ read_files <- function(path) {
   return(df)
 }
 
+
+load_partition_arrow <- function(path, js_def, js_def_round, partition,
+                                 merge_sample_col = FALSE) {
+  if (all(grepl("parquet$|.pqt$", dir(path, recursive = TRUE)))) {
+    filef <- "parquet"
+  } else if (all(grepl(".csv$", dir(path, recursive = TRUE)))) {
+    filef <- "csv"
+  } else {
+    err005 <-
+      paste0("\U000274c Error 005: The file format of the submission was not",
+             " recognized, please use one unique file or multiple parquet ",
+             "files. For more information, please look at the documentation ",
+             "of the hub. \n")
+    cat(err005)
+    stop(" The submission contains an issue, the validation was not run, ",
+         "please see information above.")
+  }
+  exp_col <- c(unique(names(unlist(purrr::map(js_def_round$model_tasks,
+                                              "task_ids"), FALSE))),
+               "output_type", "output_type_id", "value")
+  schema <- hubData::create_hub_schema(js_def)
+  if (merge_sample_col) {
+    exp_col <- c(exp_col, "run_grouping", "stochastic_run")
+    schema <- c(schema$fields,
+                arrow::Field$create("run_grouping", arrow::int64()),
+                arrow::Field$create("stochastic_run", arrow::int64()))
+    schema <- arrow::schema(schema)
+  }
+  col_names <- arrow::open_dataset(sources = path)$schema$names
+  col_names <- unique(c(col_names, partition))
+  if (!(all(exp_col %in% col_names)) || !(all(col_names %in% exp_col))) {
+    colnames_test <- paste0("\U000274c Error 101: At least one column name is ",
+                            "misspelled or does not correspond to the expected",
+                            " column names")
+    cat(colnames_test)
+    stop(" The submission contains an issue, the validation was not run, ",
+         "please see information above.")
+  }
+  schema <- schema[schema$names %in% exp_col]
+  ds <-
+    arrow::open_dataset(path, format = filef, partitioning = partition,
+                        hive_style = FALSE, schema = schema,
+                        factory_options = list(exclude_invalid_files =
+                                                 TRUE))
+  df <- dplyr::collect(ds) %>%
+    dplyr::mutate_if(is.factor, as.character)
+  return(df)
+}
+
 # Function from ?is.integer() function documentation
 is_wholenumber <- function(x, tol = .Machine$double.eps^0.5) {
   x <- as.numeric(x)

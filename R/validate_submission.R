@@ -299,6 +299,8 @@ run_all_validation <- function(df, path, pop, last_lst_gs,
 #' `arrow::write_dataset()`, `arrow::open_dataset()` functions.
 #'@param n_decimal integer,  number of decimal point accepted in the column
 #'  value (only for "sample" output type), if NULL (default) no limit expected.
+#'@param round_id character string, round identifier. If `NULL` (default),
+#' extracted from `path`.
 #'
 #'@details For more information on all tests run on the submission, please refer
 #' to the documentation of each "test_*" function. A vignette with all the
@@ -341,7 +343,7 @@ run_all_validation <- function(df, path, pop, last_lst_gs,
 #'@export
 validate_submission <- function(path, js_def, lst_gs, pop_path,
                                 merge_sample_col = FALSE, partition = NULL,
-                                n_decimal = NULL) {
+                                n_decimal = NULL, round_id = NULL) {
 
   # Prerequisite --------
   # Load gold standard data
@@ -359,19 +361,20 @@ validate_submission <- function(path, js_def, lst_gs, pop_path,
 
   # Read JSON file
   js_def0 <- jsonlite::fromJSON(js_def, simplifyDataFrame = FALSE)
-
-  # Select the associated round (add error message if no match)
-  if (!is.null(partition)) {
-    team_round <- as.Date(stringr::str_extract(dir(path, recursive = TRUE),
-                                               "\\d{4}-\\d{2}-\\d{2}"))
-  } else {
-    team_round <- as.Date(stringr::str_extract(basename(path),
-                                               "\\d{4}-\\d{2}-\\d{2}"))
-  }
-  team_round <- unique(team_round)
   js_date <- unique(as.Date(hubUtils::get_round_ids(js_def0)))
-  if (team_round %in% js_date) {
-    js_def <- js_def0$rounds[js_date %in% team_round]
+  # Select the associated round (add error message if no match)
+  if (is.null(round_id)) {
+    if (!is.null(partition)) {
+      team_round <- as.Date(stringr::str_extract(dir(path, recursive = TRUE),
+                                                 "\\d{4}-\\d{2}-\\d{2}"))
+    } else {
+      team_round <- as.Date(stringr::str_extract(basename(path),
+                                                 "\\d{4}-\\d{2}-\\d{2}"))
+    }
+    round_id <- unique(team_round)
+  }
+  if (as.Date(round_id) %in% js_date) {
+    js_def <- js_def0$rounds[js_date %in% as.Date(round_id)]
     js_def <- js_def[[1]]
   } else {
     err004 <-
@@ -386,7 +389,7 @@ validate_submission <- function(path, js_def, lst_gs, pop_path,
 
   # Select validation file(s) and print message --------
   if (!is.null(partition)) {
-    file_path <- grep(team_round, dir(path, recursive = TRUE), value = TRUE)
+    file_path <- grep(round_id, dir(path, recursive = TRUE), value = TRUE)
   } else {
     file_path <- basename(path)
   }
@@ -403,39 +406,9 @@ validate_submission <- function(path, js_def, lst_gs, pop_path,
     df <- dplyr::collect(ds) %>%
       dplyr::mutate_if(is.factor, as.character)
   } else if (!is.null(partition)) {
-    if (all(grepl("parquet$|.pqt$", dir(path, recursive = TRUE)))) {
-      filef <- "parquet"
-    } else if (all(grepl(".csv$", dir(path, recursive = TRUE)))) {
-      filef <- "csv"
-    } else {
-      err005 <-
-        paste0("\U000274c Error 005: The file format of the submission was not",
-               " recognized, please use one unique file or multiple parquet ",
-               "files. For more information, please look at the documentation ",
-               "of the hub. \n")
-      cat(err005)
-      stop(" The submission contains an issue, the validation was not run, ",
-           "please see information above.")
-    }
-    exp_col <- c(unique(names(unlist(purrr::map(js_def$model_tasks, "task_ids"),
-                                     FALSE))),
-                 "output_type", "output_type_id", "value")
-    schema <- hubData::create_hub_schema(js_def0)
-    if (merge_sample_col) {
-      exp_col <- c(exp_col, "run_grouping", "stochastic_run")
-      schema <- c(schema$fields,
-                  arrow::Field$create("run_grouping", arrow::int64()),
-                  arrow::Field$create("stochastic_run", arrow::int64()))
-      schema <- arrow::schema(schema)
-    }
-    schema <- schema[schema$names %in% exp_col]
-    ds <-
-      arrow::open_dataset(path, format = filef, partitioning = partition,
-                          hive_style = FALSE, schema = schema,
-                          factory_options = list(exclude_invalid_files =
-                                                   TRUE))
-    df <- dplyr::collect(ds) %>%
-      dplyr::mutate_if(is.factor, as.character)
+    df <- load_partition_arrow(path, js_def = js_def0, js_def_round = js_def,
+                               partition = partition,
+                               merge_sample_col = merge_sample_col)
   } else {
     err005 <-
       paste0("\U000274c Error 005: The file format of the submission was not ",

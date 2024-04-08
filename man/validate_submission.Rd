@@ -11,7 +11,8 @@ validate_submission(
   pop_path,
   merge_sample_col = FALSE,
   partition = NULL,
-  n_decimal = NULL
+  n_decimal = NULL,
+  round_id = NULL
 )
 }
 \arguments{
@@ -42,6 +43,9 @@ in a partition format, see `arrow` package for more information, and
 
 \item{n_decimal}{integer,  number of decimal point accepted in the column
 value (only for "sample" output type), if NULL (default) no limit expected.}
+
+\item{round_id}{character string, round identifier. If `NULL` (default),
+extracted from `path`.}
 }
 \description{
 Runs all the different validation checks functions (test_column,
