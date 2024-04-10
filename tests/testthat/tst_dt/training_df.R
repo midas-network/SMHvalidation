@@ -644,8 +644,26 @@ write.csv(dplyr::filter(tot_s, output_type_id < 90,
 df <-
   arrow::read_parquet("tests/testthat/tst_dt/2024-03-26-team1-modela.parquet")
 
+df %>%
+  arrow::write_dataset("tests/testthat/tst_dt/partition_ok",
+                       partitioning = "target", hive_style = FALSE,
+                       format = "csv",
+                       basename_template = "2024-03-26-team1-mdla{i}.csv")
+
+df %>%
+  arrow::write_dataset("tests/testthat/tst_dt/partition_format",
+                       partitioning = "target",
+                       basename_template = "2024-03-26-team1-mdla{i}.txt",
+                       hive_style = FALSE,  format = "txt", delim = ",")
+
 df_badcol <- dplyr::rename(df, rn_grp = run_grouping) %>%
   write.csv("tests/testthat/tst_dt/2024-03-26-badcol.csv", row.names = FALSE)
+
+df_badcol <- dplyr::rename(df, rn_grp = run_grouping) %>%
+  arrow::write_dataset("tests/testthat/tst_dt/partition_err",
+                       partitioning =  "target", hive_style = FALSE,
+                       basename_template = "2024-03-26-team1-mdla{i}.parquet")
+
 df_format <- dplyr::mutate(df, location = as.numeric(location),
                            origin_date = as.POSIXct("2020-11-15")) %>%
   arrow::write_parquet("tests/testthat/tst_dt/2024-03-26-format.parquet")

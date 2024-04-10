@@ -63,22 +63,27 @@ load_partition_arrow <- function(path, js_def, js_def_round, partition,
                 arrow::Field$create("stochastic_run", arrow::int64()))
     schema <- arrow::schema(schema)
   }
-  col_names <- arrow::open_dataset(sources = path)$schema$names
+  col_names <- arrow::open_dataset(sources = path, format = filef)$schema$names
   col_names <- unique(c(col_names, partition))
   if (!(all(exp_col %in% col_names)) || !(all(col_names %in% exp_col))) {
     colnames_test <- paste0("\U000274c Error 101: At least one column name is ",
                             "misspelled or does not correspond to the expected",
-                            " column names")
+                            " column names \n")
     cat(colnames_test)
     stop(" The submission contains an issue, the validation was not run, ",
          "please see information above.")
   }
   schema <- schema[schema$names %in% exp_col]
-  ds <-
-    arrow::open_dataset(path, format = filef, partitioning = partition,
-                        hive_style = FALSE, schema = schema,
-                        factory_options = list(exclude_invalid_files =
-                                                 TRUE))
+  if (filef == "parquet") {
+    ds <-
+      arrow::open_dataset(path, format = filef, partitioning = partition,
+                          hive_style = FALSE, schema = schema)
+  } else {
+    ds <-
+      arrow::open_dataset(path, format = filef, partitioning = partition,
+                          hive_style = FALSE, col_types = schema)
+  }
+
   df <- dplyr::collect(ds) %>%
     dplyr::mutate_if(is.factor, as.character)
   return(df)

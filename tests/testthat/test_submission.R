@@ -40,6 +40,25 @@ test_that("Test validation process", {
                                           js_def, NULL, pop_path,
                                           merge_sample_col = TRUE)), "101")
 
+  # Partition test
+  expect_equal(err_cd(validate_submission("tst_dt/partition_ok/",
+                                          js_def, NULL, pop_path,
+                                          merge_sample_col = TRUE,
+                                          partition = "target",
+                                          round_id = "2024-03-26")),
+               character(0))
+  expect_equal(err_cd(validate_submission("tst_dt/partition_format/",
+                                          js_def, NULL, pop_path,
+                                          merge_sample_col = TRUE,
+                                          partition = "target",
+                                          round_id = "2024-03-26")), "005")
+  expect_equal(err_cd(validate_submission("tst_dt/partition_err/",
+                                          js_def, NULL, pop_path,
+                                          merge_sample_col = TRUE,
+                                          partition = "target",
+                                          round_id = "2024-03-26")), "101")
+
+
   # File with "location" column renamed "fips"
   expect_equal(err_cd(validate_submission("tst_dt/2022-01-09_colname.csv",
                                           js_def, lst_gs, pop_path)), "103")
