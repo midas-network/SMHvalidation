@@ -11,6 +11,10 @@ test_that("Test visualization", {
                                             y_sqrt = TRUE,
                                             plot_quantiles = c(0.25, 0.75)))
 
+  expect_no_error(generate_validation_plots("tst_dt/partition_ok2/",
+                                            partition = "target", lst_gs,
+                                            save_path = tmp_dir))
+
   file.remove(dir(tmp_dir, full.names = TRUE)[grep("plots.pdf", dir(tmp_dir))])
   file.remove(dir(".", pattern = ".pdf$"))
 })

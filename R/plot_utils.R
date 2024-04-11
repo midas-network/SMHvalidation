@@ -535,19 +535,22 @@ generate_validation_plots <- function(path_proj, lst_gs,
 
   # SETUP
   date_pttrn <- "[[:digit:]]{4}-[[:digit:]]{2}-[[:digit:]]{2}"
+  file_extension <- ".csv|.zip|.gz|.pq|.parquet"
   if (is.null(partition)) {
     file_ <- basename(path_proj)
-    team_model_name <- gsub(paste0(date_pttrn, "(_|-)|(.csv|.zip|.gz|.pq)"), "",
-                            file_)
+    team_model_name <- gsub(paste0(date_pttrn, "(_|-)|", file_extension),
+                            "",  file_)
   } else {
-    file_ <- path_proj
-    team_model_name <- gsub(paste0(date_pttrn, "(\\/.*)|(.csv|.zip|.gz|.pq)"),
-                            "", basename(file_))
+    file_ <- dir(path_proj, recursive = TRUE)
+    team_model_name <- gsub(paste0("(.+?)?", date_pttrn, "(\\/.*|-)|",
+                                   file_extension),  "", basename(file_))
   }
 
   projection_date <- lubridate::as_date(stringr::str_extract(file_, date_pttrn))
-  save_path <- file.path(save_path, paste0(projection_date, "_",
-                                           team_model_name, "_plots.pdf"))
+  projection_date <- unique(projection_date)
+  save_path <- file.path(unique(save_path), paste0(projection_date, "_",
+                                                   unique(team_model_name),
+                                                   "_plots.pdf"))
 
   # Ground Truth Data
   if (is.null(lst_gs)) {
