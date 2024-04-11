@@ -56,7 +56,7 @@ test_raceethnicity <- function(df, model_task) {
       }
       test_raceethn <- unique(na.omit(c(raceethn_all, raceethn_req)))
     } else {
-      test_raceethn <- NA
+      test_raceethn <- NA # nocov
     }
     return(test_raceethn)
   })

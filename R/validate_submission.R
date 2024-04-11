@@ -108,10 +108,10 @@ create_report <- function(df, model_task, col_message, out_col, out_scen,
       if (any(grepl("No errors or warnings", out_sample))) {
         test_report <- paste(test_report, "\n\n## Sample: \n",
                              paste(add_message, collapse = "\n"))
-      } else {
+      } else { # nocov start
         test_report <- paste(test_report, "\n\n## Sample: \n",
                              paste(add_message, out_sample, collapse = "\n"))
-      }
+      } # nocov end
     } else {
       test_report <- paste(test_report, "\n\n## Sample: \n",
                            paste(out_sample, collapse = "\n"))
@@ -368,8 +368,7 @@ validate_submission <- function(path, js_def, lst_gs, pop_path,
       team_round <- as.Date(stringr::str_extract(dir(path, recursive = TRUE),
                                                  "\\d{4}-\\d{2}-\\d{2}"))
     } else {
-      team_round <- as.Date(stringr::str_extract(basename(path),
-                                                 "\\d{4}-\\d{2}-\\d{2}"))
+      team_round <- as.Date(stringr::str_extract(path, "\\d{4}-\\d{2}-\\d{2}"))
     }
     round_id <- unique(team_round)
   }

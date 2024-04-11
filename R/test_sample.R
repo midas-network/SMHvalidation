@@ -104,7 +104,7 @@ test_sample <- function(df, model_task, pairing_col = "horizon") {
                      paste(n_sample, collapse = ", "),
                      " trajectories per group. Please verify.")
           } else {
-            sample_value <- NA
+            sample_value <- NA #nocov
           }
         } else {
           sample_value <- NA
@@ -163,7 +163,7 @@ test_sample <- function(df, model_task, pairing_col = "horizon") {
                            collapse = ", "), ". please verify.")
           }
         } else {
-          test_sample <-  NA
+          test_sample <-  NA # nocov
         }
       }
     } else {

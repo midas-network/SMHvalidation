@@ -126,7 +126,7 @@ test_location <- function(df, number2location, model_task) {
             paste0("\U000274c Error 703: No location should be associated with",
                    " the target: ", x, ". please verify.")
         } else {
-          loc_test <- NA
+          loc_test <- NA # nocov
         }
       }
     } else {

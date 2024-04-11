@@ -47,6 +47,10 @@ test_that("Test validation process", {
                                           partition = "target",
                                           round_id = "2024-03-26")),
                character(0))
+  expect_equal(err_cd(validate_submission("tst_dt/partition_ok2/",
+                                          js_def, NULL, pop_path,
+                                          partition = "target")),
+               character(0))
   expect_equal(err_cd(validate_submission("tst_dt/partition_format/",
                                           js_def, NULL, pop_path,
                                           merge_sample_col = TRUE,

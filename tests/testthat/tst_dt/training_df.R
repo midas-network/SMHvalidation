@@ -651,6 +651,12 @@ df %>%
                        basename_template = "2024-03-26-team1-mdla{i}.csv")
 
 df %>%
+  arrow::write_dataset("tests/testthat/tst_dt/partition_ok2",
+                       partitioning = "target", hive_style = FALSE,
+                       format = "parquet",
+                       basename_template = "2024-03-26-team1-mdla{i}.parquet")
+
+df %>%
   arrow::write_dataset("tests/testthat/tst_dt/partition_format",
                        partitioning = "target",
                        basename_template = "2024-03-26-team1-mdla{i}.txt",
