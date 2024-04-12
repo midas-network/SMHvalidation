@@ -392,8 +392,15 @@ validate_submission <- function(path, js_def, lst_gs, pop_path,
   } else {
     file_path <- basename(path)
   }
-  cat(paste0("Run validation on files: ", paste(file_path, collapse = ", "),
-             "\n"))
+  if (length(file_path) > 10) { # nocov start
+    cat(paste0("Run validation on files: ",
+               paste(unique(file_path)[1:5], collapse = ", "),
+               ", etc.\n"))
+  } else { # nocov end
+    cat(paste0("Run validation on files: ", paste(unique(file_path),
+                                                  collapse = ", "), "\n"))
+  }
+
 
   # Process file to test and associated information --------
   # Read file
