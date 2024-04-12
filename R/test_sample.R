@@ -11,20 +11,21 @@
 #'
 #'@details  This function contains 3 tests:
 #'\itemize{
-#'  \item{sample number: }{The submission should contain a sample column with
-#'  the expected number of trajectory for each
-#'  scenario/target/location/horizon (age_group) group}
+#'  \item{sample number: }{The submission should contain the expected number of
+#'  trajectory for each model tasks group (unique combination of `task_ids`
+#'  columns as specified in the `model_task` parameter)}
 #'  \item{unique sample: }{The submission should at least contain a unique
 #'  sample identifier by pairing group, for example if pairing_col = "horizon",
 #'  the sample identifier `1` should contain all the possible horizon value,
 #'  and optionally can contain the specific and multiple value for the other
 #'  task id column}
-#'  \item{sample integer: }{The submission should contain a sample column with
-#'  integer only.}
-#'  \item{required sample:}{If a target expected sample type output, the
-#'  submission should contain sample type output for this target}
+#'  \item{sample integer: }{The submission should contain a `output_type_id`
+#'  column with integer only, associated with `"sample"` output type}
+#'  \item{required sample:}{If a target expected `"sample"` type output, the
+#'  submission should contain `"sample"` type output for this target}
 #' }
-#' Function called in the `validate_submission()` function.
+#' Function called in the `validate_submission()` function, only if the
+#' submission contains `"sample"` output type.
 #'
 #'@importFrom stats na.omit
 #'@importFrom dplyr filter n

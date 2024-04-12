@@ -22,7 +22,8 @@
 #'  \item{Target: }{All targets required to have quantiles information have all
 #'  required quantiles for each group id (scenario/location/horizon/etc.)}
 #' }
-#' Function called in the `validate_submission()` function.
+#' Function called in the `validate_submission()` function, only if the
+#' submission contains `"quantile"` output type.
 #'
 #'@importFrom stats na.omit
 #'@importFrom dplyr filter mutate

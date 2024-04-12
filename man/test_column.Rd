@@ -17,12 +17,12 @@ Validate Scenario Modeling Hub submissions: names and number of columns.
 \details{
 This function contains 2 tests:
 \itemize{
- \item{Name: }{The names of the columns are corresponding to the expected
- column names. If one column is misspelled or is missing, the validation
- will stop here with an error message and no other tests will be perform on
- the submission.}
- \item{Number: }{The submission should contains the expected number of
- columns.}
+\item{Name: }{The names of the columns are corresponding to the expected
+column names. If one column is misspelled or is missing, the validation
+will stop here with an error message and no other tests will be perform on
+the submission.}
+\item{Number: }{The submission should contains the expected number of
+columns.}
 }
-Function called in the `validate_submission()` function.
+Function called in the \code{validate_submission()} function.
 }

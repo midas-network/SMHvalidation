@@ -2,7 +2,7 @@
 % Please edit documentation in R/test_raceethnicity.R
 \name{test_raceethnicity}
 \alias{test_raceethnicity}
-\title{Runs Validation Checks on the `race_ethnicity` column}
+\title{Runs Validation Checks on the \code{race_ethnicity} column}
 \usage{
 test_raceethnicity(df, model_task)
 }
@@ -13,19 +13,20 @@ test_raceethnicity(df, model_task)
 and model output (type, format, etc.)}
 }
 \description{
-Validate Scenario Modeling Hub submissions: test if the `race_ethnicity`
+Validate Scenario Modeling Hub submissions: test if the \code{race_ethnicity}
 column contains the expected  value.
 }
 \details{
 This function contains 2 tests:
 \itemize{
- \item{Race ethnicity value: }{If the submission contains projection by
- race/ethnicity, the `race_ethnicity` column contains the expected values as
- specify in the associated SMH GitHub Repository.}
- \item{Race ethnicity tasks id: }{If the submission contains projection by
- race/ethnicity and if one or multiple tasks ids required specific
- `race_ethnicity` value(s), no additional value(s) is provided in the
- submission file.}
+\item{Race ethnicity value: }{If the submission contains projection by
+race/ethnicity, the \code{race_ethnicity} column contains the expected values as
+specified.}
+\item{Race ethnicity tasks id: }{If the submission contains projection by
+race/ethnicity and if one or multiple tasks ids required specific
+\code{race_ethnicity} value(s), no additional value(s) is provided in the
+submission file.}
 }
-Function called in the `validate_submission()` function.
+Function called in the \code{validate_submission()} function, only if the
+submission contains \code{"race_ethnicity"} column.
 }

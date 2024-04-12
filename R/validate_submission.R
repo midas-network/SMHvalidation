@@ -141,17 +141,18 @@ create_report <- function(df, model_task, col_message, out_col, out_scen,
 #'
 #' Runs all the different validation checks functions (test_column,
 #' test_scenario, test_modelprojdate, test_quantiles, test_val, test_target,
-#' test_location) on a data frame and print information about the results of
-#' each tests on the submission: warning(s), error(s) or if all the tests
+#' test_location, etc.) on a data frame and print information about the results
+#' of each tests on the submission: warning(s), error(s) or if all the tests
 #' were successful.
 #'
 #'@param df data frame to test
 #'@param path character vector path of the file being tested
 #'@param pop data frame containing the population size of each geographical
-#'  entities by fips (in a column "location")
+#'  entities by fips (in a column "location"), can be `NULL` (not comparison to
+#'  population size)
 #'@param last_lst_gs list of data frame, named with the corresponding target and
 #'  containing the last avaible week of observed data  before start of the
-#'  projection
+#'  projection, can be `NULL` (not comparison to observed data)
 #'@param js_def list containing round definitions: names of columns,
 #' target names, ...
 #'@param merge_sample_col boolean to indicate if the for the output type
@@ -169,7 +170,7 @@ create_report <- function(df, model_task, col_message, out_col, out_scen,
 #' might be created later on too.
 #'
 #' @noRd
-run_all_validation <- function(df, path, pop, last_lst_gs, js_def,
+run_all_validation <- function(df, path, js_def, pop, last_lst_gs,
                                merge_sample_col = FALSE,
                                pairing_col = "horizon", n_decimal = NULL) {
   ### Prerequisite
@@ -287,25 +288,26 @@ run_all_validation <- function(df, path, pop, last_lst_gs, js_def,
 #' [Hubverse
 #' ](https://hubdocs.readthedocs.io/en/latest/user-guide/hub-config.html)
 #' format
-#'@param pop_path path to a table containing the population size of each
-#'  geographical entities by FIPS (in a column "location") and by location name.
-#'  Use to compare that value is not higher than expected population size.
-#'  Set to `NULL` (default), to NOT run comparison with observed data.
 #'@param lst_gs named list of data frame containing the
 #' observed data. For COVID-19, we highly recommend to use the output of the
-#' pull_gs_data() function. The list should have the same format: each data
+#' `pull_gs_data()` function. The list should have the same format: each data
 #' frame should be named with the corresponding covidcast signal except
-#' "hospitalization" instead of "confirmed_admissions_covid_1d".
+#' `"hospitalization"` instead of `"confirmed_admissions_covid_1d"`.
 #' Set to `NULL` (default), to NOT run comparison with observed data.
+#'@param pop_path path to a table containing the population size of each
+#' geographical entities by FIPS (in a column `"location"`).
+#' Use to compare that value is not higher than expected population size.
+#' Set to `NULL` (default), to NOT run comparison with population data.
 #'@param merge_sample_col boolean to indicate if the for the output type
-#' "sample", the output_type_id column is set to NA and the information is
-#' contained into 2 columns: "run_grouping" and "stochastic_run". By default,
-#' `FALSE`
+#' `"sample"`, the `output_type_id` column is set to `NA` and the information is
+#' contained into 2 columns: `"run_grouping"` and `"stochastic_run`".
+#' By default, `FALSE`
 #'@param partition vector, for csv and parquet files, allow to validate files
 #' in a partition format, see `arrow` package for more information, and
 #' `arrow::write_dataset()`, `arrow::open_dataset()` functions.
 #'@param n_decimal integer,  number of decimal point accepted in the column
-#'  value (only for "sample" output type), if NULL (default) no limit expected.
+#' value (only for `"sample"` output type), if `NULL` (default) no limit
+#' expected.
 #'@param round_id character string, round identifier. If `NULL` (default),
 #' extracted from `path`.
 #'
@@ -313,9 +315,6 @@ run_all_validation <- function(df, path, pop, last_lst_gs, js_def,
 #' to the documentation of each `"test_*`" function. A vignette with all the
 #' information is available in the package and is called:
 #' vignette("validation-checks").
-#'
-#' For the `"location"` column, by default the SMHvalidation package will
-#' validate it to the con
 #'
 #' The function accepts submission in PARQUET, CSV, ZIP or GZ file formats.
 #'
@@ -342,7 +341,7 @@ run_all_validation <- function(df, path, pop, last_lst_gs, js_def,
 #'
 #'@examples
 #' \dontrun{
-#'
+#' validate_submission("PATH/TO/SUBMISSION", "PATH/TO/ROUND/tasks.json")
 #' }
 #'@export
 validate_submission <- function(path, js_def, lst_gs = NULL, pop_path = NULL,
@@ -360,7 +359,7 @@ validate_submission <- function(path, js_def, lst_gs = NULL, pop_path = NULL,
     setNames(names(lst_gs))
 
   # Pull population data and prepare location hash vector
-  if (!is.null(pop_path)) pop <- read_files(pop_path)
+  if (!is.null(pop_path)) pop <- read_files(pop_path) else pop <- NULL
 
   # Read JSON file
   js_def0 <- jsonlite::fromJSON(js_def, simplifyDataFrame = FALSE)
@@ -464,7 +463,8 @@ validate_submission <- function(path, js_def, lst_gs = NULL, pop_path = NULL,
   })
 
   # Run tests --------
-  run_all_validation(df, path = path, pop = pop, last_lst_gs = last_week_gs,
-                     js_def = js_def, merge_sample_col = merge_sample_col,
+  run_all_validation(df, path = path, js_def = js_def, pop = pop,
+                     last_lst_gs = last_week_gs,
+                     merge_sample_col = merge_sample_col,
                      pairing_col = pairing_col, n_decimal = n_decimal)
 }

@@ -11,7 +11,7 @@ read_files(path)
 }
 \description{
 Reads a file and output a data frame. The function can read files in CSV,
- ZIP, GZ and PQT format
+ZIP, GZ and PQT format
 }
 \examples{
 \dontrun{

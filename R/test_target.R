@@ -10,7 +10,7 @@
 #'@details  This function contains 5 tests:
 #'\itemize{
 #'  \item{Target name: }{The target should correspond to the target name as
-#'  expressed in the SMH Github. }
+#'  expressed in the `model_task` parameter. }
 #'  \item{Target number: }{The submission file contains projection for all
 #'  required targets. It is accepted to submit only a subset of target but
 #'  a warning and/or a error message will be return (depending if the target
@@ -19,15 +19,17 @@
 #'  for the expected number of weeks or more. If a team submits more week than
 #'  expected, a warning message will be returned, but the submission will be
 #'  accepted. However, an error message will be returned if the submission file
-#'  contains less projection week than expected. Starting round 13, if the file
+#'  contains less projection week than expected. Starting Feb. 2022, if the file
 #'   contains less projected weeks than expected, the submission will still be
 #'   accepted, but will return a warning message and might not be included
 #'   in the Ensembles}
 #'  \item{Week projected: }{The submission file contains projection for all
-#'  expected weeks for each target, location, scenario (age_group) and for all
+#'  expected weeks for each tasks group (unique combination of `task_ids`
+#'  columns as specified in the `model_task` parameter) and for all
 #'  output type combination.}
-#'  \item{NA target}{The projection contains NA for all "horizon"
-#'  for the target requiring no time series information. }
+#'  \item{NA target}{The projection contains `NA` value in the `horizon`
+#'  column for the target(s) requiring no time series information (for example,
+#'  `"peak size hosp"`)}
 #' }
 #' Function called in the `validate_submission()` function.
 #'

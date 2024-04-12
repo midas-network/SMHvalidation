@@ -18,7 +18,8 @@
 #'  age group and if one or multiple targets required specific `age_group`
 #'  value(s), no additional value(s) is provided in the submission file.}
 #' }
-#' Function called in the `validate_submission()` function.
+#' Function called in the `validate_submission()` function, only if the
+#' submission contains `"age_group"` column
 #'
 #'@importFrom stats na.omit
 #'@importFrom dplyr distinct select mutate %>%

@@ -14,7 +14,7 @@ gs_week_process <- function(df) {
     dplyr::as_tibble()
 }
 
-#'Add Locayion Name column
+#'Add Location Name column
 #'
 #' Create a column "geo_value_fullname" with the full name of each state.
 #'

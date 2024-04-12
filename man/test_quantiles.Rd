@@ -14,23 +14,24 @@ and model output (type, format, etc.)}
 }
 \description{
 Validate Scenario Modeling Hub submissions: test if the
-`quantile` and `type` columns contain the expected information and value
+\code{quantile} and \code{type} columns contain the expected information and value
 and the projection value increases with the quantiles.
 }
 \details{
 This function contains 5 tests:
 \itemize{
- \item{Type: }{The submission contains quantiles value when expected}
- \item{Quantiles: }{The `quantile` column matches the expected quantiles}
- \item{Required quantiles: }{The projection should contain all required
-  quantiles. It is accepted to submit less quantiles but the
-  function will return a warning and the submission will not be included
-  in the Ensembles.}
- \item{Value: }{The `value` associated with each `quantile` is increasing as
- the quantile increased. For example, if quantile 0.01 = 5 than quantile
- 0.5 should be equal or greater than 5.}
- \item{Target: }{All targets required to have quantiles information have all
- required quantiles for each group id (scenario/location/horizon/etc.)}
+\item{Type: }{The submission contains quantiles value when expected}
+\item{Quantiles: }{The \code{quantile} column matches the expected quantiles}
+\item{Required quantiles: }{The projection should contain all required
+quantiles. It is accepted to submit less quantiles but the
+function will return a warning and the submission will not be included
+in the Ensembles.}
+\item{Value: }{The \code{value} associated with each \code{quantile} is increasing as
+the quantile increased. For example, if quantile 0.01 = 5 than quantile
+0.5 should be equal or greater than 5.}
+\item{Target: }{All targets required to have quantiles information have all
+required quantiles for each group id (scenario/location/horizon/etc.)}
 }
-Function called in the `validate_submission()` function.
+Function called in the \code{validate_submission()} function, only if the
+submission contains \code{"quantile"} output type.
 }

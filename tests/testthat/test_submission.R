@@ -134,6 +134,8 @@ test_that("Test validation process", {
   # High value (1e9) of quantile 1, Scenario A, location US, inc death
   expect_equal(err_cd(validate_submission("tst_dt/2022-01-09_highvalue.csv",
                                           js_def, lst_gs, pop_path)), c("507"))
+  expect_equal(validate_submission("tst_dt/2022-01-09_highvalue.csv", js_def),
+               NULL)
   # Low value (10) of Scenario A, location US, cum case
   expect_equal(err_cd(validate_submission("tst_dt/2022-01-09_lowcumcase.csv",
                                           js_def, lst_gs, pop_path)),

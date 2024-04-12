@@ -10,11 +10,12 @@ test_val(df, pop, last_lst_gs, model_task, n_decimal = NULL)
 \item{df}{data frame to test}
 
 \item{pop}{data frame containing the population size of each geographical
-entities by fips (in a column "location")}
+entities by fips (in a column "location"), can be \code{NULL} (not comparison to
+population size)}
 
 \item{last_lst_gs}{list of data frame, named with the corresponding target and
 containing the last avaible week of observed data  before start of the
-projection}
+projection, can be \code{NULL} (not comparison to observed data)}
 
 \item{model_task}{list containing round information for each id columns
 and model output (type, format, etc.)}
@@ -24,42 +25,43 @@ value (only for "sample" output type), if NULL (default) no limit expected.}
 }
 \description{
 Validate Scenario Modeling Hub submissions: test if the
-`value` and `type` columns contain the expected information and value.
+\code{value} and \code{type} columns contain the expected information and value.
 }
 \details{
 This function contains 10 tests:
 \itemize{
- \item{Required type: }{All the required type output are present in the
-   submission file}
- \item{Value: }{All `value` have the expected format (for example, double
-      greater than 0, etc.)}
- \item{Numeric Value: }{All `value` are numeric, `NA` are not accepted)}
- \item{Unique value: }{For each target/scenario/location group (except
- locations 66 (Guam), 69 (Northern Mariana Island), 60 (American Samoa),
- 74 (US. Minor Outlying Islands)), the whole time frame projection does not
- contain only 1 unique value. For example, contains only 0 or same
- cumulative value for the whole projections. The submission is still
- accepted if so, but will return a warning asking to verify if the projection
-  is correct for the specific location/target group}
- \item{Value < Population size: }{Each projected value cannot by higher than
- the population size of the corresponding geographical entity. The
- submission is still accepted if the test failed, but will return a message
- asking to verify the projected value for the specific target and location}
- \item{Cumulative cases: }{If the submission contains cumulative case count,
- the projected cumulative case counts value should not be lower than the
-  week 0 (or week -1, depending on availability on the time of submission)
-  of the observed cumulative cases}
- \item{Cumulative deaths: }{If the submission contains cumulative death, the
- projected cumulative death counts value should not be lower than the week
- 0 (or week -1, depending on availability on the time of submission) of the
- observed cumulative deaths}
- \item{Unique Projections: }{In the submission, each group
- quantile or sample/horizon/target/scenario/location combination has one
- unique value projected. (For example: only 1 value for quantile 0.5,
- location US, target 1 wk ahead inc case and scenario A).}
- \item{Cumulative Projections: }{In the submission, each
- quantile/target name/scenario/location combination for the cumulative target
- only, has projected values that increase or stay the same with time.}
+\item{Required type: }{All the required type output are present in the
+submission file}
+\item{Value: }{All \code{value} have the expected format (for example, double
+greater than 0, etc.)}
+\item{Numeric Value: }{All \code{value} are numeric, \code{NA} are not accepted)}
+\item{Unique value: }{For each target/scenario/location group (except
+locations 66 (Guam), 69 (Northern Mariana Island), 60 (American Samoa),
+74 (US. Minor Outlying Islands)), the whole time frame projection does not
+contain only 1 unique value. For example, contains only 0 or same
+cumulative value for the whole projections. The submission is still
+accepted if so, but will return a warning asking to verify if the projection
+is correct for the specific location/target group}
+\item{Value < Population size: }{\emph{optional} Each projected value cannot
+by higher than the population size of the corresponding geographical entity.
+The submission is still accepted if the test failed, but will return a
+message asking to verify the projected value for the specific target and
+location}
+\item{Cumulative cases: }{\emph{optional} If the submission contains cumulative
+case count, the projected cumulative case counts value should not be lower
+than the week 0 (or week -1, depending on availability on the time of
+submission) of the observed cumulative cases}
+\item{Cumulative deaths: }{\emph{optional} If the submission contains cumulative
+death, the projected cumulative death counts value should not be lower than
+the week 0 (or week -1, depending on availability on the time of submission)
+of the observed cumulative deaths}
+\item{Unique Projections: }{In the submission, each model tasks group
+(unique combination of \code{task_ids} columns as specified in the \code{model_task}
+parameter) has one unique value projected. (For example: only 1 value for
+quantile 0.5, location US, target 1 wk ahead inc case and scenario A).}
+\item{Cumulative Projections: }{For cumulative target only, each model
+tasks group associated with a cumulative target has projected values that
+increase or stay constant with time.}
 }
-Function called in the `validate_submission()` function.
+Function called in the \code{validate_submission()} function.
 }

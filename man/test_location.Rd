@@ -4,31 +4,28 @@
 \alias{test_location}
 \title{Runs Validation Checks on the Location column}
 \usage{
-test_location(df, number2location, model_task)
+test_location(df, model_task)
 }
 \arguments{
 \item{df}{data frame to test}
-
-\item{number2location}{named vector containing the FIPS as name and the
-corresponding location name as value (example: name: "01", value: "Alabama")}
 
 \item{model_task}{list containing round information for each id columns
 and model output (type, format, etc.)}
 }
 \description{
-Validate Scenario Modeling Hub submissions: test if the  `location` column
+Validate Scenario Modeling Hub submissions: test if the  \code{location} column
 contains the expected  value.
 }
 \details{
 This function contains 2 tests:
 \itemize{
- \item{Location name: }{The submission should contains projection by
- location, the `location` column contains the location FIPS number as
- available in the location table in the SMH GitHub Repository. If the FIPS
- number are missing a trailing zero, the submission will be accepted but a
- warning message will be returned.}
- \item{Specific location: }{For the target(s) requiring only specific
- location(s), no additional location is provided in the submission file}
+\item{Location name: }{The submission should contains projection by
+location, the \code{location} column contains the location FIPS number as
+available in the location table in the SMH GitHub Repository. If the FIPS
+number are missing a trailing zero, the submission will be accepted but a
+warning message will be returned.}
+\item{Specific location: }{For the target(s) requiring only specific
+location(s), no additional location is provided in the submission file}
 }
-Function called in the `validate_submission()` function.
+Function called in the \code{validate_submission()} function.
 }
