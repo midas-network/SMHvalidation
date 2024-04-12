@@ -149,8 +149,6 @@ create_report <- function(df, model_task, col_message, out_col, out_scen,
 #'@param path character vector path of the file being tested
 #'@param pop data frame containing the population size of each geographical
 #'  entities by fips (in a column "location")
-#'@param number2location named vector containing the FIPS as name and the
-#'  corresponding location name as value (example: name: "01", value: "Alabama")
 #'@param last_lst_gs list of data frame, named with the corresponding target and
 #'  containing the last avaible week of observed data  before start of the
 #'  projection
@@ -171,8 +169,7 @@ create_report <- function(df, model_task, col_message, out_col, out_scen,
 #' might be created later on too.
 #'
 #' @noRd
-run_all_validation <- function(df, path, pop, last_lst_gs,
-                               number2location, js_def,
+run_all_validation <- function(df, path, pop, last_lst_gs, js_def,
                                merge_sample_col = FALSE,
                                pairing_col = "horizon", n_decimal = NULL) {
   ### Prerequisite
@@ -233,7 +230,7 @@ run_all_validation <- function(df, path, pop, last_lst_gs,
   out_target <- test_target(df, model_task)
 
   # Test on location information
-  out_loc <- test_location(df, number2location, model_task)
+  out_loc <- test_location(df, model_task)
 
   # Test for additional column
   if (any(grepl("age_group", names(df)))) {
@@ -272,24 +269,34 @@ run_all_validation <- function(df, path, pop, last_lst_gs,
 
 #' Validate SMH (Scenario Modeling Hub) Submissions
 #'
-#' Runs all the different validation checks functions (test_column,
-#' test_scenario, test_modelprojdate, test_quantiles, test_val, test_target,
-#' test_location, test_sample, test_agegroup) on a Scenario Modeling Hub (SMH)
+#' Runs all the different validation checks functions (`test_column()`,
+#' `test_scenario()`, `test_origindate()`, `test_quantiles()`, `test_val()`,
+#' `test_target()`, `test_location()`,` test_sample()`, `test_agegroup()`,
+#' `test_raceethnicity()`) on a Scenario Modeling Hub (SMH)
 #' submissions and prints information about the results of each tests on the
 #' submission: warning(s), error(s) or message if all the tests were successful.
 #'
-#'@param path path to the submissions file to test or string of parquet files (
-#' in this case, the validation will be run on the aggregation of all the
-#' parquet files together)
+#'@param path path to the submissions file (or folder for partitioned data)
+#' to test, or string of parquet files (in this case, the validation will be
+#' run on the aggregation of all the parquet files together, and each file
+#' individually should match the expected SMH standard).
+#' If partition is not set to `NULL`, path to the folder containing the
+#' partitioned data.
 #'@param js_def path to JSON file containing round definitions: names of
-#'  columns, target names, ...
+#' columns, target names, ... following the `tasks.json`
+#' [Hubverse
+#' ](https://hubdocs.readthedocs.io/en/latest/user-guide/hub-config.html)
+#' format
+#'@param pop_path path to a table containing the population size of each
+#'  geographical entities by FIPS (in a column "location") and by location name.
+#'  Use to compare that value is not higher than expected population size.
+#'  Set to `NULL` (default), to NOT run comparison with observed data.
 #'@param lst_gs named list of data frame containing the
 #' observed data. For COVID-19, we highly recommend to use the output of the
 #' pull_gs_data() function. The list should have the same format: each data
 #' frame should be named with the corresponding covidcast signal except
 #' "hospitalization" instead of "confirmed_admissions_covid_1d".
-#'@param pop_path path to a table containing the population size of each
-#'  geographical entities by FIPS (in a column "location") and by location name.
+#' Set to `NULL` (default), to NOT run comparison with observed data.
 #'@param merge_sample_col boolean to indicate if the for the output type
 #' "sample", the output_type_id column is set to NA and the information is
 #' contained into 2 columns: "run_grouping" and "stochastic_run". By default,
@@ -303,8 +310,12 @@ run_all_validation <- function(df, path, pop, last_lst_gs,
 #' extracted from `path`.
 #'
 #'@details For more information on all tests run on the submission, please refer
-#' to the documentation of each "test_*" function. A vignette with all the
-#' information is available in the package and is called: "validation-checks".
+#' to the documentation of each `"test_*`" function. A vignette with all the
+#' information is available in the package and is called:
+#' vignette("validation-checks").
+#'
+#' For the `"location"` column, by default the SMHvalidation package will
+#' validate it to the con
 #'
 #' The function accepts submission in PARQUET, CSV, ZIP or GZ file formats.
 #'
@@ -331,17 +342,10 @@ run_all_validation <- function(df, path, pop, last_lst_gs,
 #'
 #'@examples
 #' \dontrun{
-#' # FOR SMH Submission
-#'
-#' lst_gs <- pull_gs_data()
-#' pop_path <- "PATH/TO/data-locations/locations.csv"
-#' js_def <- "PATH/TO/tasks.json"
-#'
-#' validate_submission("PATH/SUBMISSION", js_def, lst_gs, pop_path)
 #'
 #' }
 #'@export
-validate_submission <- function(path, js_def, lst_gs, pop_path,
+validate_submission <- function(path, js_def, lst_gs = NULL, pop_path = NULL,
                                 merge_sample_col = FALSE, partition = NULL,
                                 n_decimal = NULL, round_id = NULL) {
 
@@ -356,8 +360,7 @@ validate_submission <- function(path, js_def, lst_gs, pop_path,
     setNames(names(lst_gs))
 
   # Pull population data and prepare location hash vector
-  pop <- read_files(pop_path)
-  number2location <- setNames(pop$location_name, pop$location)
+  if (!is.null(pop_path)) pop <- read_files(pop_path)
 
   # Read JSON file
   js_def0 <- jsonlite::fromJSON(js_def, simplifyDataFrame = FALSE)
@@ -462,7 +465,6 @@ validate_submission <- function(path, js_def, lst_gs, pop_path,
 
   # Run tests --------
   run_all_validation(df, path = path, pop = pop, last_lst_gs = last_week_gs,
-                     number2location = number2location, js_def = js_def,
-                     merge_sample_col = merge_sample_col,
+                     js_def = js_def, merge_sample_col = merge_sample_col,
                      pairing_col = pairing_col, n_decimal = n_decimal)
 }

@@ -349,31 +349,36 @@ test_val <- function(df, pop, last_lst_gs, model_task, n_decimal = NULL) {
       } # nocov end
 
       # - Value should be lower than population size
-      test <- dplyr::left_join(df_test, pop, by = "location") %>%
-        dplyr::mutate(pop_test = ifelse(population < value, 1, 0)) %>%
-        dplyr::filter(pop_test > 0)
-      if (dim(test)[1] > 0) {
-        test <-
-          dplyr::distinct(dplyr::select(test, target, location_name,
-                                        scenario_id,
-                                        matches("quantile|sample")))
-        # nocov start
-        if (dim(test)[1] > 10)
-          test <- dplyr::distinct(dplyr::select(test, target, location_name,
-                                                scenario_id))
-        if (dim(test)[1] > 10)
-          test <- dplyr::distinct(dplyr::select(test, scenario_id,
-                                                location_name))
-        if (dim(test)[1] > 10)
-          test <- dplyr::distinct(dplyr::select(test, location_name))
-        # nocov end
-        pointpop_test <-
-          paste0("\U0001f7e1 Warning 507: Some value(s) are greater than the ",
-                 "population size. Please verify: ",
-                 tidyr::unite(test, "pop_test_fail", sep = "; ") %>% unlist())
+      if (!is.null(pop)) {
+        test <- dplyr::left_join(df_test, pop, by = "location") %>%
+          dplyr::mutate(pop_test = ifelse(population < value, 1, 0)) %>%
+          dplyr::filter(pop_test > 0)
+        if (dim(test)[1] > 0) {
+          test <-
+            dplyr::distinct(dplyr::select(test, target, location_name,
+                                          scenario_id,
+                                          matches("quantile|sample")))
+          # nocov start
+          if (dim(test)[1] > 10)
+            test <- dplyr::distinct(dplyr::select(test, target, location_name,
+                                                  scenario_id))
+          if (dim(test)[1] > 10)
+            test <- dplyr::distinct(dplyr::select(test, scenario_id,
+                                                  location_name))
+          if (dim(test)[1] > 10)
+            test <- dplyr::distinct(dplyr::select(test, location_name))
+          # nocov end
+          pointpop_test <-
+            paste0("\U0001f7e1 Warning 507: Some value(s) are greater than the",
+                   " population size. Please verify: ",
+                   tidyr::unite(test, "pop_test_fail", sep = "; ") %>% unlist())
+        } else {
+          pointpop_test <- NA
+        }
       } else {
         pointpop_test <- NA
       }
+
 
       # - Cumulative value should not be lower than GS cumulative data
       # (deaths; cases only)

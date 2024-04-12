@@ -4,8 +4,6 @@
 #' contains the expected  value.
 #'
 #'@param df data frame to test
-#'@param number2location named vector containing the FIPS as name and the
-#'  corresponding location name as value (example: name: "01", value: "Alabama")
 #'@param model_task list containing round information for each id columns
 #' and model output (type, format, etc.)
 #'
@@ -25,28 +23,16 @@
 #'@importFrom purrr keep map discard
 #'@importFrom dplyr filter
 #'@export
-test_location <- function(df, number2location, model_task) {
-  # - correspond to the table in the GitHub
-  if (isFALSE(!any(is.na(number2location[unique(df$location)])))) {
-    vect <- vect0 <- df$location
-    if (any(nchar(vect) == 1)) {
-      vect0 <- vect
-      vect[which(nchar(vect) == 1)] <- paste0(0,  vect[which(nchar(vect) == 1)])
-    }
-    if (isFALSE(!any(is.na(number2location[unique(vect)])))) {
-      loc_mess <- paste(unique(df$location)
-                        [is.na(number2location[unique(df$location)])],
-                        collapse = "', '")
-      location_test <-
-        paste0("\U000274c Error 701: Some locations codes are not ",
-               "corresponding to any known location: '", loc_mess, "'.")
-    } else {
-      # is missing the trailing 0
-      location_test <- paste0("\U0001f7e1 Warning 702: Some location value are",
-                              " missing a trailing 0. For example, ",
-                              vect0[which(nchar(vect0) == 1)], " instead of ",
-                              paste0(0,  vect0[which(nchar(vect0) == 1)]))
-    }
+test_location <- function(df, model_task) {
+  # - FIPS code of 2 character
+  vect <- vect0 <- df$location
+  if (any(nchar(vect) == 1)) {
+    vect0 <- vect
+    vect[which(nchar(vect) == 1)] <- paste0(0,  vect[which(nchar(vect) == 1)])
+    location_test <- paste0("\U0001f7e1 Warning 702: Some location value are",
+                            " missing a trailing 0. For example, ",
+                            vect0[which(nchar(vect0) == 1)], " instead of ",
+                            paste0(0,  vect0[which(nchar(vect0) == 1)]))
   } else {
     location_test <- NA
   }

@@ -192,7 +192,7 @@ test_that("Test validation process", {
   # Rename US as "0202" for location
   expect_equal(err_cd(validate_submission("tst_dt/2022-01-09_badlocation.csv",
                                           js_def, lst_gs, pop_path)),
-               c("701", "703"))
+               c("703"))
   # Rename "02" as "2" for location
   expect_equal(err_cd(validate_submission("tst_dt/2021-11-14_no0location.zip",
                                           js_def, lst_gs, pop_path)),

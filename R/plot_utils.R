@@ -328,7 +328,7 @@ make_state_plot_pdf <- function(proj_data, gs_data, team_model_name,
   }
 
   proj_data <- proj_data  %>%
-    dplyr::mutate(state = number2abbr[as.character(location)]) %>%
+    dplyr::mutate(state =  as.character(location)) %>%
     dplyr::arrange(scenario_id, state, incid_cum, outcome, date)
 
   proj_plot_data <- proj_data %>%
