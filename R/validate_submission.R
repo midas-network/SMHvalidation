@@ -379,10 +379,9 @@ validate_submission <- function(path, js_def, lst_gs = NULL, pop_path = NULL,
     js_def <- js_def[[1]]
   } else {
     err004 <-
-      paste0("\U000274c Error 004: The origin_date in the submission file was",
-             " not associated with any task_ids round. Please verify the date",
-             " information in the origin_date column corresponds to the ",
-             "expected value.\n")
+      paste0("\U000274c Error 004: The round id (date in the submission file) ",
+             "is not associated with any task_ids round. Please verify the ",
+             "date information in 'path' or in the 'round_id' parameter.\n")
     cat(err004)
     stop(" The submission contains an issue, the validation was not run, ",
          "please see information above.")

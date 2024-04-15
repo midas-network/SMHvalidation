@@ -265,7 +265,7 @@ test_that("Test validation process", {
   expect_equal(err_cd(validate_submission("tst_dt/2024-03-26-misssample.csv",
                                           js_def, NULL, pop_path,
                                           merge_sample_col = TRUE)),
-               c("702", "904"))
+               c("702", "905"))
 
   # Mistakes in pairing ID
   expect_equal(err_cd(validate_submission("tst_dt/2024-03-26-pair.csv",

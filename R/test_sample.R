@@ -84,7 +84,7 @@ test_sample <- function(df, model_task, pairing_col = "horizon") {
 
         if (length(n_sample) > 1) {
           sample_value <-
-            paste0("\U000274c Error 904: All the groups should contains the ",
+            paste0("\U000274c Error 905: All the groups should contains the ",
                    "same number of trajectories per group. Please verify.")
         } else if (n_sample != max(exp_sample)) {
           if (n_sample < max(as.numeric(req_sample_max))) {
