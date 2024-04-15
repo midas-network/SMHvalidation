@@ -18,16 +18,14 @@ knitr::opts_chunk$set(
 )
 ```
 
-The `SMHvalidation` R package contains functions to pull COVID-19 data
-from the R package `covidcast` (output in the Scenario Modeling Hub
-(SMH) standard format), and functions to validate and visualize Scenario
-Modeling Hub submission.
+The `SMHvalidation` R package contains functions to validate and visualize
+Scenario Modeling Hub submission, and to pull data from the R
+package `covidcast` (output in the Scenario Modeling Hub (SMH) standard
+format).
 
 For more information on the Scenario Modeling Hub and on how to
-participate, please feel free to consult the [Github
-Repository](https://github.com/midas-network/covid19-scenario-modeling-hub/)
-and/or the [COVID-19 SMH
-website](https://covid19scenariomodelinghub.org/).
+participate, please feel free to consult the 
+[Scenario Modeling Hub website](https://scenariomodelinghub.org).
 
 ## Validation on model projection
 
@@ -41,44 +39,43 @@ checks. All `test_X()` functions are used in the `validate_submision()`
 function but they also can be used individually. Each function has its
 own documentation available with the command `?test_X()`
 
-In each section, the tests are describes with detailed information that
-should be provided in the json files inputted in the validation
-function. This information will be noted in each section.
+*Remarks:* Starting January 2023, the submission file format
+and associated JSON file format has been updated to follow the
+[Hubverse](https://hubdocs.readthedocs.io/en/latest/) format.
+The documentation is about the last version of the data.
 
-*Remarks:* After round 16 of COVID-19 (Jan 2023), the submission file format 
-and js_def file format has been updated to follow the 
-[Hubverse](https://hubdocs.readthedocs.io/en/latest/) format. 
-The documentation is about the last version of the data. For previous version, 
-please consult past version of the package (version 0.0.0.9).
+For previous version, please consult past version of the package
+(version 0.0.0.9).
 
 ### `Validate_submission()` function
 
 #### Input
 
-To test a submission file, the function requires multiple parameters:
+The `validate_submission()` requires two parameters:
 
--   `path`: path to the submission file(s). The `SMHvalidation` package
-    contains multiple examples files that can be used to test the
-    function. Please refer to the package documentation for more
-    information
--   `js_def`: path to a JSON file containing the round specific and
-    scenario information, following the [Consortium of Infectious
-    Disease Modeling Hubs
-    standard](https://github.com/Infectious-Disease-Modeling-Hubs/schemas)
--   `lst_gs`: named list of data frame containing the observed data. We
-    highly recommend to use the output of the `pull_gs_data()` function
-    as input. This function will generate the output in the expected
-    format with the expected data. For more information, please do
-    `?pull_gs_data()`. This parameter can be set to `NULL` is no
-    observed data comparison is required.
--   `pop_path`: path to a table containing the population size of each
-    geographical entities by FIPS (in a column "location") and by
-    location name.
-    
-Optional parameter (only use for `"sample"` output type):
+-   `path`: path to the submissions file (or folder for partitioned data) to
+    test.
+-   `js_def`: path to JSON file containing round definitions: names of columns,
+    target names, ... following the `tasks.json`
+    [Hubverse format](https://hubdocs.readthedocs.io/en/latest/user-guide/hub-config.html#hub-model-task-configuration-tasks-json-file)
+    -   the information in the JSON file can be separated in multiple group
+        per each round:
+        -   The "task_ids" object defines both labels and contents for each
+            columns in submission files. Any unique combination of the values
+            define a single modeling task. For example, for SMH it can be the
+            columns: `"scenario_id"`, `"location"`, `"origin_date"`,
+            `"horizon"`, `"target"`, `"age_group"`, `"race_ethnicity"`.
+        -   The "output_type" object defines accepted representations for
+            each task. For example, for SMH it concerns the columns:
+            `"output_type"`, `"output_type_id"`, `"run_grouping"`,
+            `"stochastic_run"` and `"value"`.
+For more information on this function, please consult the associated
+documentation at `?validate_submision()`
+
+##### Sample - Output type format
 
 In the Scenario Modeling Hub file format two possible format are used for the
-"sample" output type:
+`"sample"` output type:
 
 (1) All the submissions for a specific round should follow the same format 
 with a predefined `output_type_id` column content. 
@@ -89,17 +86,11 @@ this case, the `output_type_id` column is set to `"NA"` for the `"sample"`
 output type and the "pairing" information is collected into two columns: 
 `"run_grouping"` and `"stochastic_run"`. For more information on this format,
 please consult the 
-[RSV Scenario Modeling Hub](https://github.com/midas-network/rsv-scenario-modeling-hub) 
+[SMH Sample format documentation](https://scenariomodelinghub.org/documentation/sample_format.html) 
 
-To adapt to this format a parameter has been added to the validation function:
-
--   `merge_sample_col`: Boolean to indicate if the for the output type 
-    `"sample"`, the output_type_id column is set to NA and the information is
-    contained into 2 columns: `"run_grouping"` and `"stochastic_run"`. 
-    By default, `FALSE`.
-
-These parameter is ignored is the submission does not contains `"sample"` 
-output type information.
+The format (2) is assumed if the information for the associated round in
+`tasks.json` file for the `"sample"` format is expressed with a parameter:
+`"samples_joint_across": ["horizon", "age_group"]"`.
 
 ##### `js_def` parameter:
 
@@ -139,8 +130,25 @@ The function returns a message with:
     if the warning(s) are expected or not.
 -   "Success": the validation did not found any issue and returns a
     message indicating that the validation is a success.
+    
+### Submission file format
 
-### File format (`test_column()`)
+-   The `round_id` information, either the date extracted in the file name(s) 
+    (`path`) or via the `round_id` parameter, should match one of the
+    `round_id` in the associated `tasks.json` file (`js_def` parameter).
+
+-  The submission file(s) should be in one of the accepted format:
+   - Parquet file (preferred): `.parquet` or `.gz.parquet`. Partitioning in
+   this format is also accepted. 
+   - CSV file: `.csv`. Partitioning in this format is also accepted. 
+   - Compressed format: `.gz` or `.zip`
+   
+-  All columns containing `date` should contain date information in the 
+   "YYYY-MM_DD" format.
+   
+-  No column should be in a "factor" format.
+
+### Columns format (`test_column()`)
 
 The name and number of the columns are corresponding to the expected
 format, for example:
@@ -168,16 +176,13 @@ tests.
 ### Scenario Information (`test_scenario()`)
 
 -   The ID of the scenarios are corresponding to the expected ID of the
-    expected round without any typo.
+    expected round without any typo
 
 ### Column "origin_date" (`test_origindate()`)
 
 -   The `origin_date` column contains:
-    -   one unique date value in the `YYYY-MM-DD` format.
-    -   the date in the submission file is matching the date in the name
-        of the file.
-    -   the date in the submission file matching the projection starting
-        date or round id.
+    -   one unique date value in the `YYYY-MM-DD` format
+    -   the column should contain information in "character" or "Date" format
 
 *Remarks:* Implemented since January 2022, all submissions previous to
 this can have a slightly more flexible date information.
@@ -189,85 +194,92 @@ this can have a slightly more flexible date information.
     parameter), for example: `0.01`, `0.025`, `0.05`, `0.1`, `0.15`,
     `0.2`, `0.25`, `0.3`, `0.35`, `0.4`, `0.45`, `0.5`, `0.55`, `0.6`,
     `0.65`, `0.7`, `0.75`, `0.8`, `0.85`, `0.9`, `0.95`, `0.975`,
-    `0.99`. **If a submission is missing some (or all) quantiles it will
-    still be accepted but will not included in the Ensembles.**
+    `0.99`. **If a submission is missing some (or all) quantiles it might
+    still be accepted but will not included in the Ensembles**
 
--   For each target/scenario/location/(age_group, etc.) group, the value
-    increases with the quantiles. For example, for the 1st week ahead of
-    target X for the location Y and for the scenario A, if quantile
-    `0.01`= "5" than quantile `0.5` should be equal or greater than "5".
+-   For each task_id group, the value increases with the quantiles.
+    For example, for the 1st week ahead of target X for the location Y and for
+    the scenario A, if quantile `0.01`= `5` than quantile `0.5` should be equal
+    or greater than `5`
 
-*Remarks:* These tests are run only for file format requiring quantiles
-information.
+*Remarks:* These tests are run only for file format expecting quantiles
+information (required or optional).
 
 ### Value and Types information (`test_val()`)
 
--   Each output_type/output_type_id/target/scenario/location/(age_group, etc.) 
-    group combination has one unique value projected. For example: only 1
-    value for quantile `0.5`, location `US`, target `inc hosp`, horizon
-    `1` and, scenario `A`)
+-   Each task_id group combination has one unique value projected.
+    For example: only 1 value associated with: quantile `0.5`, location `US`,
+    target `inc hosp`, horizon `1` and, scenario `A`)
 
 -   The projection contains the expected value (for example, integer
-    value `>= 0` or numeric in between 0 and 1)
+    value `>= 0` or numeric in between 0 and 1). `NA` value are not accepted
 
--   For each target name/scenario/location/(age group) group (except
+-   For each unique task_id group, excluding horizon information and except
     locations `66` (Guam), `69` (Northern Mariana Island), `60`
-    (American Samoa), `74` (US. Minor Outlying Islands)), the whole
+    (American Samoa), `74` (US. Minor Outlying Islands), the whole
     projection does not contain only 1 unique value. For example, the
     projection for the incidence cases for one location and for one
     scenario does not contain only one unique value for the whole time
     series. **As there is a possibility that 0 death or case might be
     projected, the submission will still be accepted if the test failed
     but it will return a warning message asking to verify the
-    projection.**
+    projection**
+    
+-   Only for the cumulative targets, for example `cum hosp`, for each task_id 
+    and output_type group (excluding `"horizon"`), the value is not decreasing
+    with time. 
 
--   Each projected value cannot by greater than the population size of
-    the corresponding geographical entity. **As an individual can be
-    reinfected, the submission will still be accepted if the test failed
-    but it will return a warning message asking to verify the
-    projection.**
+-   [optional] Each projected value cannot by greater than the population size
+    of the corresponding geographical entity. Only run if the `pop_path`
+    parameter is not set to `NULL`. **As an individual can be reinfected, the
+    submission will still be accepted if the test failed but it will return a
+    warning message asking to verify the projection** 
 
--   For the cumulative cases and deaths projection, the projected value
-    should not be less than the week 0 (or week -1, depending on the
+-   [optional] For the cumulative cases and deaths projection, the projected
+    value should not be less than the week 0 (or week -1, depending on the
     availability on the time of submission) of the observed cumulative
     cases and deaths, respectively. The test allow a difference of 5% to
     take into account the difference between time of pulling the
     observed data, sources, ... (only tested if the `lst_gs` parameter
     is not `NULL` and contains observed cumulative cases and deaths
     value)
+    
+-   [optional] The number of decimal point accepted in the column `"value"` is
+    lower or equivalent to the parameter `n_decimal` (only run if `n_decimal`
+    is not set to `NULL`)
 
 ### Target information and value (`test_target()`)
 
 -   The target are corresponding to the target name as expressed in the
-    associated metadata JSON file.
+    associated metadata JSON file
 
 -   The submission file contains projections for all the required
-    targets. **The submission file will be accepted if some targets are
-    missing, but will return a warning message and the submission might
+    targets. **The submission file might be accepted if some targets are
+    missing, but will return an error message and the submission might
     not be included in the Ensembles**
 
--   The submission file contains projection for an expected number of
-    week (or horizon). **If the file contains more projected weeks than
-    expected, the submission will still be accepted, but will return a
-    warning message and the additional weeks will not be included in the
+-   For some targets, the submission is expected to contains projection for an
+    expected number of week (or horizon). **If the file contains more projected
+    weeks than expected, the submission will still be accepted, but will return
+    a warning message and the additional weeks will not be included in the
     visualization on the SMH website. If the file contains less
     projected weeks than expected, the submission might still be
     accepted, but will return a warning message and might not be
     included in the Ensembles, if the submission is not accepted, an
-    error message will be returned.**
+    error message will be returned**
+    
+-   For some targets, for example `peak size hosp`, no `"horizon"` information
+    is expected. In this case, the column `"horizon"` should be contain `NA`
 
 ### Column "location" (`test_location()`)
 
--   The submission should contains projection by location, the
-    'location' column contains the location FIPS number as available in
-    the [location
-    table](https://github.com/midas-network/covid19-scenario-modeling-hub/blob/master/data-locations/locations.csv)
-    in the COVID-19 SMH GitHub Repository (same table used for FLU). If
-    the FIPS numbers are missing a trailing zero, the submission will be
-    accepted but a warning message will be returned.
+-   The location are corresponding to the location name as expressed in the
+    associated metadata JSON file. If FIPS code are expected and if the FIPS
+    numbers are missing a trailing zero, the submission will be accepted but a
+    warning message will be returned
 
 -   For the target requiring only specific location(s), no additional
-    location is provided in the submission file.
+    location is provided in the submission file
 
 *Remarks:* If a submission file contains only state level projection
 (one or multiple), the `location` column might be automatically identify
@@ -278,44 +290,65 @@ please feel free to ignore it.
 ### Column "age_group" (`test_agegroup()`)
 
 -   The submission should contain a column `age_group` with values
-    defined as `<AGEMIN>-<AGEMAX>`, <AGEMIN> cannot be equal or greater
-    than <AGEMAX>.
+    defined as `<AGEMIN>-<AGEMAX>`
 
--   The submission should contain the expected `age_group`
+-   The submission should contain the expected `age_group` information,
+    as specified in the associated `tasks.json` file
 
 -   For the target requiring only specific age group(s), no additional
     age group is provided in the submission file. **If additional age
     group are provided, a warning will be returned and the additional
     information might not be integrated in the analysis and
-    visualization.**
+    visualization**
 
 *Remarks:* These tests are only run if the submission contains an
-`age_group` column..
+`age_group` column.
+
+### Column "race_ethnicity" (`test_raceethnicity()`)
+
+-   The submission should contain the expected `race_ethinicity` information,
+    as specified in the associated `tasks.json` file
+
+-   For the target requiring only specific race ethnicity group(s), no
+    additional group is provided in the submission file. **If additional groups
+    are provided, a warning will be returned and the additional information
+    might not be integrated in the analysis and visualization.**
+
+*Remarks:* These tests are only run if the submission contains an
+`race_ethicity` column.
+
 
 ### Samples information and value (`test_sample()`)
 
--   The column `output_type_id` for the type 'sample' rows should only contain
-    integer values.
+-   The column `output_type_id` (or `run_grouping` and `stochastic_run`) for 
+    the output type `"sample"` should only contain integer values.
     
--   The submission should contain a sample column with the expected number of 
-    trajectory for each scenario/target/location/horizon (age_group) group
+-   The submission should contain the expected number of trajectories for each
+    task_id group, as indicated in the associated `tasks.json` file. And each
+    group should contain the same number of trajectories.
 
 -   The submission should at least contain a unique sample identifier 
-    by pairing group, for example if pairing_col = "horizon",
+    by pairing group, for example if `pairing_col = "horizon"`,
     the sample identifier `1` should contain at least all the possible 
     horizon value once, and optionally can contain the specific and multiple 
     value for the other task id column (`origin_date`, `scenario`, `location`, 
-    `target`, `horizon`, (`age_group`, etc.))
+    `target`, `horizon`, etc.). The `pairing_col` information is extracted from
+    the `"samples_joint_across"` information in the associated `tasks.json`
+    file. If the information is not available, it will be set to `"horizon"`
+    by default.
+    
+For more information on pairing or grouping information, please consult the
+[SMH Sample format documentation](https://scenariomodelinghub.org/documentation/sample_format.html).
 
-*Remarks:* These tests are only run if the submission contains a
-`sample` column.
+*Remarks:* These tests are run only for file format expecting `"sample"`
+information (required or optional).
 
 ## Table of error/warning code
 
 |Code | Type | Checking Step | Test |
 |:---:|:---:|:------|:--------------|
-|003|Error|Information extracted before running the validation, if any issue, stop and will not run the validation|All columns containing dates information should be in "YYY-MM-DD" format|
-|004|Error|Information extracted before running the validation, if any issue, stop and will not run the validation|The column `origin_date` in the submission file corresponds to a `task_ids` round information in the JSON file (`js_def` parameter)|
+|003|Error|Information extracted before running the validation, if any issue, stop and will not run the validation|All columns containing `date` in the name, should be in "YYY-MM-DD" format|
+|004|Error|Information extracted before running the validation, if any issue, stop and will not run the validation|The `round_id` information, either the date extracted in the file name(s) (`path`) or via the `round_id` parameter, should match one of the `round_id` in the associated `tasks.json` file (`js_def` parameter).|
 |005|Error|Information extracted before running the validation, if any issue, stop and will not run the validation|The file format of the submission file(s) correspond to the expected format (for example: `parquet`, or `csv`, etc.)|
 |101|Error|Run in `test_column()` function|No column name is misspelled or does not correspond to the expected column names|
 |102|Error|Run in `test_column()` function|The data frame should contain the expected number of columns|
@@ -324,43 +357,43 @@ please feel free to ignore it.
 |202|Error|Run in `test_scenario()` function|The `scenario_id` values are correct (correspond to the optional and expected `scenario_id` format)|
 |204|Error|Run in `test_scenario()` function|All the required `scenario_id` are present in the submission file|
 |302|Error|Run in `test_origindate()` function|The `origin_date` value is unique|
-|303|Error|Run in `test_origindate()` function|The `origin_date` value is corresponding to the date in the name of the submission file|
+|303|Error|Run in `test_origindate()` function|The `origin_date` value is corresponding to the expected value|
 |304|Warning|Run in `test_origindate()` function|The `origin_date` is in a Date or character format ("YYYY-MM-DD"), not in a datetime format.|
 |401|Error|Run in `test_quantile()` function|For model_task with required target (not null) AND required quantile, the submission contains quantile information for the required targets|
 |402|Error|Run in `test_quantile()` function|No quantile is missing in the projection file|
-|403|Error|Run in `test_quantile()` function|For each group (`origin_date`, `scenario`, `location`, `target`, `horizon` (and other potential `task_id` variable), the associated value is equal or is increasing with the quantile value. For example, the value associated with the quantile `0.5` is less or equal to the value associated with the quantile `0.55`|
-|405 - **[Not implemented]**|Error|Run in `test_quantile()` function|For each group (origin_date, scenario_id, location, target, horizon (and other potential task_id variable), not all the quantile is equal to the same associated value (except if all equal to 0)|
-|406|Error|Run in `test_quantile()` function|For each group ( `origin_date`, `scenario_id`, `location`, `target`, `horizon` (and other potential `task_id` variable), all the required quantiles are present|
+|403|Error|Run in `test_quantile()` function|For each `task_id`, the associated value is equal or is increasing with the quantile value. For example, the value associated with the quantile `0.5` is less or equal to the value associated with the quantile `0.55`|
+|405 - **[Not implemented]**|Error|Run in `test_quantile()` function|For each `task_id`, not all the quantile is equal to the same associated value (except if all equal to 0)|
+|406|Error|Run in `test_quantile()` function|For each `task_id` group, all the required quantiles are present|
 |407|Error|Run in `test_quantile()` function|No additional quantile are provided in the projection file|
 |5040|Error|Run in `test_val()` function|The `output_type_id` column corresponds to the expected content and format for each type (not tested for `"sample"` output type)|
 |5041|Error|Run in `test_val()` function|All values have the expected value format (for example, numeric superior or equal at 0)|
 |5042|Error|Run in `test_val()` function|`NA `values are not accepted|
 |5043|Warning|(optional) Run in `test_val()` function|values has a limited number of decimal point (`n_digit` parameter, default to `NULL`: no limit)|
-|505|Warning|Run in `test_val()` function (except for location: `60`, `66`, `69`, `74`)|For each group of `location`, `target`, `scenario_id` (and `age_group`, etc. if necessary) , the value are not identical for the complete time series and for all types. For example, `0` for all quantile and complete time series for a specific scenario, location and target|
-|507|Warning|Run in `test_val()` function|The projected value is lower or equal to the population size of the associated geographical unit|
-|508|Error|Run in `test_val()` function|The projected value for the "cumulative case count" is equal or higher than the observed cumulative case count for the previous week (week 0) or previous past week (week - 1) (depending on availability) before projection starting date.|
-|509|Error|Run in `test_val()` function|The projected value for the "cumulative death count" is equal or higher than the observed cumulative death count for the previous week (week 0) or previous past week (week - 1) (depending on availability) before projection starting date.|
-|510|Error|Run in `test_val()` function|For each group of `task_id` column (`location`, `target`, `horizon`, `scenario_id`, etc.) and output type (`output_type`, `output_type_id`), no more than one value is associated|
-|511|Error|Run in `test_val()` function|For each group of `task_id` column exclusion of `horizon` (`location`, `target`, `scenario_id`, etc.) and output type (`output_type`, `output_type_id`) and only for the "cumulative" targets, the projected value are not decreasing with time|
+|505|Warning|Run in `test_val()` function (except for location: `60`, `66`, `69`, `74`)|For each `task_id` (excluding `horizon`), the value are not identical for the complete time series and for all types. For example, `0` for all quantile and complete time series for a specific scenario, location and target|
+|507|Warning|Run in `test_val()` function|(optional) The projected value is lower or equal to the population size of the associated geographical unit|
+|508|Error|Run in `test_val()` function|(optional) The projected value for the "cumulative case count" is equal or higher than the observed cumulative case count for the previous week (week 0) or previous past week (week - 1) (depending on availability) before projection starting date.|
+|509|Error|Run in `test_val()` function|(optional) The projected value for the "cumulative death count" is equal or higher than the observed cumulative death count for the previous week (week 0) or previous past week (week - 1) (depending on availability) before projection starting date.|
+|510|Error|Run in `test_val()` function|For each group of `task_id` and output type (`output_type`, `output_type_id`), no more than one value is associated|
+|511|Error|Run in `test_val()` function|For each group of `task_id` column exclusion of `horizon` and output type and only for the "cumulative" targets, the projected value are not decreasing with time|
 |512|Error|Run in `test_val()` function|The submission file contains all the required output type (for example: `quantile`, etc.)|
-|513|Error or Warning|Run in `test_val()` function|For each `model_task` required target, the submission contains associated output information. For example, if `inc case` is required, the submission without `inc case` information will return an error. sA redundant warning might be issued in other output section|
+|513|Error or Warning|Run in `test_val()` function|For each `model_task` required target, the submission contains associated output information. For example, if `inc case` is required, the submission without `inc case` information will return an error. A redundant warning might be issued in other output section|
 |601|Error|Run in `test_target()` function|All targets in the submission file are included in the round specification (no typo, no addition)|
 |602|Warning or Error|Run in `test_target()` function|For each `model_task` group, no target is missing in the submission file (warning for missing optional target, error for missing required target)|
 |605|Warning|Run in `test_target()` function|The number of weeks projected should be equal or higher than the required horizon|
 |606|Warning|Run in `test_target()` function|The number of weeks projected is not greater than the maximum number of weeks in the horizon specification (required and optional included)|
-|607|Error|Run in `test_target()` function|For each target qualified as `is_step_ahead` equal `TRUE`, the projected time series is not missing any weeks (complete time series) for each group of `task_id` columns (`location`, `target`, `scenario_id`, etc.) and by output type (`output_type`, `output_type_id`), exclusion of `horizon`|
+|607|Error|Run in `test_target()` function|For each target qualified as `is_step_ahead` equal `TRUE`, the projected time series is not missing any weeks (complete time series) for each group of `task_id` group and by output type, exclusion of `horizon`|
 |612|Error|Run in `test_target()` function|The projection contains `NA` value for all "horizon" for the target requiring no time series information.|
-|701|Error|Run in `test_location()` function|Each location code corresponds to the expected value.|
 |702|Warning|Run in `test_location()` function|The location code value is not missing any trailing 0.|
 |703|Error|Run in `test_location()` function|No required location is missing or no additional location is provided in the submission file per `model_task` target group|
 |801|Error|Run in `test_agegroup()` function|The submission should contain a column `age_group` with values defined as `<AGEMIN>-<AGEMAX>`|
 |802|Error|Run in `test_agegroup()` function|Each `age_group` value corresponds to the expected value (no missing required value and no additional value)|
 |901|Warning|Run in `test_sample()` function|The column `output_type_id` for the type 'sample' rows contains the expected number of sample (all required and possible optional value)|
-|902|Error|Run in `test_sample()` function|The submission should at least contain a unique sample identifier by pairing group, for example if `pairing_col = "horizon"`, the sample identifier `1` should contain all the possible horizon value, and optionally can contain the specific and multiple value for the other task id column `location`, `target`, `scenario_id`, etc.)|
-|903|Error|Run in internal function|The column `output_type_id` contains only integer value|
-|904|Error|Run in `test_sample()` function|For `model_task` with required target (not null) AND required sample, the submission contains sample information for the required targets|
-|1001|Error|Run in `test_raceethnicity()` function|Each `race_ethnicity` value corresponds to the expected value (no additional value)|
-|1002|Error|Run in `test_raceethnicity()` function|Each `race_ethnicity` value corresponds to the expected value (no missing required value and no additional value)|
+|902|Error|Run in `test_sample()` function|The submission should at least contain a unique sample identifier by pairing group, for example if `pairing_col = "horizon"`, the sample identifier `1` should contain all the possible horizon value, and optionally can contain the specific and multiple value for the other task id column|
+|903|Error|Run in internal function|The column `output_type_id` (or `run_grouping` and `stochastic_run`) contains only integer value|
+|904|Error|Run in `test_sample()` function|For `model_task` with required target (not null) AND required sample, the submission contains sample information for the required targets per `task_id` group|
+|905|Error|Run in `test_sample()` function|For `task_ids` group containing `"sample"` output type, each group contains the same number of sample|
+|1001|Error|Run in `test_raceethnicity()` function|Each `race_ethnicity` value corresponds to the expected `race_ethnicity` group|
+|1002|Error|Run in `test_raceethnicity()` function|Each `race_ethnicity` value contains all the required `race_ethnicity` group and no additional group|
 |001 - [Deprecated]|Error|Information extracted before running the validation, if any issue, stop and will not run the validation|`scen_info` parameter should either be: a path to a file containing the round and scenario information, or a data frame, or NULL. If NULL, the information will be automatically extracted from the Scenario Modeling Hub GitHub repository.|
 |002 - [Deprecated]|Error|Information extracted before running the validation, if any issue, stop and will not run the validation|Cannot extract round number information from the files, test that the file name contains the expected date and the scenario id column contains the expected information.|
 |201 - [Deprecated]|Error|Run in `test_scenario()` function|The `scenario_name` values are correct.|
@@ -378,6 +411,7 @@ please feel free to ignore it.
 |609 - [Deprecated]|Error|Run in `test_target()` function|Each `target_end_date` corresponds to the expected value.|
 |610 - [Deprecated]|Warning|Run in `test_target()` function|Only for COVID-19 round 14, the value associated with the optional target `prop X` is between 0 and 1.|
 |611 - [Deprecated]|Warning|Run in `test_target()` function|Only for COVID-19 round 14, the value associated with the optional target `prop X` is noted with `quantile` = `NA` and `output_type` = `"point"`.|
+|701 - [Deprecated]|Error|Run in `test_location()` function|Each location code corresponds to the expected value.|
 |803 - [Deprecated]|Error|Run in `test_agegroup()` function|`<AGEMIN>` cannot be equal or greater than `<AGEMAX>`|
 |804 - [Deprecated]|Error|Run in `test_agegroup()` function|The submission should at least contain one age group `0-130` for each scenario/target/location/quantile group|
 |805 - [Deprecated]|Warning|Run in `test_agegroup()` function|When multiple age groups are provided for the same scenario/target/location/quantile group, the multiple age groups are adding to `0-130|`
@@ -387,42 +421,3 @@ please feel free to ignore it.
 
 The validation for the "metadata" and the "abstract" files associated
 with the submission is currently manual.
-
-### Metadata checks
-
-Each model is required to have metadata in `yaml` format, e.g. see
-[COVID-19 example metadata
-file](https://github.com/midas-network/covid19-scenario-modeling-hub/blob/master/data-processed/MyTeam-MyModel/metadata-MyTeam-MyModel.txt)
-and [FLU example metadata
-file](https://github.com/midas-network/flu-scenario-modeling-hub/blob/main/data-processed/MyTeam-MyModel/metadata-MyTeam-MyModel.txt)
-The file-name should correspond to the structure:
-`metadata-[team_abbr]-[model_abbr].txt`
-
-Each GitHub repository contains a `data-processed/METADATA.md` file
-providing information on how to fill the metadata file.
-
-#### For COVID-19 Submissions
-
-Given the many possible approaches to modeling COVID-19 scenarios, we
-are collecting relatively rich metadata, to be able to understand
-heterogeneity among model projections. The information will only be used
-internally, unless otherwise indicated.
-
-### Abstract checks
-
-An abstract file can be submitted with the projection.\
-The file should be provided in an markdown (`md`) format, e.g. see
-[COVID-19 round 12 template abstract
-file](https://github.com/midas-network/covid19-scenario-modeling-hub/blob/master/data-processed/MyTeam-MyModel/2022-01-09-MyTeam-Abstract.md).
-The file-name should correspond to the structure:
-`YYYY-MM-DD-[team_abbr]-[model_abbr]-Abstract.md`, with the date
-corresponding to the "Start date for scenarios" for the corresponding
-round (implemented starting January 2022.)
-
-Each Round will have its specific template that should be available in
-the folder `data-processed/MyTeam-MyModel` for each GitHub repository:
-
--   For FLU:
-    <https://github.com/midas-network/flu-scenario-modeling-hub/tree/main/data-processed/MyTeam-MyModel>
--   For COVID-19:
-    <https://github.com/midas-network/covid19-scenario-modeling-hub/tree/master/data-processed/MyTeam-MyModel>
