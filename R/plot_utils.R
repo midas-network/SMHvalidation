@@ -588,12 +588,15 @@ generate_validation_plots <- function(path_proj, lst_gs,
     dplyr::mutate(target_end_date = lubridate::as_date(origin_date) - 1 +
                     (horizon * 7),
                   origin_date = lubridate::as_date(origin_date)) %>%
-    dplyr::filter(grepl(paste0("inc case|inc death|inc hosp|",
-                               "cum case|cum death|cum hosp"), target) &
-                    grepl("quantile", output_type))
+    dplyr::filter(grepl(paste0("inc case|inc death|inc hosp|inc inf",
+                               "cum case|cum death|cum hosp|inc inf"),
+                        target) & grepl("quantile", output_type))
 
   if (any("age_group" %in% colnames(proj_data)))
     proj_data <- dplyr::filter(proj_data, grepl("0-130", age_group))
+
+  if (any("race_ethnicity" %in% colnames(proj_data)))
+    proj_data <- dplyr::filter(proj_data, grepl("overall", race_ethnicity))
 
   #remove artifact column
   if ("X" %in% colnames(proj_data)) {
@@ -603,7 +606,7 @@ generate_validation_plots <- function(path_proj, lst_gs,
   # Create PDF of State Plots
   make_state_plot_pdf(proj_data = proj_data, gs_data = gs_data,
                       team_model_name = team_model_name,
-                      projection_date = projection_date,
+                      projection_date = unique(proj_data$origin_date),
                       save_path = save_path, plot_quantiles = plot_quantiles,
                       y_sqrt = y_sqrt)
 }
