@@ -12,7 +12,7 @@ utils::globalVariables(c("output_type", "target", "target_end_date",
                          "state value_gt", "value_gt", "state", "ground truth",
                          "X", "age_group", "sel", "output_type_id", "horizon",
                          "N", "..sel_group", "origin_date", "run_grouping",
-                         "stochastic_run"))
+                         "stochastic_run", "race_ethnicity"))
 
 #' SMHvalidation: Scenario Modeling Hub Validations & Visualizations
 #'
