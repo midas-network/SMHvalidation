@@ -37,7 +37,7 @@ read_files <- function(path) {
 
 
 load_partition_arrow <- function(path, js_def, js_def_round, partition,
-                                 merge_sample_col = FALSE) {
+                                 round_id, merge_sample_col = FALSE) {
   if (all(grepl("parquet$|.pqt$", dir(path, recursive = TRUE)))) {
     filef <- "parquet"
   } else if (all(grepl(".csv$", dir(path, recursive = TRUE)))) {
@@ -63,7 +63,11 @@ load_partition_arrow <- function(path, js_def, js_def_round, partition,
                 arrow::Field$create("stochastic_run", arrow::int64()))
     schema <- arrow::schema(schema)
   }
-  col_names <- arrow::open_dataset(sources = path, format = filef)$schema$names
+  files_path <- grep(round_id,
+                     dir(path, full.names = TRUE,
+                         recursive = TRUE), value = TRUE)
+  col_names <- arrow::open_dataset(sources = files_path,
+                                   format = filef)$schema$names
   col_names <- unique(c(col_names, partition))
   if (!(all(exp_col %in% col_names)) || !(all(col_names %in% exp_col))) {
     colnames_test <- paste0("\U000274c Error 101: At least one column name is ",
@@ -86,6 +90,7 @@ load_partition_arrow <- function(path, js_def, js_def_round, partition,
 
   df <- dplyr::collect(ds) %>%
     dplyr::mutate_if(is.factor, as.character)
+
   return(df)
 }
 

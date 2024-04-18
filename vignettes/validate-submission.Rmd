@@ -111,6 +111,10 @@ And have some optional parameters:
      segments. By default, `NULL` (no partition). See
      [arrow R package](https://arrow.apache.org/docs/r/) for more information,
      and especially `arrow::write_dataset()`, `arrow::open_dataset()` functions.
+     **Warning**: If the submission files is in a "partitioned" format, 
+     the `path` parameter should be to a directory to a folder containing 
+     **ONLY** the "partitioned" files. If any other file is present in the 
+     directory, it will be included in the validation.
 -    `n_decimal`: integer, number of decimal point accepted in the column
       `"value"` (only for `"sample"` output type), if `NULL` (default) no limit
       expected.

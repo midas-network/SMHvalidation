@@ -281,7 +281,7 @@ run_all_validation <- function(df, path, js_def, pop, last_lst_gs,
 #' to test, or string of parquet files (in this case, the validation will be
 #' run on the aggregation of all the parquet files together, and each file
 #' individually should match the expected SMH standard).
-#' If partition is not set to `NULL`, path to the folder containing the
+#' If partition is not set to `NULL`, path to the folder containing ONLY the
 #' partitioned data.
 #'@param js_def path to JSON file containing round definitions: names of
 #' columns, target names, ... following the `tasks.json`
@@ -316,7 +316,11 @@ run_all_validation <- function(df, path, js_def, pop, last_lst_gs,
 #' information is available in the package and is called:
 #' vignette("validation-checks").
 #'
-#' The function accepts submission in PARQUET, CSV, ZIP or GZ file formats.
+#' The function accepts submission in PARQUET, CSV, ZIP or GZ file formats. If
+#' the submission files is in a "partitioned" format, the `path` parameter
+#' should be to a directory to a folder containing ONLY the "partitioned"
+#' files. If any other file is present in the directory, it will be included
+#' in the validation.
 #'
 #' The function runs some preliminary tests before calling the "test_*"
 #' functions:
@@ -414,7 +418,7 @@ validate_submission <- function(path, js_def, lst_gs = NULL, pop_path = NULL,
       dplyr::mutate_if(is.factor, as.character)
   } else if (!is.null(partition)) {
     df <- load_partition_arrow(path, js_def = js_def0, js_def_round = js_def,
-                               partition = partition,
+                               partition = partition, round_id = round_id,
                                merge_sample_col = merge_sample_col)
   } else {
     err005 <-

@@ -119,6 +119,13 @@ It should contains information by rounds for:
 
     -   "target_metadata": Array of objects containing metadata about
         each unique target, one object for each unique target value.
+        
+##### Partitioned files:
+
+If the submission files is in a "partitioned" format,  the `path` parameter 
+should be to a directory to a folder containing **ONLY** the "partitioned" 
+files. If any other file is present in the  directory, it will be included in 
+the validation.
 
 #### Output
 

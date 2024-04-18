@@ -20,7 +20,7 @@ validate_submission(
 to test, or string of parquet files (in this case, the validation will be
 run on the aggregation of all the parquet files together, and each file
 individually should match the expected SMH standard).
-If partition is not set to \code{NULL}, path to the folder containing the
+If partition is not set to \code{NULL}, path to the folder containing ONLY the
 partitioned data.}
 
 \item{js_def}{path to JSON file containing round definitions: names of
@@ -70,7 +70,11 @@ to the documentation of each \verb{"test_*}" function. A vignette with all the
 information is available in the package and is called:
 vignette("validation-checks").
 
-The function accepts submission in PARQUET, CSV, ZIP or GZ file formats.
+The function accepts submission in PARQUET, CSV, ZIP or GZ file formats. If
+the submission files is in a "partitioned" format, the \code{path} parameter
+should be to a directory to a folder containing ONLY the "partitioned"
+files. If any other file is present in the directory, it will be included
+in the validation.
 
 The function runs some preliminary tests before calling the "test_*"
 functions:
