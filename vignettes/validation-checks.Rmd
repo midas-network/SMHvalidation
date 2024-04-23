@@ -18,10 +18,8 @@ knitr::opts_chunk$set(
 )
 ```
 
-The `SMHvalidation` R package contains functions to validate and visualize
-Scenario Modeling Hub submission, and to pull data from the R
-package `covidcast` (output in the Scenario Modeling Hub (SMH) standard
-format).
+The `SMHvalidation` R package main functions aim to validate and visualize
+Scenario Modeling Hub submission.
 
 For more information on the Scenario Modeling Hub and on how to
 participate, please feel free to consult the 
@@ -30,12 +28,12 @@ participate, please feel free to consult the
 ## Validation on model projection
 
 In this vignette, we will describe all the tests that are made on each
-SMH submission when using the function `validate_submision()`. The tests
+SMH submission when using the function `validate_submission()`. The tests
 (or checks) are organized by group of columns tested together and by
 function `test_X()`.
 
 Each function `test_X()` checks the submission for a "category" of
-checks. All `test_X()` functions are used in the `validate_submision()`
+checks. All `test_X()` functions are used in the `validate_submission()`
 function but they also can be used individually. Each function has its
 own documentation available with the command `?test_X()`
 
@@ -44,8 +42,8 @@ and associated JSON file format has been updated to follow the
 [Hubverse](https://hubdocs.readthedocs.io/en/latest/) format.
 The documentation is about the last version of the data.
 
-For previous version, please consult past version of the package
-(version 0.0.0.9).
+For previous version of the documentation, please consult
+past version of the package.
 
 ### `Validate_submission()` function
 
@@ -58,19 +56,20 @@ The `validate_submission()` requires two parameters:
 -   `js_def`: path to JSON file containing round definitions: names of columns,
     target names, ... following the `tasks.json`
     [Hubverse format](https://hubdocs.readthedocs.io/en/latest/user-guide/hub-config.html#hub-model-task-configuration-tasks-json-file)
-    -   the information in the JSON file can be separated in multiple group
-        per each round:
+    -   the information in the JSON file can be separated in multiple groups
+        for each round:
         -   The "task_ids" object defines both labels and contents for each
-            columns in submission files. Any unique combination of the values
-            define a single modeling task. For example, for SMH it can be the
-            columns: `"scenario_id"`, `"location"`, `"origin_date"`,
-            `"horizon"`, `"target"`, `"age_group"`, `"race_ethnicity"`.
+            columns in submission files defining a modeling task. Any unique
+            combination of the values define a single modeling task.
+            For example, for SMH it will be the columns: `"scenario_id"`,
+            `"location"`, `"origin_date"`, `"horizon"`, `"target"`,
+            `"age_group"`, `"race_ethnicity"`.
         -   The "output_type" object defines accepted representations for
             each task. For example, for SMH it concerns the columns:
             `"output_type"`, `"output_type_id"`, `"run_grouping"`,
             `"stochastic_run"` and `"value"`.
 For more information on this function, please consult the associated
-documentation at `?validate_submision()`
+documentation at `?validate_submission()`
 
 ##### Sample - Output type format
 
@@ -90,13 +89,14 @@ please consult the
 
 The format (2) is assumed if the information for the associated round in
 `tasks.json` file for the `"sample"` format is expressed with a parameter:
-`"samples_joint_across": ["horizon", "age_group"]"`.
+`"samples_joint_across": [...]"`.
 
 ##### `js_def` parameter:
 
-The parameter should follow the standard of the `tasks.json` file from
-the [Consortium of Infectious Disease Modeling Hubs
-standard](https://github.com/Infectious-Disease-Modeling-Hubs/schemas).
+As previously stated, the parameter should follow the standard of the
+`tasks.json` file from the
+[Hubverse format](https://github.com/Infectious-Disease-Modeling-Hubs/schemas).
+However, for some rounds, as SMH adaptation of the format is accepted.
 
 It should contains information by rounds for:
 
@@ -119,6 +119,38 @@ It should contains information by rounds for:
 
     -   "target_metadata": Array of objects containing metadata about
         each unique target, one object for each unique target value.
+
+####### SMH adaptation:
+
+For "sample" output type, the following format can be used in the json file:
+```json
+"sample": {
+              "output_type_id": {
+                "min_samples_per_task": 100,
+                "max_samples_per_task": 300,
+                "samples_joint_across": ["horizon", "age_group"]
+              },
+              "value" : {
+                "type": "double",
+                "minimum": 0
+              }
+            }
+```
+
+An additional parameter can be added at the round level, to specify if
+partitioning is accepted in the round and if so, with which variable.
+For example:
+
+```json
+{
+    "round_id": "origin_date",
+     "round_id_from_variable": true,
+     "model_tasks": [...],
+     "submissions_due": {...},
+      "partition": ["origin_date", "target"]
+}
+```
+
         
 ##### Partitioned files:
 
@@ -170,20 +202,21 @@ or
 |:-----:|:-----:|:----:|:----:|:----:|:---:|:---:|:---:|:---:|:---:|
 |||||||||||
 
-The order of the column is not important but it should contain the
-expected number of columns with each name correctly spelled.
+The order of the column is not important but the submission file
+should contain the expected number of columns with each name
+correctly spelled.
 
 *Remarks:* In this example, the `task_ids` values correspond to:
 origin_date, scenario_id, target, horizon, location.
 
 *Remarks:*If one required column is missing, the submission test will
-directly stop and return an error message without running all the other
+directly stop and return an error message without running all the others
 tests.
 
 ### Scenario Information (`test_scenario()`)
 
 -   The ID of the scenarios are corresponding to the expected ID of the
-    expected round without any typo
+    expected round without any spelling error.
 
 ### Column "origin_date" (`test_origindate()`)
 
@@ -192,7 +225,7 @@ tests.
     -   the column should contain information in "character" or "Date" format
 
 *Remarks:* Implemented since January 2022, all submissions previous to
-this can have a slightly more flexible date information.
+this date can have a slightly more flexible date information.
 
 ### Quantiles information and value (`test_quantile()`)
 
@@ -222,7 +255,7 @@ information (required or optional).
     value `>= 0` or numeric in between 0 and 1). `NA` value are not accepted
 
 -   For each unique task_id group, excluding horizon information and except
-    locations `66` (Guam), `69` (Northern Mariana Island), `60`
+    locations: `66` (Guam), `69` (Northern Mariana Island), `60`
     (American Samoa), `74` (US. Minor Outlying Islands), the whole
     projection does not contain only 1 unique value. For example, the
     projection for the incidence cases for one location and for one
@@ -258,7 +291,7 @@ information (required or optional).
 ### Target information and value (`test_target()`)
 
 -   The target are corresponding to the target name as expressed in the
-    associated metadata JSON file
+    associated metadata JSON file (js_def parameter)
 
 -   The submission file contains projections for all the required
     targets. **The submission file might be accepted if some targets are
@@ -276,14 +309,14 @@ information (required or optional).
     error message will be returned**
     
 -   For some targets, for example `peak size hosp`, no `"horizon"` information
-    is expected. In this case, the column `"horizon"` should be contain `NA`
+    is expected. In this case, the column `"horizon"` should be set to `NA`
 
 ### Column "location" (`test_location()`)
 
 -   The location are corresponding to the location name as expressed in the
-    associated metadata JSON file. If FIPS code are expected and if the FIPS
-    numbers are missing a trailing zero, the submission will be accepted but a
-    warning message will be returned
+    associated metadata JSON file (`js_def` parameter). If FIPS code are
+    expected and if the FIPS numbers are missing a trailing zero,
+    the submission will be accepted but a warning message will be returned
 
 -   For the target requiring only specific location(s), no additional
     location is provided in the submission file
@@ -300,7 +333,7 @@ please feel free to ignore it.
     defined as `<AGEMIN>-<AGEMAX>`
 
 -   The submission should contain the expected `age_group` information,
-    as specified in the associated `tasks.json` file
+    as specified in the associated JSON file (`js_def` parameter)
 
 -   For the target requiring only specific age group(s), no additional
     age group is provided in the submission file. **If additional age
@@ -313,8 +346,8 @@ please feel free to ignore it.
 
 ### Column "race_ethnicity" (`test_raceethnicity()`)
 
--   The submission should contain the expected `race_ethinicity` information,
-    as specified in the associated `tasks.json` file
+-   The submission should contain the expected `race_ethnicity` information,
+    as specified in the associated JSON file (`js_def` parameter)
 
 -   For the target requiring only specific race ethnicity group(s), no
     additional group is provided in the submission file. **If additional groups
@@ -322,7 +355,7 @@ please feel free to ignore it.
     might not be integrated in the analysis and visualization.**
 
 *Remarks:* These tests are only run if the submission contains an
-`race_ethicity` column.
+`race_ethnicity` column.
 
 
 ### Samples information and value (`test_sample()`)
@@ -331,8 +364,8 @@ please feel free to ignore it.
     the output type `"sample"` should only contain integer values.
     
 -   The submission should contain the expected number of trajectories for each
-    task_id group, as indicated in the associated `tasks.json` file. And each
-    group should contain the same number of trajectories.
+    task_id group, as indicated in the associated JSON file (`js_def` parameter).
+    And each group should contain the same number of trajectories.
 
 -   The submission should at least contain a unique sample identifier 
     by pairing group, for example if `pairing_col = "horizon"`,
