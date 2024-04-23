@@ -45,7 +45,7 @@ containing the list of all the tests with detailed information.
 The function internally runs all the different validation checks
 functions (`test_column()`, `test_scenario()`, `test_origindate()`,
 `test_quantiles()`, `test_val()`, `test_target()`, `test_location()`, etc.) on
-a SMH submissions and prints information about the results of each tests
+SMH submissions and prints information about the results of each tests
 on the submission: warning(s), error(s) or if all the tests were
 successful.
 
@@ -68,12 +68,12 @@ validate_submission("PATH/TO/SUBMISSION", js_def)
 
 As a warning:
 
--   The vast majority of submissions done in 2021 will returns an error
+-   The vast majority of submissions done in 2021 will return an error
     on the model_projection_date column as the rules and tests on this
     column have been made and put in place only since 2022 (COVID-19 -
     round 12).
 
--   Also the cumulative observed data for the location 39 has been
+-   Also, the cumulative observed data for the location 39 has been
     corrected after COVID-19 round 12 publication so all the submissions
     might have an error saying:\
     `"Error: Some value(s) are inferior than the last observed cumulative death count. Please check location(s): 39 "`
