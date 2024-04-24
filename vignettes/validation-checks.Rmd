@@ -18,8 +18,8 @@ knitr::opts_chunk$set(
 )
 ```
 
-The `SMHvalidation` R package main functions aim to validate and visualize
-Scenario Modeling Hub submission.
+The main functions in the `SMHvalidation` R package aim to validate and visualize
+Scenario Modeling Hub submissions.
 
 For more information on the Scenario Modeling Hub and on how to
 participate, please feel free to consult the 
@@ -29,7 +29,7 @@ participate, please feel free to consult the
 
 In this vignette, we will describe all the tests that are made on each
 SMH submission when using the function `validate_submission()`. The tests
-(or checks) are organized by group of columns tested together and by
+(or checks) are organized by the group of columns tested together and by
 function `test_X()`.
 
 Each function `test_X()` checks the submission for a "category" of
@@ -40,16 +40,16 @@ own documentation available with the command `?test_X()`
 *Remarks:* Starting January 2023, the submission file format
 and associated JSON file format has been updated to follow the
 [Hubverse](https://hubdocs.readthedocs.io/en/latest/) format.
-The documentation is about the last version of the data.
+This documentation is about the last version of the data.
 
-For previous version of the documentation, please consult
+For previous versions of the documentation, please consult
 past version of the package.
 
 ### `Validate_submission()` function
 
 #### Input
 
-The `validate_submission()` requires two parameters:
+The `validate_submission()` function requires two parameters:
 
 -   `path`: path to the submissions file (or folder for partitioned data) to
     test.
@@ -59,7 +59,7 @@ The `validate_submission()` requires two parameters:
     -   the information in the JSON file can be separated in multiple groups
         for each round:
         -   The "task_ids" object defines both labels and contents for each
-            columns in submission files defining a modeling task. Any unique
+            column in submission files defining a modeling task. Any unique
             combination of the values define a single modeling task.
             For example, for SMH it will be the columns: `"scenario_id"`,
             `"location"`, `"origin_date"`, `"horizon"`, `"target"`,
@@ -73,13 +73,13 @@ documentation at `?validate_submission()`
 
 ##### Sample - Output type format
 
-In the Scenario Modeling Hub file format two possible format are used for the
+In the Scenario Modeling Hub file format two possible formats are used for the
 `"sample"` output type:
 
 (1) All the submissions for a specific round should follow the same format 
-with a predefined `output_type_id` column content. 
+with predefined `output_type_id` column content. 
 
-(2) For a specific round, the hub collect the sample "pairing" (or
+(2) For a specific round, the hub collects the sample "pairing" (or
 joint distribution) information each team uses to generate the trajectories. In
 this case, the `output_type_id` column is set to `"NA"` for the `"sample"` 
 output type and the "pairing" information is collected into two columns: 
@@ -98,7 +98,7 @@ As previously stated, the parameter should follow the standard of the
 [Hubverse format](https://github.com/Infectious-Disease-Modeling-Hubs/schemas).
 However, for some rounds, as SMH adaptation of the format is accepted.
 
-It should contains information by rounds for:
+It should contain information by rounds for:
 
 -   "model_tasks": Array defining round-specific modeling tasks. Can
     contain one or more groups of modeling tasks per round where each
@@ -176,7 +176,7 @@ The function returns a message with:
     (`path`) or via the `round_id` parameter, should match one of the
     `round_id` in the associated `tasks.json` file (`js_def` parameter).
 
--  The submission file(s) should be in one of the accepted format:
+-  The submission file(s) should be in one of the accepted formats:
    - Parquet file (preferred): `.parquet` or `.gz.parquet`. Partitioning in
    this format is also accepted. 
    - CSV file: `.csv`. Partitioning in this format is also accepted. 
@@ -209,14 +209,14 @@ correctly spelled.
 *Remarks:* In this example, the `task_ids` values correspond to:
 origin_date, scenario_id, target, horizon, location.
 
-*Remarks:*If one required column is missing, the submission test will
+*Remarks:* If one required column is missing, the submission test will
 directly stop and return an error message without running all the others
 tests.
 
 ### Scenario Information (`test_scenario()`)
 
 -   The ID of the scenarios are corresponding to the expected ID of the
-    expected round without any spelling error.
+    expected round without any spelling errors.
 
 ### Column "origin_date" (`test_origindate()`)
 
@@ -229,13 +229,13 @@ this date can have a slightly more flexible date information.
 
 ### Quantiles information and value (`test_quantile()`)
 
--   The submission file should contains quantiles matching the expected
+-   The submission file should contain quantiles matching the expected
     quantiles value (information should be provided via the `js_def`
     parameter), for example: `0.01`, `0.025`, `0.05`, `0.1`, `0.15`,
     `0.2`, `0.25`, `0.3`, `0.35`, `0.4`, `0.45`, `0.5`, `0.55`, `0.6`,
     `0.65`, `0.7`, `0.75`, `0.8`, `0.85`, `0.9`, `0.95`, `0.975`,
     `0.99`. **If a submission is missing some (or all) quantiles it might
-    still be accepted but will not included in the Ensembles**
+    still be accepted but will not be included in the Ensembles**
 
 -   For each task_id group, the value increases with the quantiles.
     For example, for the 1st week ahead of target X for the location Y and for
@@ -249,7 +249,7 @@ information (required or optional).
 
 -   Each task_id group combination has one unique value projected.
     For example: only 1 value associated with: quantile `0.5`, location `US`,
-    target `inc hosp`, horizon `1` and, scenario `A`)
+    target `inc hosp`, horizon `1` and, scenario `A`.
 
 -   The projection contains the expected value (for example, integer
     value `>= 0` or numeric in between 0 and 1). `NA` value are not accepted
@@ -284,7 +284,7 @@ information (required or optional).
     is not `NULL` and contains observed cumulative cases and deaths
     value)
     
--   [optional] The number of decimal point accepted in the column `"value"` is
+-   [optional] The number of decimal points accepted in the column `"value"` is
     lower or equivalent to the parameter `n_decimal` (only run if `n_decimal`
     is not set to `NULL`)
 
@@ -298,8 +298,8 @@ information (required or optional).
     missing, but will return an error message and the submission might
     not be included in the Ensembles**
 
--   For some targets, the submission is expected to contains projection for an
-    expected number of week (or horizon). **If the file contains more projected
+-   For some targets, the submission is expected to contain projections for an
+    expected number of weeks (or horizon). **If the file contains more projected
     weeks than expected, the submission will still be accepted, but will return
     a warning message and the additional weeks will not be included in the
     visualization on the SMH website. If the file contains less
@@ -314,7 +314,7 @@ information (required or optional).
 ### Column "location" (`test_location()`)
 
 -   The location are corresponding to the location name as expressed in the
-    associated metadata JSON file (`js_def` parameter). If FIPS code are
+    associated metadata JSON file (`js_def` parameter). If FIPS codes are
     expected and if the FIPS numbers are missing a trailing zero,
     the submission will be accepted but a warning message will be returned
 
@@ -322,7 +322,7 @@ information (required or optional).
     location is provided in the submission file
 
 *Remarks:* If a submission file contains only state level projection
-(one or multiple), the `location` column might be automatically identify
+(one or multiple), the `location` column might be automatically identified
 as numeric even if it was submitted in a character format. In this case,
 a warning message will be automatically print on the validation but,
 please feel free to ignore it.
@@ -370,8 +370,8 @@ please feel free to ignore it.
 -   The submission should at least contain a unique sample identifier 
     by pairing group, for example if `pairing_col = "horizon"`,
     the sample identifier `1` should contain at least all the possible 
-    horizon value once, and optionally can contain the specific and multiple 
-    value for the other task id column (`origin_date`, `scenario`, `location`, 
+    horizon values once, and optionally can contain the specific and multiple 
+    values for the other task id columns (`origin_date`, `scenario`, `location`, 
     `target`, `horizon`, etc.). The `pairing_col` information is extracted from
     the `"samples_joint_across"` information in the associated `tasks.json`
     file. If the information is not available, it will be set to `"horizon"`
