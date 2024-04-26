@@ -19,20 +19,19 @@ knitr::opts_chunk$set(
 
 The `SMHvalidation` R package contains functions to pull data from the R
 package covidcast (output in the Scenario Modeling Hub (SMH) standard
-format), to validate and visualize Scenario Modeling Hub submission.
+format), to validate and visualize Scenario Modeling Hub submissions.
 
-In this vignette, we will show how to use the validation function:
+In this vignette, we demonstrate the use of the validation function:
 `validate_submision()`. The function can generate 3 different outputs:
 
 -   message when the submission does not contain any issues
 -   warning + report message when the submission does contain one or
-    multiple minor issues that do not prevent the submission to be
+    multiple minor issues that do not prevent the submission from being
     included.
--   error + report message when the submission does contain one or
-    multiple minor and/or major issues that prevent the submission to be
-    included. In this case the submission file will have to be updated
-    to be include in the\
-    corresponding SMH round.
+-   error + report message when the submission contains one or
+    multiple minor and/or major issues that prevent the submission from being
+    included. In this case the submission file will need to be updated
+    to be included in the corresponding SMH round.
 
 We will start by loading `SMHvalidation`:
 
@@ -42,15 +41,15 @@ library(SMHvalidation)
 
 ## `validate_submission()`
 
-To run the SMH validation checks, we can use the `validate_submision()`
+To run the SMH validation checks, we  use the `validate_submision()`
 function. For more information on this function, please consult the
-documentation
+documentation:
 
 ```{r eval=FALSE}
 ?validate_submission()
 ```
 
-For more information on all the tests the function perform, please
+For more information on the tests performed by the function perform, please
 consult the vignette [Validation Checks](validation-checks.html).
 
 #### Parameters
@@ -60,8 +59,8 @@ The function requires multiple parameters:
 -   `path`: path to the submission files. The package contains 3
     examples files that can be used to test the function. There paths
     can be accessed by using:
-    `system.file("extdata", "FILENAME", package = "SMHvalidation")`, the
-    3 filenames (+ quick descriptions) are:
+    `system.file("extdata", "FILENAME", package = "SMHvalidation")`. The
+    three filenames (+ quick descriptions) are:
     -   "2022-01-09_team-model.csv" : should returns no issues
     -   "2021-08-15_team-model.gz" : should returns multiple warnings
     -   "2021-11-14_team-model.zip" : should returns multiple warnings
@@ -69,9 +68,9 @@ The function requires multiple parameters:
 -   `js_def`: list containing the round specific and scenario
     information.
 -   `lst_gs`: named list of data frame containing the observed data. We
-    highly recommend to use the output of the `pull_gs_data()` function
+    highly recommend using the output of the `pull_gs_data()` function
     as input. This function will generate the output in the expected
-    format with the expected data. For more information, please do
+    format with the expected data. For more information, please see
     `?pull_gs_data()`. This parameter can be set to `NULL` is no
     observed data comparison is required.
 -   `pop_path`: path to a table containing the population size of each
@@ -83,7 +82,7 @@ The function requires multiple parameters:
 #### Output
 
 The function returns multiple messages and either a warning message or
-an error message if the submission contains minor issues and/or majors
+an error message if the submission contains minor issues and/or major
 issues respectively. If the submission contains minor and/or major
 issue(s), it will also returns a "report" message containing a detailed
 message about the issue and if the issue is:
@@ -93,7 +92,7 @@ message about the issue and if the issue is:
 -   "major": error message asking to fix the issue before including the
     submission in the corresponding SMH round.
 
-#### Prerequisite
+#### Prerequisites
 
 Before running the function, we will prepare the required and optional
 parameter as explained above:
@@ -192,7 +191,7 @@ generate_validation_plots(path_proj = path_test, lst_gs = lst_gs,
 system(paste0('open "', pdf_path, '"'))
 ```
 
-An other example is available for FLU submission (not compared to
+Another example is available for FLU submission (as this result is not compared to
 observed data, set the `lst_gs` parameter to `NULL`)
 
 ```{r proj_plots3}

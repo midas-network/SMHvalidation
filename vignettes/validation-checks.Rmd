@@ -21,7 +21,7 @@ knitr::opts_chunk$set(
 The `SMHvalidation` R package contains functions to pull COVID-19 data
 from the R package `covidcast` (output in the Scenario Modeling Hub
 (SMH) standard format), and functions to validate and visualize Scenario
-Modeling Hub submission.
+Modeling Hub submissions.
 
 For more information on the Scenario Modeling Hub and on how to
 participate, please feel free to consult the [Github
@@ -31,7 +31,7 @@ website](https://covid19scenariomodelinghub.org/).
 
 ## Validation on model projection
 
-In this vignette, we will describe all the tests that are made on each
+In this vignette, we will describe the tests that are made on each
 SMH submission when using the function `validate_submision()`. The tests
 (or checks) are organized by group of columns tested together and by
 function `test_X()`.
@@ -41,8 +41,8 @@ checks. All `test_X()` functions are used in the `validate_submision()`
 function but they also can be used individually. Each function has its
 own documentation available with the command `?test_X()`
 
-In each section, the tests are describes with detailed information that
-should be provided in the json files inputted in the validation
+In each section, the tests are described with detailed information that
+should be provided in the json files submitted to the validation
 function. This information will be noted in each section.
 
 *Remarks:* After round 16 of COVID-19 (Jan 2023), the submission file format 
@@ -65,11 +65,11 @@ To test a submission file, the function requires multiple parameters:
     scenario information, following the [Consortium of Infectious
     Disease Modeling Hubs
     standard](https://github.com/Infectious-Disease-Modeling-Hubs/schemas)
--   `lst_gs`: named list of data frame containing the observed data. We
+-   `lst_gs`: named list of data frames containing the observed data. We
     highly recommend to use the output of the `pull_gs_data()` function
     as input. This function will generate the output in the expected
-    format with the expected data. For more information, please do
-    `?pull_gs_data()`. This parameter can be set to `NULL` is no
+    format with the expected data. For more information, please seel
+    `?pull_gs_data()`. This parameter can be set to `NULL` if no
     observed data comparison is required.
 -   `pop_path`: path to a table containing the population size of each
     geographical entities by FIPS (in a column "location") and by
@@ -98,7 +98,7 @@ To adapt to this format a parameter has been added to the validation function:
     contained into 2 columns: `"run_grouping"` and `"stochastic_run"`. 
     By default, `FALSE`.
 
-These parameter is ignored is the submission does not contains `"sample"` 
+These parameter is ignored if the submission does not contains `"sample"` 
 output type information.
 
 ##### `js_def` parameter:
@@ -179,7 +179,7 @@ tests.
     -   the date in the submission file matching the projection starting
         date or round id.
 
-*Remarks:* Implemented since January 2022, all submissions previous to
+*Remarks:* This column has been implemented since January 2022. All submissions previous to
 this can have a slightly more flexible date information.
 
 ### Quantiles information and value (`test_quantile()`)
@@ -269,17 +269,16 @@ information.
 -   For the target requiring only specific location(s), no additional
     location is provided in the submission file.
 
-*Remarks:* If a submission file contains only state level projection
-(one or multiple), the `location` column might be automatically identify
+*Remarks:* If a submission file contains only state level projections
+(one or multiple), the `location` column might be automatically identified
 as numeric even if it was submitted in a character format. In this case,
-a warning message will be automatically print on the validation but,
-please feel free to ignore it.
+a warning message will be automatically printed on the validation. Please feel free to ignore it. 
 
 ### Column "age_group" (`test_agegroup()`)
 
 -   The submission should contain a column `age_group` with values
-    defined as `<AGEMIN>-<AGEMAX>`, <AGEMIN> cannot be equal or greater
-    than <AGEMAX>.
+    defined as `<AGEMIN>-<AGEMAX>`.  `<AGEMIN>` cannot be equal to or greater
+    than `<AGEMAX>`.
 
 -   The submission should contain the expected `age_group`
 
