@@ -2,7 +2,7 @@
 % Please edit documentation in R/test_agegroup.R
 \name{test_agegroup}
 \alias{test_agegroup}
-\title{Runs Validation Checks on the `age_group` column}
+\title{Runs Validation Checks on the \code{age_group} column}
 \usage{
 test_agegroup(df, model_task)
 }
@@ -13,20 +13,21 @@ test_agegroup(df, model_task)
 and model output (type, format, etc.)}
 }
 \description{
-Validate Scenario Modeling Hub submissions: test if the `age_group` column
+Validate Scenario Modeling Hub submissions: test if the \code{age_group} column
 contains the expected  value.
 }
 \details{
 This function contains 3 tests:
 \itemize{
- \item{Age group: }{If the submission contains projection by age group,
- the `age_group` column contains the age group written `<AGEMIN>-<AGEMAX>`.}
- \item{Age group value: }{If the submission contains projection by
- age group, the `age_group` column contains the age group values as
- specify in the associated SMH GitHub Repository.}
- \item{Age group target: }{If the submission contains projection by
- age group and if one or multiple targets required specific `age_group`
- value(s), no additional value(s) is provided in the submission file.}
+\item{Age group: }{If the submission contains projection by age group,
+the \code{age_group} column contains the age group written \verb{<AGEMIN>-<AGEMAX>}.}
+\item{Age group value: }{If the submission contains projection by
+age group, the \code{age_group} column contains the age group values as
+specify in the associated SMH GitHub Repository.}
+\item{Age group target: }{If the submission contains projection by
+age group and if one or multiple targets required specific \code{age_group}
+value(s), no additional value(s) is provided in the submission file.}
 }
-Function called in the `validate_submission()` function.
+Function called in the \code{validate_submission()} function, only if the
+submission contains \code{"age_group"} column
 }

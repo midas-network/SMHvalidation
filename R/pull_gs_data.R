@@ -10,11 +10,11 @@
 #' @importFrom dplyr as_tibble %>%
 gs_week_process <- function(df) {
   df <- data.table::setDT(df)
-  df[, value := sum(value, na.rm = T), by = .(geo_value, year, week)] %>%
+  df[, value := sum(value, na.rm = TRUE), by = .(geo_value, year, week)] %>%
     dplyr::as_tibble()
 }
 
-#'Add Locayion Name column
+#'Add Location Name column
 #'
 #' Create a column "geo_value_fullname" with the full name of each state.
 #'
@@ -96,7 +96,7 @@ sel_last_day_week <- function(df, date_sel, sel = "week") {
   } else {
     df <- dplyr::group_by(df, week, year)
   }
-  df <- dplyr::mutate(df, sel = ifelse(time_value %in% date_sel,1, 0)) %>%
+  df <- dplyr::mutate(df, sel = ifelse(time_value %in% date_sel, 1, 0)) %>%
     dplyr::ungroup() %>%
     dplyr::filter(sel == 1)
 
@@ -137,23 +137,26 @@ sel_last_day_week <- function(df, date_sel, sel = "week") {
 #' * For the incidence numbers: use the `confirmed_incidence_num` and
 #'   `deaths_incidence_num` signals from `jhu-csse` and
 #'   `confirmed_admissions_covid_1d` from `hhs`. As the data are expressed per
-#'   day and the Scenario Modeling Hub use cumulative data by epiweek, the sum of
-#'   the incidences is calculated by epiweek and by location, and the values are
-#'   added between all states to obtains the US level data.
+#'   day and the Scenario Modeling Hub use cumulative data by epiweek, the sum
+#'   of the incidences is calculated by epiweek and by location, and the values
+#'   are added between all states to obtains the US level data.
 #'
 #' **Source data:**
 #'
 #' For case/death data, we use:
 #' \itemize{
-#'     \item{Link: }{\url{https://cmu-delphi.github.io/delphi-epidata/api/covidcast-signals/jhu-csse.html}}
-#'     \item{Signals: }{"deaths_cumulative_num", "confirmed_cumulative_num",
-#'     "confirmed_incidence_num", "deaths_incidence_num" }
+#'  \item{Link: }{\url{
+#'  https://cmu-delphi.github.io/delphi-epidata/api/covidcast-signals/
+#'  jhu-csse.html}}
+#'  \item{Signals: }{"deaths_cumulative_num", "confirmed_cumulative_num",
+#'  "confirmed_incidence_num", "deaths_incidence_num" }
 #' }
 #'
 #' For hospitalization data, we use:
 #' \itemize{
-#'     \item{Link: }{\url{https://cmu-delphi.github.io/delphi-epidata/api/covidcast-signals/hhs.html}}
-#'     \item{Signals: }{"confirmed_admissions_covid_1d"}
+#'  \item{Link: }{\url{
+#'  https://cmu-delphi.github.io/delphi-epidata/api/covidcast-signals/hhs.html}}
+#'  \item{Signals: }{"confirmed_admissions_covid_1d"}
 #' }
 #'
 #' @examples
@@ -164,9 +167,9 @@ sel_last_day_week <- function(df, date_sel, sel = "week") {
 #' }
 pull_gs_data <- function() {
   # date prerequisite
-  # Date limit for Gold Standard data (to have data until the last full epiweek):
-  eweek = lubridate::epiweek(Sys.Date())
-  eyear = lubridate::epiyear(Sys.Date())
+  # Date limit for Gold Standard data (data included the last full epiweek):
+  eweek <- lubridate::epiweek(Sys.Date())
+  eyear <- lubridate::epiyear(Sys.Date())
 
   limit_date <- last_sat(eyear, eweek)
   if (limit_date > Sys.Date()) limit_date <- limit_date - 1
@@ -179,16 +182,20 @@ pull_gs_data <- function() {
   rm(j)
   # location prerequisite
   # Pull population data and prepare location hash vector
-  pop_path <- "https://raw.githubusercontent.com/midas-network/covid19-scenario-modeling-hub/master/data-locations/locations.csv"
+  pop_path <- paste0("https://raw.githubusercontent.com/midas-network/",
+                     "covid19-scenario-modeling-hub/master/data-locations/",
+                     "locations.csv")
   pop <- read_files(pop_path)
-  loc_dictionary_name <- setNames(
-    c(rep(pop$location_name, 2), "US",
-      rep(grep("US$", pop$location_name, value = TRUE, invert = TRUE), 2),
-      rep(pop$location_name, 2), "New York"),
-    c(pop$location, tolower(pop$abbreviation), "US",
-      suppressWarnings(na.omit(as.numeric(pop$location))), suppressWarnings(
-        as.character(na.omit(as.numeric(pop$location)))),
-      tolower(pop$location_name), toupper(pop$location_name), "new york state"))
+  pop_num <- na.omit(as.numeric(pop$location))
+  loc_dictionary_name <-
+    setNames(c(rep(pop$location_name, 2), "US",
+               rep(grep("US$", pop$location_name, value = TRUE, invert = TRUE),
+                   2), rep(pop$location_name, 2), "New York"),
+             c(pop$location, tolower(pop$abbreviation), "US",
+               suppressWarnings(pop_num),
+               suppressWarnings(as.character(pop_num)),
+               tolower(pop$location_name),
+               toupper(pop$location_name), "new york state"))
   location2number <- setNames(pop$location, pop$location_name)
 
   # signals
@@ -196,7 +203,6 @@ pull_gs_data <- function() {
                "confirmed_incidence_num", "deaths_incidence_num",
                "confirmed_admissions_covid_1d")
   lst_df <- lapply(signals, function(x) {
-
     if (x == "confirmed_admissions_covid_1d") {
       source <- "hhs"
     } else {
@@ -204,9 +210,9 @@ pull_gs_data <- function() {
     }
 
     # Call API to generate gold standard data from COVIDCast
-   df <- covidcast::covidcast_signal(data_source = source, signal = x,
-                               geo_type = "state", end_day = limit_date,
-                               as_of = Sys.Date())
+    df <- covidcast::covidcast_signal(data_source = source, signal = x,
+                                      geo_type = "state", end_day = limit_date,
+                                      as_of = Sys.Date())
 
     # Processed data:
     #   - Transform Daily incidence in Weekly incidence
@@ -227,16 +233,14 @@ pull_gs_data <- function() {
         week_date() %>%
         dplyr::distinct() %>%
         sel_last_day_week(vect_week_date) %>%
-        dplyr::mutate(geo_value_fullname = "US",
-               geo_value = "us")
+        dplyr::mutate(geo_value_fullname = "US", geo_value = "us")
       df_tot <- dplyr::bind_rows(df_state, df_us)
     } else {
       df_state <- location_full(df, loc_dictionary_name = loc_dictionary_name)
       df_state <- sel_last_day_week(df_state, vect_week_date)
-      df_us <- gs_sum(df_state ) %>%
+      df_us <- gs_sum(df_state) %>%
         sel_last_day_week(vect_week_date) %>%
-        dplyr::mutate(geo_value_fullname = "US",
-               geo_value = "us")
+        dplyr::mutate(geo_value_fullname = "US", geo_value = "us")
       df_tot <- dplyr::bind_rows(df_state, df_us)
     }
     # Add geographical information for the mapping
@@ -244,11 +248,8 @@ pull_gs_data <- function() {
                             fips = location2number[geo_value_fullname]) %>%
       dplyr::select(time_value, geo_value_fullname, fips, value)
   }) %>%
-  setNames(c("deaths_cumulative_num", "confirmed_cumulative_num",
-             "confirmed_incidence_num", "deaths_incidence_num",
-              "hospitalization"))
+    setNames(c("deaths_cumulative_num", "confirmed_cumulative_num",
+               "confirmed_incidence_num", "deaths_incidence_num",
+               "hospitalization"))
   return(lst_df)
 }
-
-
-

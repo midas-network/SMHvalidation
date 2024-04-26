@@ -9,14 +9,15 @@ generate_validation_plots(
   lst_gs,
   save_path = dirname(path_proj),
   y_sqrt = FALSE,
-  plot_quantiles = c(0.025, 0.975)
+  plot_quantiles = c(0.025, 0.975),
+  partition = NULL
 )
 }
 \arguments{
 \item{path_proj}{dataframe, format as the Scenario Modeling Hub standard}
 
 \item{lst_gs, }{list of dataframe, observed data (advice to use the output
-of the function `pull_gs_data()`). If NULL, no comparison to observed
+of the function \code{pull_gs_data()}). If NULL, no comparison to observed
 data will be done.}
 
 \item{save_path}{character vector, path to the saving folder for the PDF
@@ -25,7 +26,11 @@ output}
 \item{y_sqrt}{boolean, by default FALSE}
 
 \item{plot_quantiles}{numeric vector, quantiles to use for plotting (should
-correspond to the quantiles from the `proj_data` parameter)}
+correspond to the quantiles from the \code{proj_data} parameter)}
+
+\item{partition}{vector, for csv and parquet files, allow to validate files
+in a partition format, see \code{arrow} package for more information, and
+\code{arrow::write_dataset()}, \code{arrow::open_dataset()} functions.}
 }
 \description{
 Generate Validation Plots

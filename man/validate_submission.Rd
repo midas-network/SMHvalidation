@@ -4,66 +4,93 @@
 \alias{validate_submission}
 \title{Validate SMH (Scenario Modeling Hub) Submissions}
 \usage{
-validate_submission(path, js_def, lst_gs, pop_path, merge_sample_col = FALSE)
+validate_submission(
+  path,
+  js_def,
+  lst_gs = NULL,
+  pop_path = NULL,
+  merge_sample_col = FALSE,
+  partition = NULL,
+  n_decimal = NULL,
+  round_id = NULL
+)
 }
 \arguments{
-\item{path}{path to the submissions file to test or string of parquet files (
-in this case, the validation will be run on the aggregation of all the
-parquet files together)}
+\item{path}{path to the submissions file (or folder for partitioned data)
+to test, or string of parquet files (in this case, the validation will be
+run on the aggregation of all the parquet files together, and each file
+individually should match the expected SMH standard).
+If partition is not set to \code{NULL}, path to the folder containing ONLY the
+partitioned data.}
 
 \item{js_def}{path to JSON file containing round definitions: names of
-columns, target names, ...}
+columns, target names, ... following the \code{tasks.json}
+\href{https://hubdocs.readthedocs.io/en/latest/user-guide/hub-config.html}{Hubverse }
+format}
 
 \item{lst_gs}{named list of data frame containing the
 observed data. For COVID-19, we highly recommend to use the output of the
-pull_gs_data() function. The list should have the same format: each data
+\code{pull_gs_data()} function. The list should have the same format: each data
 frame should be named with the corresponding covidcast signal except
-"hospitalization" instead of "confirmed_admissions_covid_1d".}
+\code{"hospitalization"} instead of \code{"confirmed_admissions_covid_1d"}.
+Set to \code{NULL} (default), to NOT run comparison with observed data.}
 
 \item{pop_path}{path to a table containing the population size of each
-geographical entities by FIPS (in a column "location") and by location name.}
+geographical entities by FIPS (in a column \code{"location"}).
+Use to compare that value is not higher than expected population size.
+Set to \code{NULL} (default), to NOT run comparison with population data.}
 
 \item{merge_sample_col}{boolean to indicate if the for the output type
-"sample", the output_type_id column is set to NA and the information is
-contained into 2 columns: "run_grouping" and "stochastic_run". By default,
-`FALSE`}
+\code{"sample"}, the \code{output_type_id} column is set to \code{NA} and the information is
+contained into 2 columns: \code{"run_grouping"} and \verb{"stochastic_run}".
+By default, \code{FALSE}}
+
+\item{partition}{vector, for csv and parquet files, allow to validate files
+in a partition format, see \code{arrow} package for more information, and
+\code{arrow::write_dataset()}, \code{arrow::open_dataset()} functions.}
+
+\item{n_decimal}{integer,  number of decimal point accepted in the column
+value (only for \code{"sample"} output type), if \code{NULL} (default) no limit
+expected.}
+
+\item{round_id}{character string, round identifier. If \code{NULL} (default),
+extracted from \code{path}.}
 }
 \description{
-Runs all the different validation checks functions (test_column,
-test_scenario, test_modelprojdate, test_quantiles, test_val, test_target,
-test_location, test_sample, test_agegroup) on a Scenario Modeling Hub (SMH)
+Runs all the different validation checks functions (\code{test_column()},
+\code{test_scenario()}, \code{test_origindate()}, \code{test_quantiles()}, \code{test_val()},
+\code{test_target()}, \code{test_location()},\code{ test_sample()}, \code{test_agegroup()},
+\code{test_raceethnicity()}) on a Scenario Modeling Hub (SMH)
 submissions and prints information about the results of each tests on the
 submission: warning(s), error(s) or message if all the tests were successful.
 }
 \details{
 For more information on all tests run on the submission, please refer
-to the documentation of each "test_*" function. A vignette with all the
-information is available in the package and is called: "validation-checks".
+to the documentation of each \verb{"test_*}" function. A vignette with all the
+information is available in the package and is called:
+vignette("validation-checks").
 
-The function accepts submission in PARQUET, CSV, ZIP or GZ file formats.
+The function accepts submission in PARQUET, CSV, ZIP or GZ file formats. If
+the submission files is in a "partitioned" format, the \code{path} parameter
+should be to a directory to a folder containing ONLY the "partitioned"
+files. If any other file is present in the directory, it will be included
+in the validation.
 
 The function runs some preliminary tests before calling the "test_*"
 functions:
 \itemize{
- \item{Input submission file format: }{The file format of the submission
- file(s) correspond to the expected format (for example: `parquet`, or `csv`,
-  etc.). If multiple files inputted, only `parquet` is accepted}
-  \item{Date information: }{The column `origin_date` in the submission file
-  corresponds to a `model_tasks` round information in the JSON file
-  (`js_def` parameter)}
-  \item{Date format: }{All columns containing dates information should be in
-  "YYY-MM-DD" format}
+\item{Input submission file format: }{The file format of the submission
+file(s) correspond to the expected format (for example: \code{parquet}, or \code{csv},
+etc.). If multiple files inputted, only \code{parquet} is accepted}
+\item{Date information: }{The column \code{origin_date} in the submission file
+corresponds to a \code{model_tasks} round information in the JSON file
+(\code{js_def} parameter)}
+\item{Date format: }{All columns containing dates information should be in
+"YYY-MM-DD" format}
 }
 }
 \examples{
 \dontrun{
-# FOR SMH Submission
-
-lst_gs <- pull_gs_data()
-pop_path <- "PATH/TO/data-locations/locations.csv"
-js_def <- "PATH/TO/tasks.json"
-
-validate_submission("PATH/SUBMISSION", js_def, lst_gs, pop_path)
-
+validate_submission("PATH/TO/SUBMISSION", "PATH/TO/ROUND/tasks.json")
 }
 }

@@ -8,3 +8,5 @@ app-cache/*
 inst/doc
 /doc/
 /Meta/
+*.pdf
+.idea/*
