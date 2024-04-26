@@ -27,7 +27,7 @@ participate, please feel free to consult the
 
 ## Validation on model projection
 
-In this vignette, we will describe all the tests that are made on each
+In this vignette, we will describe the tests that are made on each
 SMH submission when using the function `validate_submission()`. The tests
 (or checks) are organized by the group of columns tested together and by
 function `test_X()`.
@@ -144,10 +144,10 @@ For example:
 ```json
 {
     "round_id": "origin_date",
-     "round_id_from_variable": true,
-     "model_tasks": [...],
-     "submissions_due": {...},
-      "partition": ["origin_date", "target"]
+    "round_id_from_variable": true,
+    "model_tasks": [...],
+    "submissions_due": {...},
+    "partition": ["origin_date", "target"]
 }
 ```
 

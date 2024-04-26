@@ -9,7 +9,7 @@ experimental](https://img.shields.io/badge/lifecycle-experimental-orange.svg)](h
 # SMHvalidation
 
 R package containing functions to validate and visualize Scenario Modeling Hub 
-submission, and to pull data from the R package
+submissions, and to pull data from the R package
 `covidcast` (output in the Scenario Modeling Hub (SMH) standard format). 
 For more information on the Scenario Modeling Hub and/or on how to participate,
 please consult the Scenario Modeling Hub 
@@ -57,8 +57,8 @@ accessible with `?validate_submission()` for example.
 To test a submission file, it's necessary to provide 2 arguments:
 
 -   the path of the file to test (CSV, ZIP or GZ file format)
--   a list containing the round information (column names, targets
-    information, etc.), following the 
+-   path to JSON file containing round definitions: names of columns,
+    target names, ... following the 
     [`tasks.json` Hubverse format](https://hubdocs.readthedocs.io/en/latest/user-guide/hub-config.html#hub-model-task-configuration-tasks-json-file)
 
 ```{r}

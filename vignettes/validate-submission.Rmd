@@ -22,7 +22,7 @@ Scenario Modeling Hub submissions, and to pull data from the R
 package `covidcast` (output in the Scenario Modeling Hub (SMH) standard
 format).
 
-In this vignette, we will demonstrate how to use the validation function:
+In this vignette, we demonstrate the use of the validation function:
 `validate_submission()`. The function can generate 3 different outputs:
 
 -   message when the submission does not contain any issues
@@ -67,7 +67,7 @@ The function requires multiple parameters:
     The package contains 3 example files that can be used to test the
     function. There paths can be accessed by using:
     `system.file("extdata", "FILENAME", package = "SMHvalidation")`, the
-    3 filenames (+ quick descriptions) are:
+    three filenames (+ quick descriptions) are:
     -   `"2022-01-09_team-model.csv"` : should return no issues
     -   `"2021-08-15_team-model.gz"` : should return multiple warnings
     -   `"2021-11-14_team-model.parquet"` : should return multiple warnings
@@ -92,7 +92,7 @@ And has some optional parameters:
 -   `lst_gs`: named list of the data frame containing the observed data. We
     highly recommend using the output of the `pull_gs_data()` function
     as input. This function will generate the output in the expected
-    format with the expected data. For more information, please do
+    format with the expected data. For more information, please see
     `?pull_gs_data()`. This parameter can be set to `NULL` (default) to 
      not compare between the value and the observed data.
 -   `pop_path`: path to a table containing the population size of each
@@ -126,7 +126,7 @@ And has some optional parameters:
 #### Output
 
 The function returns multiple messages and either a warning message or
-an error message if the submission contains minor issues and/or majors
+an error message if the submission contains minor issues and/or major
 issues respectively. If the submission contains minor and/or major
 issue(s), it will also returns a "report" message containing a detailed
 message about the issue and if the issue is:
@@ -136,7 +136,7 @@ message about the issue and if the issue is:
 -   "major": error message asking to fix the issue before including the
     submission in the corresponding SMH round.
 
-#### Prerequisite
+#### Prerequisites
 
 Before running the function, we will prepare the required and optional
 parameter as explained above:
