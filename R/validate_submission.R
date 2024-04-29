@@ -211,36 +211,44 @@ run_all_validation <- function(df, path, js_def, pop, last_lst_gs,
   date_id <- unique(unlist(purrr::map(purrr::map(model_task, "task_ids"),
                                       "origin_date")))
   out_ord <- test_origindate(df, path, id = date_id)
+  gc()
 
   # Test by type
   if (any(grepl("quantile", unlist(distinct(df[, "output_type", FALSE])))) ||
         any("quantile" %in% names(unlist(purrr::map(model_task, "output_type"),
                                          FALSE)))) {
     out_quant <- test_quantiles(df, model_task)
+    gc()
   }
   if (any(grepl("sample", unlist(distinct(df[, "output_type", FALSE])))) ||
         any("sample" %in% names(unlist(purrr::map(model_task, "output_type"),
                                        FALSE)))) {
     out_sample <- test_sample(df, model_task, pairing_col = pairing_col)
+    gc()
   }
 
   # Test on value
   out_val <- test_val(df, pop, last_lst_gs, model_task, n_decimal = n_decimal)
+  gc()
 
   # Test on targets information
   out_target <- test_target(df, model_task)
+  gc()
 
   # Test on location information
   out_loc <- test_location(df, model_task)
+  gc()
 
   # Test for additional column
   if (any(grepl("age_group", names(df)))) {
     out_agegroup <- test_agegroup(df, model_task)
+    gc()
   }
 
   # Test for additional column
   if (any(grepl("race_ethnicity", names(df)))) {
     out_raceethnicity <- test_raceethnicity(df, model_task)
+    gc()
   }
 
   # Report:
