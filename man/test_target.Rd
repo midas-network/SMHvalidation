@@ -19,27 +19,27 @@ Validate Scenario Modeling Hub submissions: test if the
 \details{
 This function contains 5 tests:
 \itemize{
-\item{Target name: }{The target should correspond to the target name as
-expressed in the \code{model_task} parameter. }
-\item{Target number: }{The submission file contains projection for all
+\item Target name: The target should correspond to the target name as
+expressed in the \code{model_task} parameter.
+\item Target number: The submission file contains projection for all
 required targets. It is accepted to submit only a subset of target but
 a warning and/or a error message will be return (depending if the target
-is optional or required)}
-\item{Number of week projected: }{The submission file contains projections
+is optional or required).
+\item Number of week projected: The submission file contains projections
 for the expected number of weeks or more. If a team submits more week than
-expected, a warning message will be returned, but the submission will be
-accepted. However, an error message will be returned if the submission file
-contains less projection week than expected. Starting Feb. 2022, if the file
+expected, an error message will be returned. An error message will also be
+returned if the submission file contains less projection week than expected.
+Starting Feb. 2022, if the file
 contains less projected weeks than expected, the submission will still be
 accepted, but will return a warning message and might not be included
-in the Ensembles}
-\item{Week projected: }{The submission file contains projection for all
+in the Ensembles.
+\item Week projected: The submission file contains projection for all
 expected weeks for each tasks group (unique combination of \code{task_ids}
 columns as specified in the \code{model_task} parameter) and for all
-output type combination.}
-\item{NA target}{The projection contains \code{NA} value in the \code{horizon}
+output type combination.
+\item NA target: The projection contains \code{NA} value in the \code{horizon}
 column for the target(s) requiring no time series information (for example,
-\code{"peak size hosp"})}
-}
+\code{"peak size hosp"}).
 Function called in the \code{validate_submission()} function.
+}
 }

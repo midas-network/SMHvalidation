@@ -64,12 +64,11 @@ The function requires multiple parameters:
     together, and each file individually should match the expected SMH
     standard. If partition is not set to `NULL`, the path
     to the folder containing the partitioned data should be input.
-    The package contains 3 example files that can be used to test the
+    The package contains two example files that can be used to test the
     function. There paths can be accessed by using:
     `system.file("extdata", "FILENAME", package = "SMHvalidation")`, the
-    three filenames (+ quick descriptions) are:
+    two filenames (+ quick descriptions) are:
     -   `"2022-01-09_team-model.csv"` : should return no issues
-    -   `"2021-08-15_team-model.gz"` : should return multiple warnings
     -   `"2021-11-14_team-model.parquet"` : should return multiple warnings
         and errors
 -   `js_def`: path to JSON file containing round definitions: names of columns,
@@ -159,21 +158,8 @@ validate_submission(path_test, js_def)
 The function returns a simple message stating that no issues have been
 found.
 
-## Example 2: Warnings
 
-```{r test2}
-path_test <- system.file("extdata", "2021-08-15_team-model.gz",
-                         package = "SMHvalidation")
-validate_submission(path_test, js_def)
-```
-
-The function returns a warning message stating that one or multiple
-issues have been found.
-
-The submission will still be accepted but please verify that the
-information in the submission is correct.
-
-## Example 3: Warnings & Error
+## Example 2: Warnings & Error
 
 ```{r test3, error=TRUE}
 path_test <- system.file("extdata", "2021-11-14_team-model.parquet",

@@ -300,11 +300,9 @@ information (required or optional).
 
 -   For some targets, the submission is expected to contain projections for an
     expected number of weeks (or horizon). **If the file contains more projected
-    weeks than expected, the submission will still be accepted, but will return
-    a warning message and the additional weeks will not be included in the
-    visualization on the SMH website. If the file contains less
-    projected weeks than expected, the submission might still be
-    accepted, but will return a warning message and might not be
+    weeks than expected, the submission will not be accepted. 
+    If the file contains less projected weeks than expected, the submission 
+    might still be accepted, but will return a warning message and might not be
     included in the Ensembles, if the submission is not accepted, an
     error message will be returned**
     
@@ -420,7 +418,7 @@ information (required or optional).
 |601|Error|Run in `test_target()` function|All targets in the submission file are included in the round specification (no typo, no addition)|
 |602|Warning or Error|Run in `test_target()` function|For each `model_task` group, no target is missing in the submission file (warning for missing optional target, error for missing required target)|
 |605|Warning|Run in `test_target()` function|The number of weeks projected should be equal or higher than the required horizon|
-|606|Warning|Run in `test_target()` function|The number of weeks projected is not greater than the maximum number of weeks in the horizon specification (required and optional included)|
+|606|Error|Run in `test_target()` function|The number of weeks projected is not greater than the maximum number of weeks in the horizon specification (required and optional included)|
 |607|Error|Run in `test_target()` function|For each target qualified as `is_step_ahead` equal `TRUE`, the projected time series is not missing any weeks (complete time series) for each group of `task_id` group and by output type, exclusion of `horizon`|
 |612|Error|Run in `test_target()` function|The projection contains `NA` value for all "horizon" for the target requiring no time series information.|
 |702|Warning|Run in `test_location()` function|The location code value is not missing any trailing 0.|

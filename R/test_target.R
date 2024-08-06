@@ -8,29 +8,27 @@
 #' and model output (type, format, etc.)
 #'
 #'@details  This function contains 5 tests:
-#'\itemize{
-#'  \item{Target name: }{The target should correspond to the target name as
-#'  expressed in the `model_task` parameter. }
-#'  \item{Target number: }{The submission file contains projection for all
+#'* Target name: The target should correspond to the target name as
+#'  expressed in the `model_task` parameter.
+#'* Target number: The submission file contains projection for all
 #'  required targets. It is accepted to submit only a subset of target but
 #'  a warning and/or a error message will be return (depending if the target
-#'  is optional or required)}
-#'  \item{Number of week projected: }{The submission file contains projections
+#'  is optional or required).
+#'* Number of week projected: The submission file contains projections
 #'  for the expected number of weeks or more. If a team submits more week than
-#'  expected, a warning message will be returned, but the submission will be
-#'  accepted. However, an error message will be returned if the submission file
-#'  contains less projection week than expected. Starting Feb. 2022, if the file
+#'  expected, an error message will be returned. An error message will also be
+#'  returned if the submission file contains less projection week than expected.
+#'  Starting Feb. 2022, if the file
 #'   contains less projected weeks than expected, the submission will still be
 #'   accepted, but will return a warning message and might not be included
-#'   in the Ensembles}
-#'  \item{Week projected: }{The submission file contains projection for all
+#'   in the Ensembles.
+#'* Week projected: The submission file contains projection for all
 #'  expected weeks for each tasks group (unique combination of `task_ids`
 #'  columns as specified in the `model_task` parameter) and for all
-#'  output type combination.}
-#'  \item{NA target}{The projection contains `NA` value in the `horizon`
+#'  output type combination.
+#'* NA target: The projection contains `NA` value in the `horizon`
 #'  column for the target(s) requiring no time series information (for example,
-#'  `"peak size hosp"`)}
-#' }
+#'  `"peak size hosp"`).
 #' Function called in the `validate_submission()` function.
 #'
 #'@importFrom stats na.omit
@@ -83,7 +81,7 @@ test_target <- function(df, model_task) {
       if (isFALSE(length(unique(na.omit(df_target$horizon))) >=
                     n_target_week)) {
         targetweek_test <-
-          paste0("\U0001f7e1 Warning 605: The projections should contains at ",
+          paste0("\U0001f7e1 Warning 605: The projections should contain at ",
                  "least ", n_target_week,
                  " weeks of projection. The data frame contains only: ",
                  length(unique(df_target$horizon)), " week(s). The projection",
@@ -91,9 +89,9 @@ test_target <- function(df, model_task) {
       } else {
         if (isTRUE(length(unique(na.omit(df_target$horizon))) > max_week)) {
           targetweek_test <-
-            paste0("\U0001f7e1 Warning 606: The projection contains more ",
-                   "projected week than expected. The additional weeks might ",
-                   "not be included in the Ensembles and/or visualizations")
+            paste0("\U000274c Error 606: The projection contains more ",
+                   "projected week than expected. The projection should ",
+                   "contain ", max_week, " maximum.")
         } else {
           targetweek_test <- NA
         }
