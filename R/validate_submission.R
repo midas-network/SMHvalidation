@@ -332,16 +332,14 @@ run_all_validation <- function(df, path, js_def, pop, last_lst_gs,
 #'
 #' The function runs some preliminary tests before calling the "test_*"
 #' functions:
-#' \itemize{
-#'  \item{Input submission file format: }{The file format of the submission
+#' * Input submission file format: The file format of the submission
 #'  file(s) correspond to the expected format (for example: `parquet`, or `csv`,
-#'   etc.). If multiple files inputted, only `parquet` is accepted}
-#'   \item{Date information: }{The column `origin_date` in the submission file
+#'   etc.). If multiple files inputted, only `parquet` is accepted.
+#'  * Date information: The column `origin_date` in the submission file
 #'   corresponds to a `model_tasks` round information in the JSON file
-#'   (`js_def` parameter)}
-#'   \item{Date format: }{All columns containing dates information should be in
-#'   "YYY-MM-DD" format}
-#' }
+#'   (`js_def` parameter).
+#'  * Date format: All columns containing dates information should be in
+#'   "YYY-MM-DD" format.
 #'
 #' @importFrom dplyr mutate select %>% mutate_all distinct collect
 #' @importFrom stats setNames

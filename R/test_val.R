@@ -244,40 +244,39 @@ cumul_decrease_test <- function(df_test, target_sel, outputtype) {
 #'  value (only for "sample" output type), if NULL (default) no limit expected.
 #'
 #'@details  This function contains 10 tests:
-#'\itemize{
-#'  \item{Required type: }{All the required type output are present in the
-#'    submission file}
-#'  \item{Value: }{All `value` have the expected format (for example, double
-#'       greater than 0, etc.)}
-#'  \item{Numeric Value: }{All `value` are numeric, `NA` are not accepted)}
-#'  \item{Unique value: }{For each target/scenario/location group (except
+#' * Required type: All the required type output are present in the
+#'  submission file.
+#' * Value: All `value` have the expected format (for example, double
+#'  greater than 0, etc.).
+#' * Numeric Value: All `value` are numeric, `NA` are not accepted).
+#' * Unique value: For each target/scenario/location group (except
 #'  locations 66 (Guam), 69 (Northern Mariana Island), 60 (American Samoa),
 #'  74 (US. Minor Outlying Islands)), the whole time frame projection does not
 #'  contain only 1 unique value. For example, contains only 0 or same
 #'  cumulative value for the whole projections. The submission is still
 #'  accepted if so, but will return a warning asking to verify if the projection
-#'   is correct for the specific location/target group}
-#'  \item{Value < Population size: }{*optional* Each projected value cannot
+#'  is correct for the specific location/target group.
+#' * Value < Population size: (optional) Each projected value cannot
 #'  by higher than the population size of the corresponding geographical entity.
 #'  The submission is still accepted if the test failed, but will return a
 #'  message asking to verify the projected value for the specific target and
-#'  location}
-#'  \item{Cumulative cases: }{*optional* If the submission contains cumulative
+#'  location.
+#' * Cumulative cases: (optional) If the submission contains cumulative
 #'  case count, the projected cumulative case counts value should not be lower
 #'  than the week 0 (or week -1, depending on availability on the time of
-#'  submission) of the observed cumulative cases}
-#'  \item{Cumulative deaths: }{*optional* If the submission contains cumulative
+#'  submission) of the observed cumulative cases.
+#' * Cumulative deaths: (optional) If the submission contains cumulative
 #'  death, the projected cumulative death counts value should not be lower than
 #'  the week 0 (or week -1, depending on availability on the time of submission)
-#'   of the observed cumulative deaths}
-#'  \item{Unique Projections: }{In the submission, each model tasks group
+#'   of the observed cumulative deaths.
+#' * Unique Projections: In the submission, each model tasks group
 #'  (unique combination of `task_ids` columns as specified in the `model_task`
 #'  parameter) has one unique value projected. (For example: only 1 value for
-#'  quantile 0.5, location US, target 1 wk ahead inc case and scenario A).}
-#'  \item{Cumulative Projections: }{For cumulative target only, each model
+#'  quantile 0.5, location US, target 1 wk ahead inc case and scenario A).
+#' * Cumulative Projections: For cumulative target only, each model
 #'  tasks group associated with a cumulative target has projected values that
-#'  increase or stay constant with time.}
-#' }
+#'  increase or stay constant with time.
+#'
 #' Function called in the `validate_submission()` function.
 #'
 #'@importFrom stats na.omit

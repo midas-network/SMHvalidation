@@ -144,20 +144,13 @@ sel_last_day_week <- function(df, date_sel, sel = "week") {
 #' **Source data:**
 #'
 #' For case/death data, we use:
-#' \itemize{
-#'  \item{Link: }{\url{
-#'  https://cmu-delphi.github.io/delphi-epidata/api/covidcast-signals/
-#'  jhu-csse.html}}
-#'  \item{Signals: }{"deaths_cumulative_num", "confirmed_cumulative_num",
-#'  "confirmed_incidence_num", "deaths_incidence_num" }
-#' }
+#' * https://cmu-delphi.github.io/delphi-epidata/api/covidcast-signals/jhu-csse.html
+#' * Signals: `"deaths_cumulative_num"`, `"confirmed_cumulative_num"`,
+#' `"confirmed_incidence_num"`, `"deaths_incidence_num"`
 #'
 #' For hospitalization data, we use:
-#' \itemize{
-#'  \item{Link: }{\url{
-#'  https://cmu-delphi.github.io/delphi-epidata/api/covidcast-signals/hhs.html}}
-#'  \item{Signals: }{"confirmed_admissions_covid_1d"}
-#' }
+#' * https://cmu-delphi.github.io/delphi-epidata/api/covidcast-signals/hhs.html
+#' * Signals: `"confirmed_admissions_covid_1d"`
 #'
 #' @examples
 #' \dontrun{

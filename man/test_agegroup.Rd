@@ -19,15 +19,16 @@ contains the expected  value.
 \details{
 This function contains 3 tests:
 \itemize{
-\item{Age group: }{If the submission contains projection by age group,
-the \code{age_group} column contains the age group written \verb{<AGEMIN>-<AGEMAX>}.}
-\item{Age group value: }{If the submission contains projection by
+\item Age group: If the submission contains projection by age group,
+the \code{age_group} column contains the age group written \verb{<AGEMIN>-<AGEMAX>}.
+\item Age group value: If the submission contains projection by
 age group, the \code{age_group} column contains the age group values as
-specify in the associated SMH GitHub Repository.}
-\item{Age group target: }{If the submission contains projection by
+specify in the associated SMH GitHub Repository.
+\item Age group target: If the submission contains projection by
 age group and if one or multiple targets required specific \code{age_group}
-value(s), no additional value(s) is provided in the submission file.}
+value(s), no additional value(s) is provided in the submission file.
 }
+
 Function called in the \code{validate_submission()} function, only if the
 submission contains \code{"age_group"} column
 }

@@ -19,14 +19,15 @@ column contains the expected  value.
 \details{
 This function contains 2 tests:
 \itemize{
-\item{Race ethnicity value: }{If the submission contains projection by
+\item Race ethnicity value: If the submission contains projection by
 race/ethnicity, the \code{race_ethnicity} column contains the expected values as
-specified.}
-\item{Race ethnicity tasks id: }{If the submission contains projection by
+specified.
+\item Race ethnicity tasks id: If the submission contains projection by
 race/ethnicity and if one or multiple tasks ids required specific
 \code{race_ethnicity} value(s), no additional value(s) is provided in the
-submission file.}
+submission file.
 }
+
 Function called in the \code{validate_submission()} function, only if the
 submission contains \code{"race_ethnicity"} column.
 }
