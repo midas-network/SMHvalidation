@@ -20,7 +20,7 @@
 #'  task id column.
 #' * sample integer: The submission should contain a `output_type_id`
 #'  column with integer only, associated with `"sample"` output type.
-#' * required sample:}{If a target expected `"sample"` type output, the
+#' * required sample: If a target expected `"sample"` type output, the
 #'  submission should contain `"sample"` type output for this target.
 #'
 #' Function called in the `validate_submission()` function, only if the
