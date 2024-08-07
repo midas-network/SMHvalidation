@@ -32,7 +32,7 @@ and optionally can contain the specific and multiple value for the other
 task id column.
 \item sample integer: The submission should contain a \code{output_type_id}
 column with integer only, associated with \code{"sample"} output type.
-\item required sample:}{If a target expected \code{"sample"} type output, the
+\item required sample: If a target expected \code{"sample"} type output, the
 submission should contain \code{"sample"} type output for this target.
 }
 
