@@ -13,9 +13,12 @@
 #' @param df data frame to test
 #' @param req_colnames character vector of the expected column names
 #' @param add_meesage character vector, error message to append
+#' @param verbose Boolean, if TRUE add information about the sample pairing
+#'  information in output message
 #'
 #' @noRd
-merge_sample_id <- function(df, req_colnames, add_message = NULL) {
+merge_sample_id <- function(df, req_colnames, add_message = NULL,
+                            verbose = TRUE) {
   if (!(all(c(req_colnames, "run_grouping", "stochastic_run") %in%
               names(df)))) {
     fail_col <- req_colnames[!req_colnames %in% names(df)]
@@ -36,6 +39,34 @@ merge_sample_id <- function(df, req_colnames, add_message = NULL) {
              "'sample'. Please verify")
     add_message <- paste(add_message, err_message, sep = "\n")
   }
+
+  if (verbose) {
+    test <- dplyr::filter(df, output_type == "sample")
+    if (nrow(test) > 0) {
+      if (length(unique(df$run_grouping)) > 1) {
+        run_group <- purrr::map(dplyr::group_split(test, run_grouping),
+                                paired_info, "stochastic_run") %>%
+          unique()
+      } else {
+        run_group <- "No run grouping"
+      }
+      if (length(unique(test$stochastic_run)) > 1) {
+        sto_group <- purrr::map(dplyr::group_split(test, stochastic_run),
+                                paired_info, "run_grouping") %>%
+          unique()
+      } else {
+        sto_group <- "No stochasticity"
+      }
+      p_rg <- paste0("Run grouping pairing: ", paste(run_group, collapse = ","))
+      p_info <- paste0(p_rg, "\n",
+                       paste0("Stochastic run pairing: ",
+                              paste(sto_group, collapse = ",")))
+    } else {
+      p_info <- message("No paired sample provided")
+    }
+    add_message <- paste(p_info, add_message, sep = "\n")
+  }
+
   df <-
     dplyr::mutate(df,
                   output_type_id = ifelse(output_type == "sample",
@@ -116,7 +147,6 @@ create_report <- function(df, model_task, col_message, out_col, out_scen,
       test_report <- paste(test_report, "\n\n## Sample: \n",
                            paste(out_sample, collapse = "\n"))
     }
-
   }
   if (any(grepl("quantile", unlist(distinct(df[, "output_type", FALSE])))) ||
         any("quantile" %in% names(unlist(purrr::map(model_task, "output_type"),
@@ -163,6 +193,8 @@ create_report <- function(df, model_task, col_message, out_col, out_scen,
 #' default: "horizon".
 #'@param n_decimal integer,  number of decimal point accepted in the column
 #'  value (only for "sample" output type), if NULL (default) no limit expected.
+#'@param verbose Boolean, if TRUE add information about the sample pairing
+#'  information in output message
 #'
 #'@details Internal function called in the `validation_submission()` function.
 #' For more information on all tests run on the submission, please refer to the
@@ -172,7 +204,8 @@ create_report <- function(df, model_task, col_message, out_col, out_scen,
 #' @noRd
 run_all_validation <- function(df, path, js_def, pop, last_lst_gs,
                                merge_sample_col = FALSE,
-                               pairing_col = "horizon", n_decimal = NULL) {
+                               pairing_col = "horizon", n_decimal = NULL,
+                               verbose = TRUE) {
   ### Prerequisite
   model_task <- js_def$model_tasks
   task_ids <- purrr::map(model_task, "task_ids")
@@ -190,7 +223,8 @@ run_all_validation <- function(df, path, js_def, pop, last_lst_gs,
 
   # Merge sample ID column
   if (isTRUE(merge_sample_col)) {
-    sample_update <- merge_sample_id(df, req_colnames, add_message = NULL)
+    sample_update <- merge_sample_id(df, req_colnames, add_message = NULL,
+                                     verbose = verbose)
     df <- sample_update[["df"]]
     add_message <- sample_update[["add_message"]]
   } else {
@@ -271,6 +305,9 @@ run_all_validation <- function(df, path, js_def, pop, last_lst_gs,
   } else {
     test_report <-
       "End of validation check: all the validation checks were successful\n"
+    if (verbose && !is.null(add_message))
+      test_report <- paste(test_report, "## Sample Information: \n",
+                           add_message, sep = "\n")
     cat(test_report)
   }
 }
@@ -318,6 +355,8 @@ run_all_validation <- function(df, path, js_def, pop, last_lst_gs,
 #' expected.
 #'@param round_id character string, round identifier. If `NULL` (default),
 #' extracted from `path`.
+#'@param verbose Boolean, if TRUE add information about the sample pairing
+#'  information in output message. By default, `TRUE`
 #'
 #'@details For more information on all tests run on the submission, please refer
 #' to the documentation of each `"test_*`" function. A vignette with all the
@@ -356,7 +395,8 @@ run_all_validation <- function(df, path, js_def, pop, last_lst_gs,
 #'@export
 validate_submission <- function(path, js_def, lst_gs = NULL, pop_path = NULL,
                                 merge_sample_col = FALSE, partition = NULL,
-                                n_decimal = NULL, round_id = NULL) {
+                                n_decimal = NULL, round_id = NULL,
+                                verbose = TRUE) {
 
   # Prerequisite --------
   # Load gold standard data
@@ -475,5 +515,6 @@ validate_submission <- function(path, js_def, lst_gs = NULL, pop_path = NULL,
   run_all_validation(df, path = path, js_def = js_def, pop = pop,
                      last_lst_gs = last_week_gs,
                      merge_sample_col = merge_sample_col,
-                     pairing_col = pairing_col, n_decimal = n_decimal)
+                     pairing_col = pairing_col, n_decimal = n_decimal,
+                     verbose = verbose)
 }

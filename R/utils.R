@@ -162,3 +162,13 @@ filter_df <- function(df, task_id, exclusion = NULL, required = FALSE,
   attr(df_test, "filter") <- text_var
   return(df_test)
 }
+
+# extract pairing information
+paired_info <- function(df, rm_col) {
+  dplyr::select(df, -value, -dplyr::contains(rm_col)) %>%
+    dplyr::distinct() %>%
+    as.list() %>%
+    purrr::map(unique) %>%
+    purrr::keep(function(x) length(x) > 1) %>%
+    names()
+}

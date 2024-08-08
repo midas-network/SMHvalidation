@@ -12,7 +12,8 @@ validate_submission(
   merge_sample_col = FALSE,
   partition = NULL,
   n_decimal = NULL,
-  round_id = NULL
+  round_id = NULL,
+  verbose = TRUE
 )
 }
 \arguments{
@@ -55,6 +56,9 @@ expected.}
 
 \item{round_id}{character string, round identifier. If \code{NULL} (default),
 extracted from \code{path}.}
+
+\item{verbose}{Boolean, if TRUE add information about the sample pairing
+information in output message. By default, \code{TRUE}}
 }
 \description{
 Runs all the different validation checks functions (\code{test_column()},
