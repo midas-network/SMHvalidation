@@ -388,6 +388,7 @@ information (required or optional).
 |003|Error|Information extracted before running the validation, if any issue, stop and will not run the validation|All columns containing `date` in the name, should be in "YYY-MM-DD" format|
 |004|Error|Information extracted before running the validation, if any issue, stop and will not run the validation|The `round_id` information, either the date extracted in the file name(s) (`path`) or via the `round_id` parameter, should match one of the `round_id` in the associated `tasks.json` file (`js_def` parameter).|
 |005|Error|Information extracted before running the validation, if any issue, stop and will not run the validation|The file format of the submission file(s) correspond to the expected format (for example: `parquet`, or `csv`, etc.)|
+|006|Error|Run in `test_req_value()` function|The submission file is not missing any required value|
 |101|Error|Run in `test_column()` function|No column name is misspelled or does not correspond to the expected column names|
 |102|Error|Run in `test_column()` function|The data frame should contain the expected number of columns|
 |103|Error|Run in `test_column()` function, if error 101, if a column is missing, **stop and will not run the validation**|For the expected number of column, no column name is misspelled or does not correspond to the expected column names. An error will stop the rest of the validation.|The submission will also stop if a required column is missing|
