@@ -854,6 +854,9 @@
       "submissions_due": {
         "start": "2023-04-17",
         "end": "2023-05-17"
+      },
+      "verbose": {
+        "sample": ["race_ethnicity"]
       }
     }
   ]

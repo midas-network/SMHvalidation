@@ -170,25 +170,24 @@ paired_info <- function(df, rm_col = NULL, tasks_list = NULL,
   test_pair_list <- dplyr::distinct(df) %>%
     as.list() %>%
     purrr::map(unique)
-  if (is.null(tasks_list)) {
+  if (is.null(tasks_list)) { # nocov start
     paired_info <- purrr::keep(test_pair_list, function(x) length(x) > 1) %>%
       names()
-  } else {
+  } else { # nocov end
     paired_info <- lapply(seq_along(test_pair_list), function(x) {
       if (is.null(verbose_col)) {
         if (length(test_pair_list[[x]]) > 1) {
           if (all(unlist((tasks_list[[names(test_pair_list[x])]])) %in%
-                  test_pair_list[[x]])) {
+                    test_pair_list[[x]])) {
             p_col <- names(test_pair_list[x])
           } else {
             if (all(tasks_list[[names(test_pair_list[x])]]$required %in%
-                    test_pair_list[[x]]) |
-                all(tasks_list[[names(test_pair_list[x])]]$optional %in%
-                    test_pair_list[[x]])) {
-              p_col <- paste0(names(test_pair_list[x]), " (",
-                              paste(test_pair_list[[x]], collapse = ", "), ")")
+                      test_pair_list[[x]]) |
+                  all(tasks_list[[names(test_pair_list[x])]]$optional %in%
+                        test_pair_list[[x]])) {
+              p_col <- names(test_pair_list[x])
             } else {
-              p_col <- NULL
+              p_col <- NULL # nocov
             }
           }
         } else {

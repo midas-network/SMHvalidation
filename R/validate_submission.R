@@ -108,11 +108,11 @@ create_report <- function(df, model_task, col_message, out_req, out_col,
   if (any(grepl("sample", unlist(distinct(df[, "output_type", FALSE])))) ||
         any("sample" %in% names(unlist(purrr::map(model_task, "output_type"),
                                        FALSE))))  {
-    if (!is.null(add_message)) {
+    if (!is.null(add_message)) { # nocov start
       if (any(grepl("No errors or warnings", out_sample))) {
         test_report <- paste(test_report, "\n\n## Sample: \n",
                              paste(add_message, collapse = "\n"))
-      } else { # nocov start
+      } else {
         test_report <- paste(test_report, "\n\n## Sample: \n",
                              paste(add_message, out_sample, collapse = "\n"))
       } # nocov end
@@ -201,6 +201,7 @@ run_all_validation <- function(df, path, js_def, pop, last_lst_gs,
     df <- dplyr::select(df_all, -run_grouping, -stochastic_run)
     add_message <- sample_update[["add_message"]]
   } else {
+    df_all <- df
     add_message <- NULL
   }
 
@@ -240,6 +241,8 @@ run_all_validation <- function(df, path, js_def, pop, last_lst_gs,
     out_sample <- test_sample(df_all, model_task, pairing_col = pairing_col,
                               verbose = verbose, verbose_col = verbose_col)
     gc()
+  } else {
+    out_sample <- NULL
   }
 
   # Test on value
@@ -286,7 +289,7 @@ run_all_validation <- function(df, path, js_def, pop, last_lst_gs,
   } else {
     test_report <-
       "End of validation check: all the validation checks were successful\n"
-    if (verbose && !is.null(add_message))
+    if (verbose & !is.null(out_sample))
       test_report <- paste(test_report, "## Sample Information: \n",
                            out_sample, sep = "\n")
     cat(test_report)

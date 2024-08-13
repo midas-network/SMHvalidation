@@ -17,9 +17,10 @@
 test_req_value <- function(df, model_task) {
   req_df <- lapply(model_task, function(x) {
     req_df <- setNames(lapply(names(x$task_ids),
-                              function(z) unlist(x$task_id[[z]]$required) %>%
-                                unique()),
-                       names(x$task_ids))
+                              function(z) {
+                                unlist(x$task_id[[z]]$required) %>%
+                                  unique()
+                              }), names(x$task_ids))
     req_df <- purrr::compact(req_df) %>%
       expand.grid() %>%
       dplyr::mutate_if(is.factor, as.character) %>%
@@ -33,12 +34,13 @@ test_req_value <- function(df, model_task) {
   col_sel <- names(req_df)
   test_df <- dplyr::select(df, dplyr::all_of(col_sel)) %>%
     dplyr::distinct() %>%
-    dplyr::mutate(origin_date = as.Date(origin_date))
+    dplyr::mutate(origin_date = as.Date(origin_date)) %>%
+    loc_zero()
 
   res <- dplyr::setdiff(req_df, test_df)
   if (nrow(res) > 0) {
     err <- purrr::map(as.list(res), unique)
-    err <- paste(names(err), purrr::map(err, as.character), sep= ": ",
+    err <- paste(names(err), purrr::map(err, as.character), sep = ": ",
                  collapse = "\n")
     miss_val <- paste0("\U000274c Error 006: The submission is missing some ",
                        "required values, please check: \n ", err)
