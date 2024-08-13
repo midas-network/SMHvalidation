@@ -289,7 +289,7 @@ run_all_validation <- function(df, path, js_def, pop, last_lst_gs,
   } else {
     test_report <-
       "End of validation check: all the validation checks were successful\n"
-    if (verbose & !is.null(out_sample))
+    if (verbose && !is.null(out_sample))
       test_report <- paste(test_report, "## Sample Information: \n",
                            out_sample, sep = "\n")
     cat(test_report)

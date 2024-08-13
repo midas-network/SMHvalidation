@@ -71,7 +71,7 @@ test_that("Test validation process", {
   # File with scenario name incorrect: A-2020 instead of A-2022
   expect_equal(err_cd(validate_submission("tst_dt/2022-01-09_badidscen.csv",
                                           js_def, lst_gs, pop_path)),
-               c("006","202", "204"))
+               c("006", "202", "204"))
 
   # Test origin_date and filename date error -----
   # File with 2 values in the origin date column (1 expected and 1 not expected)

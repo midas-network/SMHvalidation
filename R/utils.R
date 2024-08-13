@@ -195,7 +195,9 @@ paired_info <- function(df, rm_col = NULL, tasks_list = NULL,
         }
       } else {
         if (length(test_pair_list[[x]]) > 1) {
-          if (verbose_col == names(test_pair_list[x])) {
+          if (verbose_col == names(test_pair_list[x]) |
+              !all(unlist((tasks_list[[names(test_pair_list[x])]])) %in%
+                  test_pair_list[[x]])) {
             p_col <- paste0(names(test_pair_list[x]), " (",
                             paste(test_pair_list[[x]], collapse = ", "), ")")
           } else {

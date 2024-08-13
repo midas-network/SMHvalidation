@@ -210,7 +210,7 @@ test_sample <- function(df, model_task, pairing_col = "horizon",
         sample_unique <- pairing_test(df_sample, x, or_pair, pairing_col)
         # Add pairing information
         if (verbose) {
-          pair_inf <- verbose_pairing(df_sample,x, or_pair, n_sample,
+          pair_inf <- verbose_pairing(df_sample, x, or_pair, n_sample,
                                       verbose_col = verbose_col)
         } else {
           pair_inf <- NA
