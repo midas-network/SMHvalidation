@@ -58,7 +58,8 @@ expected.}
 extracted from \code{path}.}
 
 \item{verbose}{Boolean, if TRUE add information about the sample pairing
-information in output message. By default, \code{TRUE}}
+information in output message. By default, \code{TRUE} (slows the validation
+validation for sample output type)}
 }
 \description{
 Runs all the different validation checks functions (\code{test_column()},

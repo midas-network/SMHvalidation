@@ -8,6 +8,10 @@
 #' and model output (type, format, etc.)
 #'@param pairing_col column names indicating the sample pairing information. By
 #' default: "horizon".
+#'@param verbose Boolean, if TRUE add information about the sample pairing
+#'  information in output message
+#'@param verbose_col character vector, name of columns to print value samples
+#' are paired on.
 #'
 #'@details  This function contains 3 tests:
 #' * sample number: The submission should contain the expected number of
@@ -29,7 +33,15 @@
 #'@importFrom stats na.omit
 #'@importFrom dplyr filter n
 #'@export
-test_sample <- function(df, model_task, pairing_col = "horizon") {
+test_sample <- function(df, model_task, pairing_col = "horizon",
+                        verbose = TRUE, verbose_col = NULL) {
+  # Preqrequisite
+  or_pair <- dplyr::select(df, -dplyr::contains("output_type"), -value,
+                           -run_grouping, -stochastic_run) %>%
+    as.list() %>%
+    purrr::map(unique) %>%
+    purrr::keep(function(x) length(x) == 1) %>%
+    names()
 
   test_sample <- lapply(model_task, function(x) {
     if ("sample" %in% names(x$output_type)) {
@@ -114,34 +126,82 @@ test_sample <- function(df, model_task, pairing_col = "horizon") {
         # for each group (task_ids)
         # For pairing information: test if only minimum pairing repeated the
         # expected number of times
-        in_list <- function(df, list) {
-          bool_list <- lapply(seq_along(list), function(x) {
-            bool <- all(list[[x]] %in% df[[names(list[x])]])
-            return(bool)
-          })
-          all(unlist(bool_list))
+        if (length(unique(df_sample$run_grouping)) > 1) {
+          run_group <- purrr::map(dplyr::group_split(df_sample, run_grouping),
+                                  paired_info,
+                                  rm_col = c("stochastic_run", "output_type_id",
+                                             "output_type", "value"),
+                                  tasks_list = x$task_ids) %>%
+            unique() %>%
+            purrr::map(c, or_pair)
+        } else {
+          run_group <- NULL
         }
-        sample_group <- df_sample %>%
-          dplyr::select(output_type_id, dplyr::all_of(pairing_col)) %>%
-          dplyr::distinct()
-        exp_list <- setNames(lapply(c(pairing_col),
-                                    function(x) unique(df_sample[[x]])),
-                             c(pairing_col))
-        sample_group_test <- sample_group %>%
-          split(sample_group$output_type_id) %>%
-          purrr::map(in_list, exp_list) %>%
-          unlist()
-        if (any(!sample_group_test)) {
+        if (length(unique(df_sample$stochastic_run)) > 1) {
+          sto_group <- purrr::map(dplyr::group_split(df_sample, stochastic_run),
+                                  paired_info, c("run_grouping",
+                                                 "output_type_id",
+                                                 "output_type", "value"),
+                                  tasks_list = x$task_ids) %>%
+            unique() %>%
+            purrr::map(c, or_pair)
+        } else {
+          sto_group <- NULL
+        }
+        sub_pair <- purrr::compact(c(sto_group, run_group))
+        miss_col <- purrr::map(sub_pair,
+                               function(l) pairing_col[!(pairing_col %in% l)])
+        miss_col <- unique(unlist(miss_col))
+        if (length(miss_col) > 0) {
           sample_unique <-
             paste0("\U000274c Error 902: The minimal accepted grouping ",
                    "includes the column(s): ",
-                   paste(pairing_col, collapse = ", "), ", please  verify.")
+                   paste(pairing_col, collapse = ", "), ", the column(s): ",
+                   paste(miss_col, collapse = ", "), " seem to be missing (or ",
+                   "is missing a sub-group), please  verify.")
         } else {
           sample_unique <- NA
         }
+        # Add pairing information
+        if (verbose) {
+          if (length(unique(df_sample$run_grouping)) > 1) {
+            run_group <- purrr::map(dplyr::group_split(df_sample, run_grouping),
+                                    paired_info,
+                                    rm_col = c("stochastic_run", "output_type_id",
+                                               "output_type", "value"),
+                                    tasks_list = x$task_ids,
+                                    verbose_col = verbose_col) %>%
+              unique() %>%
+              purrr::map(c, or_pair)
+          } else {
+            run_group <- "No run grouping"
+          }
+          if (length(unique(df_sample$stochastic_run)) > 1) {
+            sto_group <- purrr::map(dplyr::group_split(df_sample, stochastic_run),
+                                    paired_info, c("run_grouping",
+                                                   "output_type_id",
+                                                   "output_type", "value"),
+                                    tasks_list = x$task_ids,
+                                    verbose_col = verbose_col) %>%
+              unique() %>%
+              purrr::map(c, or_pair)
+          } else {
+            sto_group <- "No stochasticity"
+          }
+          head_mess <- "\n ### Column Pairing information: \n "
+          p_rg <- paste0(head_mess, "Run grouping pairing: ",
+                         paste(run_group, collapse = ", "))
+          p_info <- paste0(p_rg, "\n",
+                           paste0(" Stochastic run pairing: ",
+                                  paste(sto_group, collapse = ", ")))
+          pair_inf <- paste0(p_info, "\n ",
+                             "Number of Samples: ", n_sample)
+        } else {
+          pair_inf <- NA
+        }
         # - result output
         test_sample <- unique(na.omit(c(sample_value, unlist(sample_unique),
-                                        sample_type)))
+                                        sample_type, pair_inf)))
       } else {
         if (!is.null(x$task_ids$target$required) &
               ("sample" %in% names(x$output_type))) {
@@ -171,7 +231,6 @@ test_sample <- function(df, model_task, pairing_col = "horizon") {
     }
     return(test_sample)
   })
-
   test_sample <- unique(na.omit(unlist(test_sample)))
   if (length(test_sample) == 0)
     test_sample <- "No errors or warnings found on Sample"

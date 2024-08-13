@@ -4,7 +4,13 @@
 \alias{test_sample}
 \title{Runs Validation Checks on the sample column}
 \usage{
-test_sample(df, model_task, pairing_col = "horizon")
+test_sample(
+  df,
+  model_task,
+  pairing_col = "horizon",
+  verbose = TRUE,
+  verbose_col = NULL
+)
 }
 \arguments{
 \item{df}{data frame to test}
@@ -14,6 +20,12 @@ and model output (type, format, etc.)}
 
 \item{pairing_col}{column names indicating the sample pairing information. By
 default: "horizon".}
+
+\item{verbose}{Boolean, if TRUE add information about the sample pairing
+information in output message}
+
+\item{verbose_col}{character vector, name of columns to print value samples
+are paired on.}
 }
 \description{
 Validate Scenario Modeling Hub submissions: test if the  \code{sample} column

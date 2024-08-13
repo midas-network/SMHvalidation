@@ -164,11 +164,52 @@ filter_df <- function(df, task_id, exclusion = NULL, required = FALSE,
 }
 
 # extract pairing information
-paired_info <- function(df, rm_col) {
-  dplyr::select(df, -value, -dplyr::contains(rm_col)) %>%
-    dplyr::distinct() %>%
+paired_info <- function(df, rm_col = NULL, tasks_list = NULL,
+                        verbose_col = NULL) {
+  if (!is.null(rm_col)) df <- dplyr::select(df, -dplyr::contains(rm_col))
+  test_pair_list <- dplyr::distinct(df) %>%
     as.list() %>%
-    purrr::map(unique) %>%
-    purrr::keep(function(x) length(x) > 1) %>%
-    names()
+    purrr::map(unique)
+  if (is.null(tasks_list)) {
+    paired_info <- purrr::keep(test_pair_list, function(x) length(x) > 1) %>%
+      names()
+  } else {
+    paired_info <- lapply(seq_along(test_pair_list), function(x) {
+      if (is.null(verbose_col)) {
+        if (length(test_pair_list[[x]]) > 1) {
+          if (all(unlist((tasks_list[[names(test_pair_list[x])]])) %in%
+                  test_pair_list[[x]])) {
+            p_col <- names(test_pair_list[x])
+          } else {
+            if (all(tasks_list[[names(test_pair_list[x])]]$required %in%
+                    test_pair_list[[x]]) |
+                all(tasks_list[[names(test_pair_list[x])]]$optional %in%
+                    test_pair_list[[x]])) {
+              p_col <- paste0(names(test_pair_list[x]), " (",
+                              paste(test_pair_list[[x]], collapse = ", "), ")")
+            } else {
+              p_col <- NULL
+            }
+          }
+        } else {
+          p_col <- NULL
+        }
+      } else {
+        if (length(test_pair_list[[x]]) > 1) {
+          if (verbose_col == names(test_pair_list[x])) {
+            p_col <- paste0(names(test_pair_list[x]), " (",
+                            paste(test_pair_list[[x]], collapse = ", "), ")")
+          } else {
+            p_col <- names(test_pair_list[x])
+          }
+        } else {
+          p_col <- NULL
+        }
+      }
+      return(p_col)
+    }) %>%
+      purrr::compact() %>%
+      unlist()
+  }
+  return(paired_info)
 }
