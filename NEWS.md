@@ -1,3 +1,16 @@
+# SMHvalidation 0.1.1
+
+* Add parameter `verbose` to validate_submission() function to add information 
+about the sample pairing information in output report. 
+**only available for submission with samples output type** and add internal 
+parameters extract from `js_def` to always print the pairing information of 
+one or multiple columns in details. (parameter `verbose` need to be in the `
+`js_def` file, see vignette for more information)
+* Update sample testing to be able to test sub-group pairing information
+* Update test on horizon behavior: submission with additional weeks now returns 
+an error instead of a warning.
+
+
 # SMHvalidation 0.1.0
 
 * Added a `NEWS.md` file to track changes to the package.
