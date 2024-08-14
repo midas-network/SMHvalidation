@@ -19,13 +19,14 @@ contains the expected  value.
 \details{
 This function contains 2 tests:
 \itemize{
-\item{Location name: }{The submission should contains projection by
+\item Location name: The submission should contains projection by
 location, the \code{location} column contains the location FIPS number as
 available in the location table in the SMH GitHub Repository. If the FIPS
 number are missing a trailing zero, the submission will be accepted but a
-warning message will be returned.}
-\item{Specific location: }{For the target(s) requiring only specific
-location(s), no additional location is provided in the submission file}
+warning message will be returned.
+\item Specific location: For the target(s) requiring only specific
+location(s), no additional location is provided in the submission file
 }
+
 Function called in the \code{validate_submission()} function.
 }

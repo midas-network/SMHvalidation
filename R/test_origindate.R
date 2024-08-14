@@ -10,14 +10,11 @@
 #'@param id character date "id" of the corresponding round
 #'
 #'@details  This function contains 3 tests:
-#'\itemize{
-#'  \item{Unique value: }{The `origin_date` column contains an unique expected
-#'  value.}
-#'  \item{Format: }{The `origin_date`
-#'  column contains a unique date value in either a character ("YYYY-MM-DD") or
-#'  a Date format. If the date is in a datetime format, a warning will be
-#'  returned}
-#'}
+#' * Unique value: The `origin_date` column contains an unique expected
+#'  value.
+#' * Format: The `origin_date` column contains a unique date value in either a
+#'  character ("YYYY-MM-DD") or a Date format. If the date is in a datetime
+#'  format, a warning will be returned
 #'
 #' Function called in the `validate_submission()` function.
 #'

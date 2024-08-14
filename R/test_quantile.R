@@ -9,19 +9,18 @@
 #' and model output (type, format, etc.)
 #'
 #'@details  This function contains 5 tests:
-#'\itemize{
-#'  \item{Type: }{The submission contains quantiles value when expected}
-#'  \item{Quantiles: }{The `quantile` column matches the expected quantiles}
-#'  \item{Required quantiles: }{The projection should contain all required
+#' * Type: The submission contains quantiles value when expected.
+#' * Quantiles: The `quantile` column matches the expected quantiles.
+#' * Required quantiles: The projection should contain all required
 #'   quantiles. It is accepted to submit less quantiles but the
 #'   function will return a warning and the submission will not be included
-#'   in the Ensembles.}
-#'  \item{Value: }{The `value` associated with each `quantile` is increasing as
+#'   in the Ensembles.
+#' * Value: The `value` associated with each `quantile` is increasing as
 #'  the quantile increased. For example, if quantile 0.01 = 5 than quantile
-#'  0.5 should be equal or greater than 5.}
-#'  \item{Target: }{All targets required to have quantiles information have all
-#'  required quantiles for each group id (scenario/location/horizon/etc.)}
-#' }
+#'  0.5 should be equal or greater than 5.
+#' * Target: All targets required to have quantiles information have all
+#'  required quantiles for each group id (scenario/location/horizon/etc.).
+#'
 #' Function called in the `validate_submission()` function, only if the
 #' submission contains `"quantile"` output type.
 #'

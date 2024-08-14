@@ -41,18 +41,15 @@ are added between all states to obtains the US level data.
 
 For case/death data, we use:
 \itemize{
-\item{Link: }{\url{
- https://cmu-delphi.github.io/delphi-epidata/api/covidcast-signals/
- jhu-csse.html}}
-\item{Signals: }{"deaths_cumulative_num", "confirmed_cumulative_num",
-"confirmed_incidence_num", "deaths_incidence_num" }
+\item https://cmu-delphi.github.io/delphi-epidata/api/covidcast-signals/jhu-csse.html
+\item Signals: \code{"deaths_cumulative_num"}, \code{"confirmed_cumulative_num"},
+\code{"confirmed_incidence_num"}, \code{"deaths_incidence_num"}
 }
 
 For hospitalization data, we use:
 \itemize{
-\item{Link: }{\url{
- https://cmu-delphi.github.io/delphi-epidata/api/covidcast-signals/hhs.html}}
-\item{Signals: }{"confirmed_admissions_covid_1d"}
+\item https://cmu-delphi.github.io/delphi-epidata/api/covidcast-signals/hhs.html
+\item Signals: \code{"confirmed_admissions_covid_1d"}
 }
 }
 \examples{

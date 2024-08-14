@@ -36,6 +36,7 @@ merge_sample_id <- function(df, req_colnames, add_message = NULL) {
              "'sample'. Please verify")
     add_message <- paste(add_message, err_message, sep = "\n")
   }
+
   df <-
     dplyr::mutate(df,
                   output_type_id = ifelse(output_type == "sample",
@@ -49,7 +50,6 @@ merge_sample_id <- function(df, req_colnames, add_message = NULL) {
                           "contains multiple sample output type groups, ",
                           "please verify.\n")
   }
-  df <- dplyr::select(df, -run_grouping, -stochastic_run)
   return(list("df" = df,
               "add_message" = add_message))
 }
@@ -62,6 +62,8 @@ merge_sample_id <- function(df, req_colnames, add_message = NULL) {
 #' @param model_task list containing round definitions: names of columns,
 #' target names, ...
 #' @param col_message character vector, error message about the columns names
+#'  to append to the report
+#' @param out_req character vector, error message about the required values
 #'  to append to the report
 #' @param out_col character vector, error message about the columns
 #'  to append to the report
@@ -87,15 +89,17 @@ merge_sample_id <- function(df, req_colnames, add_message = NULL) {
 #' @param out_race_ethnicity character vector, error message about
 #' `race_ethnicity` column to append to the report. Uses only if the submission
 #' is expected to contains a `race_ethnicity` column
-#' @param add_meesage character vector, error message to append to the report
+#' @param add_message character vector, error message to append to the report
 #'
 #' @noRd
-create_report <- function(df, model_task, col_message, out_col, out_scen,
-                          out_ord, out_val, out_target, out_loc, out_sample,
-                          out_quant, out_agegroup, out_raceethnicity,
-                          add_message = NULL) {
+create_report <- function(df, model_task, col_message, out_req, out_col,
+                          out_scen, out_ord, out_val, out_target, out_loc,
+                          out_sample, out_quant, out_agegroup,
+                          out_raceethnicity, add_message = NULL) {
   test_report <-
-    paste("\n ## Columns: \n", paste(out_col, col_message, collapse = "\n"),
+    paste("\n ## Required values: \n", paste(out_req, col_message,
+                                             collapse = "\n"),
+          "\n\n ## Columns: \n", paste(out_col, col_message, collapse = "\n"),
           "\n\n## Scenarios: \n", paste(out_scen, collapse = "\n"),
           "\n\n## Origin Date Column:  \n", paste(out_ord, collapse = "\n"),
           "\n\n## Value and Type Columns: \n", paste(out_val, collapse = "\n"),
@@ -104,11 +108,11 @@ create_report <- function(df, model_task, col_message, out_col, out_scen,
   if (any(grepl("sample", unlist(distinct(df[, "output_type", FALSE])))) ||
         any("sample" %in% names(unlist(purrr::map(model_task, "output_type"),
                                        FALSE))))  {
-    if (!is.null(add_message)) {
+    if (!is.null(add_message)) { # nocov start
       if (any(grepl("No errors or warnings", out_sample))) {
         test_report <- paste(test_report, "\n\n## Sample: \n",
                              paste(add_message, collapse = "\n"))
-      } else { # nocov start
+      } else {
         test_report <- paste(test_report, "\n\n## Sample: \n",
                              paste(add_message, out_sample, collapse = "\n"))
       } # nocov end
@@ -116,7 +120,6 @@ create_report <- function(df, model_task, col_message, out_col, out_scen,
       test_report <- paste(test_report, "\n\n## Sample: \n",
                            paste(out_sample, collapse = "\n"))
     }
-
   }
   if (any(grepl("quantile", unlist(distinct(df[, "output_type", FALSE])))) ||
         any("quantile" %in% names(unlist(purrr::map(model_task, "output_type"),
@@ -163,6 +166,8 @@ create_report <- function(df, model_task, col_message, out_col, out_scen,
 #' default: "horizon".
 #'@param n_decimal integer,  number of decimal point accepted in the column
 #'  value (only for "sample" output type), if NULL (default) no limit expected.
+#'@param verbose Boolean, if TRUE add information about the sample pairing
+#'  information in output message
 #'
 #'@details Internal function called in the `validation_submission()` function.
 #' For more information on all tests run on the submission, please refer to the
@@ -172,7 +177,8 @@ create_report <- function(df, model_task, col_message, out_col, out_scen,
 #' @noRd
 run_all_validation <- function(df, path, js_def, pop, last_lst_gs,
                                merge_sample_col = FALSE,
-                               pairing_col = "horizon", n_decimal = NULL) {
+                               pairing_col = "horizon", n_decimal = NULL,
+                               verbose = TRUE) {
   ### Prerequisite
   model_task <- js_def$model_tasks
   task_ids <- purrr::map(model_task, "task_ids")
@@ -191,9 +197,11 @@ run_all_validation <- function(df, path, js_def, pop, last_lst_gs,
   # Merge sample ID column
   if (isTRUE(merge_sample_col)) {
     sample_update <- merge_sample_id(df, req_colnames, add_message = NULL)
-    df <- sample_update[["df"]]
+    df_all <- sample_update[["df"]]
+    df <- dplyr::select(df_all, -run_grouping, -stochastic_run)
     add_message <- sample_update[["add_message"]]
   } else {
+    df_all <- df
     add_message <- NULL
   }
 
@@ -203,6 +211,9 @@ run_all_validation <- function(df, path, js_def, pop, last_lst_gs,
 
   # select only required column for the other tests
   df <- df[, req_colnames]
+
+  # Test missing required value
+  out_req <- test_req_value(df, model_task)
 
   # Test on Scenario information
   out_scen <- test_scenario(df, model_task)
@@ -223,8 +234,15 @@ run_all_validation <- function(df, path, js_def, pop, last_lst_gs,
   if (any(grepl("sample", unlist(distinct(df[, "output_type", FALSE])))) ||
         any("sample" %in% names(unlist(purrr::map(model_task, "output_type"),
                                        FALSE)))) {
-    out_sample <- test_sample(df, model_task, pairing_col = pairing_col)
+    verbose_col <- NULL
+    if (any("verbose" %in% names(js_def))) {
+      verbose_col <- js_def$verbose$sample
+    }
+    out_sample <- test_sample(df_all, model_task, pairing_col = pairing_col,
+                              verbose = verbose, verbose_col = verbose_col)
     gc()
+  } else {
+    out_sample <- NULL
   }
 
   # Test on value
@@ -252,8 +270,8 @@ run_all_validation <- function(df, path, js_def, pop, last_lst_gs,
   }
 
   # Report:
-  test_report <- create_report(df, model_task, col_message, out_col, out_scen,
-                               out_ord, out_val, out_target, out_loc,
+  test_report <- create_report(df, model_task, col_message, out_req, out_col,
+                               out_scen, out_ord, out_val, out_target, out_loc,
                                out_sample, out_quant, out_agegroup,
                                out_raceethnicity, add_message = add_message)
 
@@ -271,6 +289,9 @@ run_all_validation <- function(df, path, js_def, pop, last_lst_gs,
   } else {
     test_report <-
       "End of validation check: all the validation checks were successful\n"
+    if (verbose && !is.null(out_sample))
+      test_report <- paste(test_report, "## Sample Information: \n",
+                           out_sample, sep = "\n")
     cat(test_report)
   }
 }
@@ -318,6 +339,9 @@ run_all_validation <- function(df, path, js_def, pop, last_lst_gs,
 #' expected.
 #'@param round_id character string, round identifier. If `NULL` (default),
 #' extracted from `path`.
+#'@param verbose Boolean, if TRUE add information about the sample pairing
+#'  information in output message. By default, `TRUE` (slows the validation
+#'  validation for sample output type)
 #'
 #'@details For more information on all tests run on the submission, please refer
 #' to the documentation of each `"test_*`" function. A vignette with all the
@@ -332,16 +356,14 @@ run_all_validation <- function(df, path, js_def, pop, last_lst_gs,
 #'
 #' The function runs some preliminary tests before calling the "test_*"
 #' functions:
-#' \itemize{
-#'  \item{Input submission file format: }{The file format of the submission
+#' * Input submission file format: The file format of the submission
 #'  file(s) correspond to the expected format (for example: `parquet`, or `csv`,
-#'   etc.). If multiple files inputted, only `parquet` is accepted}
-#'   \item{Date information: }{The column `origin_date` in the submission file
+#'   etc.). If multiple files inputted, only `parquet` is accepted.
+#'  * Date information: The column `origin_date` in the submission file
 #'   corresponds to a `model_tasks` round information in the JSON file
-#'   (`js_def` parameter)}
-#'   \item{Date format: }{All columns containing dates information should be in
-#'   "YYY-MM-DD" format}
-#' }
+#'   (`js_def` parameter).
+#'  * Date format: All columns containing dates information should be in
+#'   "YYY-MM-DD" format.
 #'
 #' @importFrom dplyr mutate select %>% mutate_all distinct collect
 #' @importFrom stats setNames
@@ -358,7 +380,8 @@ run_all_validation <- function(df, path, js_def, pop, last_lst_gs,
 #'@export
 validate_submission <- function(path, js_def, lst_gs = NULL, pop_path = NULL,
                                 merge_sample_col = FALSE, partition = NULL,
-                                n_decimal = NULL, round_id = NULL) {
+                                n_decimal = NULL, round_id = NULL,
+                                verbose = TRUE) {
 
   # Prerequisite --------
   # Load gold standard data
@@ -477,5 +500,6 @@ validate_submission <- function(path, js_def, lst_gs = NULL, pop_path = NULL,
   run_all_validation(df, path = path, js_def = js_def, pop = pop,
                      last_lst_gs = last_week_gs,
                      merge_sample_col = merge_sample_col,
-                     pairing_col = pairing_col, n_decimal = n_decimal)
+                     pairing_col = pairing_col, n_decimal = n_decimal,
+                     verbose = verbose)
 }

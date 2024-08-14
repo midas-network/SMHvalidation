@@ -162,3 +162,60 @@ filter_df <- function(df, task_id, exclusion = NULL, required = FALSE,
   attr(df_test, "filter") <- text_var
   return(df_test)
 }
+
+# extract pairing information
+paired_info <- function(df, rm_col = NULL, tasks_list = NULL,
+                        verbose_col = NULL) {
+  if (!is.null(rm_col)) df <- dplyr::select(df, -dplyr::contains(rm_col))
+  sel_col <- grep("output|run_grou|stochas|value", names(df), value = TRUE,
+                  invert = TRUE)
+  df <- dplyr::arrange(df, dplyr::pick(dplyr::all_of(sel_col)))
+  test_pair_list <- dplyr::distinct(df) %>%
+    as.list() %>%
+    purrr::map(unique)
+  if (is.null(tasks_list)) { # nocov start
+    paired_info <- purrr::keep(test_pair_list, function(x) length(x) > 1) %>%
+      names()
+  } else { # nocov end
+    paired_info <- lapply(seq_along(test_pair_list), function(x) {
+      if (is.null(verbose_col)) {
+        if (length(test_pair_list[[x]]) > 1) {
+          if (all(unlist((tasks_list[[names(test_pair_list[x])]])) %in%
+                    test_pair_list[[x]])) {
+            p_col <- names(test_pair_list[x])
+          } else {
+            t_list <- tasks_list[[names(test_pair_list[x])]]
+            if ((all(t_list$required %in% test_pair_list[[x]]) &&
+                   !is.null(t_list$required)) |
+                  (all(t_list$optional %in% test_pair_list[[x]]) &&
+                     !is.null(t_list$optional))) {
+              p_col <- names(test_pair_list[x])
+            } else {
+              p_col <- NULL # nocov
+            }
+          }
+        } else {
+          p_col <- NULL
+        }
+      } else {
+        if (length(test_pair_list[[x]]) > 1) {
+          if (names(test_pair_list[x]) %in% verbose_col |
+                !all(unlist((tasks_list[[names(test_pair_list[x])]])) %in%
+                       test_pair_list[[x]])) {
+            p_col <- paste0(names(test_pair_list[x]), " (",
+                            paste(test_pair_list[[x]], collapse = ", "), ")")
+          } else {
+            p_col <- names(test_pair_list[x])
+          }
+        } else {
+          p_col <- NULL
+        }
+      }
+      return(p_col)
+    }) %>%
+      purrr::compact() %>%
+      unlist() %>%
+      unique()
+  }
+  return(paired_info)
+}

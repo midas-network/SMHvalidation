@@ -12,7 +12,8 @@ validate_submission(
   merge_sample_col = FALSE,
   partition = NULL,
   n_decimal = NULL,
-  round_id = NULL
+  round_id = NULL,
+  verbose = TRUE
 )
 }
 \arguments{
@@ -55,6 +56,10 @@ expected.}
 
 \item{round_id}{character string, round identifier. If \code{NULL} (default),
 extracted from \code{path}.}
+
+\item{verbose}{Boolean, if TRUE add information about the sample pairing
+information in output message. By default, \code{TRUE} (slows the validation
+validation for sample output type)}
 }
 \description{
 Runs all the different validation checks functions (\code{test_column()},
@@ -79,14 +84,14 @@ in the validation.
 The function runs some preliminary tests before calling the "test_*"
 functions:
 \itemize{
-\item{Input submission file format: }{The file format of the submission
+\item Input submission file format: The file format of the submission
 file(s) correspond to the expected format (for example: \code{parquet}, or \code{csv},
-etc.). If multiple files inputted, only \code{parquet} is accepted}
-\item{Date information: }{The column \code{origin_date} in the submission file
+etc.). If multiple files inputted, only \code{parquet} is accepted.
+\item Date information: The column \code{origin_date} in the submission file
 corresponds to a \code{model_tasks} round information in the JSON file
-(\code{js_def} parameter)}
-\item{Date format: }{All columns containing dates information should be in
-"YYY-MM-DD" format}
+(\code{js_def} parameter).
+\item Date format: All columns containing dates information should be in
+"YYY-MM-DD" format.
 }
 }
 \examples{

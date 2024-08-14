@@ -64,12 +64,11 @@ The function requires multiple parameters:
     together, and each file individually should match the expected SMH
     standard. If partition is not set to `NULL`, the path
     to the folder containing the partitioned data should be input.
-    The package contains 3 example files that can be used to test the
+    The package contains two example files that can be used to test the
     function. There paths can be accessed by using:
     `system.file("extdata", "FILENAME", package = "SMHvalidation")`, the
-    three filenames (+ quick descriptions) are:
+    two filenames (+ quick descriptions) are:
     -   `"2022-01-09_team-model.csv"` : should return no issues
-    -   `"2021-08-15_team-model.gz"` : should return multiple warnings
     -   `"2021-11-14_team-model.parquet"` : should return multiple warnings
         and errors
 -   `js_def`: path to JSON file containing round definitions: names of columns,
@@ -121,7 +120,9 @@ And has some optional parameters:
 -    `round_id`: character string, round identifier. This identifier is used to
       extract the associated round information from the `js_def` parameter.
       If `NULL` (default), extracted from path.
-      
+-     `verbose`: Boolean, if `TRUE` (default) the report will contain additional
+       information about the sample pairing information in output report. 
+       **only available for submission with samples output type** (slows the               validation process)
 
 #### Output
 
@@ -159,21 +160,8 @@ validate_submission(path_test, js_def)
 The function returns a simple message stating that no issues have been
 found.
 
-## Example 2: Warnings
 
-```{r test2}
-path_test <- system.file("extdata", "2021-08-15_team-model.gz",
-                         package = "SMHvalidation")
-validate_submission(path_test, js_def)
-```
-
-The function returns a warning message stating that one or multiple
-issues have been found.
-
-The submission will still be accepted but please verify that the
-information in the submission is correct.
-
-## Example 3: Warnings & Error
+## Example 2: Warnings & Error
 
 ```{r test3, error=TRUE}
 path_test <- system.file("extdata", "2021-11-14_team-model.parquet",
@@ -186,6 +174,32 @@ issues have been found.
 
 The submission will NOT be accepted and needs correction before being
 accepted.
+
+## Sample pairing information
+
+The `validate_submission()` function can returns additional information about
+the pairing information of the `sample` output type by using the 
+`verbose = TRUE` parameter. 
+
+It is also possible to print pairing information of one or multiple specific 
+column information by adding a `verbose` parameter in the `js_def` JSON file:
+
+For example by adding that parameter at the round level:
+```json
+"verbose": {
+        "sample": ["scenario_id"]
+      }
+```
+The detailed grouping of the value in the `scenario_id` column will be printed 
+in the output report:
+
+For example:
+```
+ Run grouping pairing: 
+c("scenario_id (A-2024-08-01, C-2024-08-01, E-2024-08-01)", "horizon"), 
+c("scenario_id (B-2024-08-01, D-2024-08-01, F-2024-08-01)", "horizon")
+```
+
 
 ## Plotting Projections
 
