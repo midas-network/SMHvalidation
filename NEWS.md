@@ -9,7 +9,7 @@ one or multiple columns in details. (parameter `verbose` need to be in the `
 * Update sample testing to be able to test sub-group pairing information
 * Update test on horizon behavior: submission with additional weeks now returns 
 an error instead of a warning.
-
+* Add test on required value (returns an error if missing)
 
 # SMHvalidation 0.1.0
 
