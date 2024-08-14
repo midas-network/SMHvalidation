@@ -27,11 +27,11 @@ verbose_pairing <- function(df_sample, m_task, or_pair, n_sample,
     sto_group <- "No stochasticity"
   }
   head_mess <- "\n ### Column Pairing information: \n "
-  p_rg <- paste0(head_mess, "Run grouping pairing: ",
-                 paste(run_group, collapse = ", "))
+  p_rg <- paste0(head_mess, "Run grouping pairing: \n",
+                 paste(run_group, collapse = ", \n"))
   p_info <- paste0(p_rg, "\n",
-                   paste0(" Stochastic run pairing: ",
-                          paste(sto_group, collapse = ", ")))
+                   paste0(" Stochastic run pairing: \n",
+                          paste(sto_group, collapse = ", \n")))
   pair_inf <- paste0(p_info, "\n ",
                      "Number of Samples: ", n_sample)
   return(pair_inf)
@@ -197,7 +197,7 @@ test_sample <- function(df, model_task, pairing_col = "horizon",
                      paste(n_sample, collapse = ", "),
                      " trajectories per group. Please verify.")
           } else {
-            sample_value <- NA #nocov
+            sample_value <- NA # nocov
           }
         } else {
           sample_value <- NA
@@ -210,8 +210,9 @@ test_sample <- function(df, model_task, pairing_col = "horizon",
         sample_unique <- pairing_test(df_sample, x, or_pair, pairing_col)
         # Add pairing information
         if (verbose) {
-          pair_inf <- verbose_pairing(df_sample, x, or_pair, n_sample,
-                                      verbose_col = verbose_col)
+          pair_inf <- verbose_pairing(df_sample, x, NULL, n_sample,
+                                      verbose_col = c(verbose_col)) %>%
+            purrr::map(unique)
         } else {
           pair_inf <- NA
         }

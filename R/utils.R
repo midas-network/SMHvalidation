@@ -167,6 +167,9 @@ filter_df <- function(df, task_id, exclusion = NULL, required = FALSE,
 paired_info <- function(df, rm_col = NULL, tasks_list = NULL,
                         verbose_col = NULL) {
   if (!is.null(rm_col)) df <- dplyr::select(df, -dplyr::contains(rm_col))
+  sel_col <- grep("output|run_grou|stochas|value", names(df), value = TRUE,
+                  invert = TRUE)
+  df <- dplyr::arrange(df, dplyr::pick(dplyr::all_of(sel_col)))
   test_pair_list <- dplyr::distinct(df) %>%
     as.list() %>%
     purrr::map(unique)
@@ -181,10 +184,11 @@ paired_info <- function(df, rm_col = NULL, tasks_list = NULL,
                     test_pair_list[[x]])) {
             p_col <- names(test_pair_list[x])
           } else {
-            if (all(tasks_list[[names(test_pair_list[x])]]$required %in%
-                      test_pair_list[[x]]) |
-                  all(tasks_list[[names(test_pair_list[x])]]$optional %in%
-                        test_pair_list[[x]])) {
+            t_list <- tasks_list[[names(test_pair_list[x])]]
+            if ((all(t_list$required %in% test_pair_list[[x]]) &&
+                   !is.null(t_list$required)) |
+                  (all(t_list$optional %in% test_pair_list[[x]]) &&
+                     !is.null(t_list$optional))) {
               p_col <- names(test_pair_list[x])
             } else {
               p_col <- NULL # nocov
@@ -195,9 +199,9 @@ paired_info <- function(df, rm_col = NULL, tasks_list = NULL,
         }
       } else {
         if (length(test_pair_list[[x]]) > 1) {
-          if (verbose_col == names(test_pair_list[x]) |
-              !all(unlist((tasks_list[[names(test_pair_list[x])]])) %in%
-                  test_pair_list[[x]])) {
+          if (names(test_pair_list[x]) %in% verbose_col |
+                !all(unlist((tasks_list[[names(test_pair_list[x])]])) %in%
+                       test_pair_list[[x]])) {
             p_col <- paste0(names(test_pair_list[x]), " (",
                             paste(test_pair_list[[x]], collapse = ", "), ")")
           } else {
@@ -210,7 +214,8 @@ paired_info <- function(df, rm_col = NULL, tasks_list = NULL,
       return(p_col)
     }) %>%
       purrr::compact() %>%
-      unlist()
+      unlist() %>%
+      unique()
   }
   return(paired_info)
 }
