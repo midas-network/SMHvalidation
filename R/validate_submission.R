@@ -342,6 +342,9 @@ run_all_validation <- function(df, path, js_def, pop, last_lst_gs,
 #'@param verbose Boolean, if TRUE add information about the sample pairing
 #'  information in output message. By default, `TRUE` (slows the validation
 #'  validation for sample output type)
+#'@param r_schema Schema arrow objects, to read partition files with a specific
+#' schema. If none provided (default, `NULL`), the schema will be created from
+#' the `js_def` JSON file. (only for partition files)
 #'
 #'@details For more information on all tests run on the submission, please refer
 #' to the documentation of each `"test_*`" function. A vignette with all the
@@ -381,7 +384,7 @@ run_all_validation <- function(df, path, js_def, pop, last_lst_gs,
 validate_submission <- function(path, js_def, lst_gs = NULL, pop_path = NULL,
                                 merge_sample_col = FALSE, partition = NULL,
                                 n_decimal = NULL, round_id = NULL,
-                                verbose = TRUE) {
+                                verbose = TRUE, r_schema = NULL) {
 
   # Prerequisite --------
   # Load gold standard data
@@ -450,7 +453,8 @@ validate_submission <- function(path, js_def, lst_gs = NULL, pop_path = NULL,
   } else if (!is.null(partition)) {
     df <- load_partition_arrow(path, js_def = js_def0, js_def_round = js_def,
                                partition = partition, round_id = round_id,
-                               merge_sample_col = merge_sample_col)
+                               merge_sample_col = merge_sample_col,
+                               r_schema = r_schema)
   } else {
     err005 <-
       paste0("\U000274c Error 005: The file format of the submission was not ",

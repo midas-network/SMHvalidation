@@ -13,7 +13,8 @@ validate_submission(
   partition = NULL,
   n_decimal = NULL,
   round_id = NULL,
-  verbose = TRUE
+  verbose = TRUE,
+  r_schema = NULL
 )
 }
 \arguments{
@@ -60,6 +61,10 @@ extracted from \code{path}.}
 \item{verbose}{Boolean, if TRUE add information about the sample pairing
 information in output message. By default, \code{TRUE} (slows the validation
 validation for sample output type)}
+
+\item{r_schema}{Schema arrow objects, to read partition files with a specific
+schema. If none provided (default, \code{NULL}), the schema will be created from
+the \code{js_def} JSON file. (only for partition files)}
 }
 \description{
 Runs all the different validation checks functions (\code{test_column()},
