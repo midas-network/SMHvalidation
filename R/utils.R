@@ -37,7 +37,8 @@ read_files <- function(path) {
 
 
 load_partition_arrow <- function(path, js_def, js_def_round, partition,
-                                 round_id, merge_sample_col = FALSE) {
+                                 round_id, merge_sample_col = FALSE,
+                                 r_schema = NULL) {
   if (all(grepl("parquet$|.pqt$", dir(path, recursive = TRUE)))) {
     filef <- "parquet"
   } else if (all(grepl(".csv$", dir(path, recursive = TRUE)))) {
@@ -55,13 +56,18 @@ load_partition_arrow <- function(path, js_def, js_def_round, partition,
   exp_col <- c(unique(names(unlist(purrr::map(js_def_round$model_tasks,
                                               "task_ids"), FALSE))),
                "output_type", "output_type_id", "value")
-  schema <- hubData::create_hub_schema(js_def)
-  if (merge_sample_col) {
-    exp_col <- c(exp_col, "run_grouping", "stochastic_run")
-    schema <- c(schema$fields,
-                arrow::Field$create("run_grouping", arrow::int64()),
-                arrow::Field$create("stochastic_run", arrow::int64()))
-    schema <- arrow::schema(schema)
+  if (is.null(r_schema)) {
+    schema <- hubData::create_hub_schema(js_def)
+    if (merge_sample_col) {
+      exp_col <- c(exp_col, "run_grouping", "stochastic_run")
+      schema <- c(schema$fields,
+                  arrow::Field$create("run_grouping", arrow::int64()),
+                  arrow::Field$create("stochastic_run", arrow::int64()))
+      schema <- arrow::schema(schema)
+    }
+  } else {
+    exp_col <- names(r_schema)
+    schema <- r_schema
   }
   files_path <- grep(round_id,
                      dir(path, full.names = TRUE,

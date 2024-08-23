@@ -1,3 +1,9 @@
+# SMHvalidation 0.1.2
+
+* Add an optional parameter `r_schema` to validate_submission() function, to 
+allow to read partition files with a specific schema. If none provided, the 
+schema will be created from the `js_def` JSON file. (only for partition files)
+
 # SMHvalidation 0.1.1
 
 * Add parameter `verbose` to validate_submission() function to add information 
