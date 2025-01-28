@@ -102,7 +102,7 @@ sel_last_day_week <- function(df, date_sel, sel = "week") {
 
 }
 
-
+# nolint start
 #' Pull Truth data from COVIDCast
 #'
 #' Download and returns data from COVIDcast package in a Scenario Modeling
@@ -158,6 +158,7 @@ sel_last_day_week <- function(df, date_sel, sel = "week") {
 #'  lst_df
 #'  str(lst_df)
 #' }
+# nolint end
 pull_gs_data <- function() {
   # date prerequisite
   # Date limit for Gold Standard data (data included the last full epiweek):
