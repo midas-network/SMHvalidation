@@ -1,89 +1,99 @@
-#' Read CSV, ZIP, GZ pr PQT files
-#'
-#' Reads a file and output a data frame. The function can read files in CSV,
-#'  ZIP, GZ and PQT format
-#'
-#' @param path path of the files which the date are to be read from
-#'
-#' @importFrom utils read.csv unzip
-#' @importFrom arrow read_parquet
-#'
-#' @examples
-#' \dontrun{
-#'  df <- read_files("PATH/TO/FILE")
-#' }
-#'
-#' @export
-read_files <- function(path) {
-  if (grepl(".csv$", basename(path))) {
-    df <- read.csv(path, sep = ",", na.strings = c("", "NA", "NaN"))
+# extract tasks ids column names
+get_tasksids_colnames <- function(js_def) {
+  taskids_col <- purrr::map(js_def, "task_ids") |>
+    purrr::flatten() |>
+    names() |>
+    unique()
+  return(taskids_col)
+}
+
+# extract team round id information
+team_round_id <- function(path, partition = NULL) {
+  # Select the associated round (add error message if no match)
+  date_pttrn <- "[[:digit:]]{4}-[[:digit:]]{2}-[[:digit:]]{2}"
+  if (!is.null(partition)) {
+    team_round <- dir(path, recursive = TRUE)
+    team_round <- team_round[regexpr(date_pttrn, team_round) > 0]
+    team_round <- substring(team_round, regexpr(date_pttrn, team_round),
+                            regexpr(date_pttrn, team_round) + 9)
+  } else {
+    team_round <- gsub(paste0("(?<=", date_pttrn, ").+"), "", basename(path),
+                       perl = TRUE)
   }
-  if (grepl(".zip$", basename(path))) {
-    file_name <- unzip(path, list = TRUE)[, "Name", TRUE]
-    unzip(path)
-    df <- read.csv(file_name[1], sep = ",", na.strings = c("", "NA", "NaN"))
-    file.remove(file_name)
+  round_id <- unique(team_round)
+  return(round_id)
+}
+
+# Test of any factor columns
+factor_columns <- function(df) {
+  if (any(sapply(colnames(df), function(x) is.factor(df[[x]])))) {
+    warning("\U0001f7e1 Warning: At least one column is in a format: 'factor',",
+            " please verify. \n The column(s) will be automatically set to ",
+            " 'character'.")
   }
-  if (grepl(".gz$", basename(path))) {
-    file_name <- gzfile(path)
-    df <- read.csv(file_name, sep = ",", na.strings = c("", "NA", "NaN"))
-  }
-  if (grepl(".pqt$|.parquet$", basename(path))) {
-    df <- arrow::read_parquet(path, as_data_frame = TRUE)
-  }
-  if (any("location" %in% names(df))) df$location <- as.character(df$location)
+  df <- dplyr::mutate_if(df, is.factor, as.character)
   return(df)
 }
 
-
-load_partition_arrow <- function(path, js_def, js_def_round, partition,
-                                 round_id, merge_sample_col = FALSE,
-                                 r_schema = NULL) {
-  if (all(grepl("parquet$|.pqt$", dir(path, recursive = TRUE)))) {
-    filef <- "parquet"
-  } else if (all(grepl(".csv$", dir(path, recursive = TRUE)))) {
-    filef <- "csv"
-  } else {
-    err005 <-
-      paste0("\U000274c Error 005: The file format of the submission was not",
-             " recognized, please use one unique file or multiple parquet ",
-             "files. For more information, please look at the documentation ",
-             "of the hub. \n")
-    cat(err005)
-    stop(" The submission contains an issue, the validation was not run, ",
-         "please see information above.")
+# Identify file format extension - Partitioned format
+id_file_format <- function(path) {
+  err005 <- paste0("\U000274c 005: The file format of the submission was not",
+                   " recognized, please use one unique file or multiple ",
+                   "parquet files. For more information, please look at the ",
+                   "documentation of the hub. \n")
+  filef <-
+    dplyr::case_when(all(grepl("parquet$|.pqt$",
+                               dir(path, recursive = TRUE))) ~ "parquet",
+                     all(grepl(".csv$",
+                               dir(path, recursive = TRUE))) ~ "csv",
+                     .default = err005)
+  if (grepl("\U000274c", filef)) {
+    stop(err005)
   }
-  exp_col <- c(unique(names(unlist(purrr::map(js_def_round$model_tasks,
-                                              "task_ids"), FALSE))),
+  return(filef)
+}
+
+# Create schema for loading files using arrow
+# optional testing of the column names matching the schema
+make_schema <- function(js_def, js_def_round, round_id, path = NULL,
+                        merge_sample_col = NULL, r_schema = NULL) {
+  exp_col <- c(unique(names(unlist(purrr::map(js_def_round, "task_ids"),
+                                   FALSE))),
                "output_type", "output_type_id", "value")
   if (is.null(r_schema)) {
     schema <- hubData::create_hub_schema(js_def)
-    if (merge_sample_col) {
-      exp_col <- c(exp_col, "run_grouping", "stochastic_run")
-      schema <- c(schema$fields,
-                  arrow::Field$create("run_grouping", arrow::int64()),
-                  arrow::Field$create("stochastic_run", arrow::int64()))
+    if (!is.null(merge_sample_col)) {
+      exp_col <- c(exp_col, merge_sample_col)
+      schema <-
+        c(schema$fields,
+          purrr::map(merge_sample_col,
+                     function(x) arrow::Field$create(x, arrow::int64())))
       schema <- arrow::schema(schema)
     }
   } else {
     exp_col <- names(r_schema)
     schema <- r_schema
   }
-  files_path <- grep(round_id,
-                     dir(path, full.names = TRUE,
-                         recursive = TRUE), value = TRUE)
-  col_names <- arrow::open_dataset(sources = files_path,
-                                   format = filef)$schema$names
-  col_names <- unique(c(col_names, partition))
-  if (!(all(exp_col %in% col_names)) || !(all(col_names %in% exp_col))) {
-    colnames_test <- paste0("\U000274c Error 101: At least one column name is ",
-                            "misspelled or does not correspond to the expected",
-                            " column names \n")
-    cat(colnames_test)
-    stop(" The submission contains an issue, the validation was not run, ",
-         "please see information above.")
+  if (!is.null(path)) {
+    filef <- id_file_format(path)
+    files_path <- grep(round_id,
+                       dir(path, full.names = TRUE,
+                           recursive = TRUE), value = TRUE)
+    col_names <- arrow::open_dataset(sources = files_path,
+                                     format = filef)$schema$names
+    col_names <- unique(c(col_names, partition))
+    if (!(all(exp_col %in% col_names)) || !(all(col_names %in% exp_col))) {
+      stop("\U000274c 101: At least one column name is misspelled",
+           " or does not correspond to the expected column names \n")
+    }
   }
   schema <- schema[schema$names %in% exp_col]
+  return(schema)
+}
+
+# Load partitioned files using Arrow
+load_partition_arrow <- function(path, partition, schema = NULL) {
+  filef <- id_file_format(path)
   if (filef == "parquet") {
     ds <-
       arrow::open_dataset(path, format = filef, partitioning = partition,
@@ -93,10 +103,7 @@ load_partition_arrow <- function(path, js_def, js_def_round, partition,
       arrow::open_dataset(path, format = filef, partitioning = partition,
                           hive_style = FALSE, col_types = schema)
   }
-
-  df <- dplyr::collect(ds) %>%
-    dplyr::mutate_if(is.factor, as.character)
-
+  df <- dplyr::collect(ds) |> factor_columns()
   return(df)
 }
 
@@ -108,7 +115,6 @@ is_wholenumber <- function(x, tol = .Machine$double.eps^0.5) {
   } else {
     return(FALSE)
   }
-
 }
 
 # Function to fix location column (add trailing zero)
@@ -119,6 +125,9 @@ loc_zero <- function(df) {
   }
   return(df)
 }
+
+
+##############
 
 # Internal function to filter data frame according to a set of task_id value
 filter_df <- function(df, task_id, exclusion = NULL, required = FALSE,

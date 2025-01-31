@@ -245,11 +245,10 @@ run_all_validation <- function(df, path, js_def, pop = NULL, obs = NULL,
 #' [Hubverse
 #' ](https://hubdocs.readthedocs.io/en/latest/user-guide/hub-config.html)
 #' format
-#'@param lst_gs named list of data frame containing the
-#' observed data. For COVID-19, we highly recommend to use the output of the
-#' `pull_gs_data()` function. The list should have the same format: each data
-#' frame should be named with the corresponding covidcast signal except
-#' `"hospitalization"` instead of `"confirmed_admissions_covid_1d"`.
+#'@param target_data data frame containing the
+#' observed data. We highly recommend to use the output of the
+#' `pull_gs_data()` function. The data frame should have the time
+#' series hubverse format.
 #' Set to `NULL` (default), to NOT run comparison with observed data.
 #'@param pop_path path to a table containing the population size of each
 #' geographical entities by FIPS (in a column `"location"`).
@@ -319,11 +318,11 @@ validate_submission <- function(path, js_def, target_data = NULL,
   if (!is.null(target_data)) obs <- read_files(target_data) else obs <- NULL
   # Pull population data
   if (!is.null(pop_path)) pop <- read_files(pop_path) else pop <- NULL
+  # Select the associated round (add error message if no match)
+  if (is.null(round_id)) round_id <- team_round_id(path, partition = partition)
 
   # Read hub config JSON file ------
   js_def0 <- hubUtils::read_config_file(js_def)
-  # Select the associated round (add error message if no match)
-  round_id <- team_round_id(path, round_id = round_id, partition = partition)
   if (round_id %in% hubUtils::get_round_ids(js_def0)) {
     js_def <- hubUtils::get_round_model_tasks(js_def0, as.character(round_id))
   } else {
@@ -356,15 +355,11 @@ validate_submission <- function(path, js_def, target_data = NULL,
   if (length(path) == 1 &&
         all(grepl(".csv$|.zip$|.gz$|.pqt$|.parquet$", path))) {
     df <- read_files(path)
-  } else if (all(grepl("parquet$", path))) {
-    ds <- arrow::open_dataset(path, format = "parquet")
-    df <- dplyr::collect(ds) |>
-      dplyr::mutate_if(is.factor, as.character)
   } else if (!is.null(partition)) {
-    df <- load_partition_arrow(path, js_def = js_def0, js_def_round = js_def,
-                               partition = partition, round_id = round_id,
-                               merge_sample_col = merge_sample_col,
-                               r_schema = r_schema)
+    schema <- make_schema(js_def0, js_def, round_id, path = path,
+                          merge_sample_col = merge_sample_col,
+                          r_schema = r_schema)
+    df <- load_partition_arrow(path, partition = partition, schema = schema)
   } else {
     err005 <-
       paste0("\U000274c Error 005: The file format of the submission was not ",
@@ -375,19 +370,6 @@ validate_submission <- function(path, js_def, target_data = NULL,
     stop(" The submission contains an issue, the validation was not run, ",
          "please see information above.")
   }
-  # File format
-  # Test if any factor columns
-  if (any(sapply(colnames(df), function(x) is.factor(df[[x]])))) {
-    col_message <- paste0("\n\U000274c Error 104: At least one column is in a ",
-                          "format: 'factor', please verify")
-    cat(col_message)
-    stop(" The submission contains an issue, the validation was not run, ",
-         "please see information above.")
-  } else {
-    col_message <- NULL
-  }
-  df <- dplyr::mutate_if(df, is.factor, as.character)
-
 
   # test date format
   test_date <- df[, grepl("date", names(df)), FALSE]
@@ -419,7 +401,7 @@ validate_submission <- function(path, js_def, target_data = NULL,
   if (!is.null(obs)) {
     obs <- dplyr::filter(obs, date < as.Date(or_date) + 6) |>
       dplyr::filter(date == max(date)) |>
-      dplyr::select(dplyr::all_of(c("observation", "location", "signal")))
+      dplyr::select(tidyr::all_of(c("observation", "location", "signal")))
   }
 
   # Run tests --------

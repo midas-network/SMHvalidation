@@ -7,9 +7,9 @@
 validate_submission(
   path,
   js_def,
-  lst_gs = NULL,
+  target_data = NULL,
   pop_path = NULL,
-  merge_sample_col = FALSE,
+  merge_sample_col = NULL,
   partition = NULL,
   n_decimal = NULL,
   round_id = NULL,
@@ -30,11 +30,10 @@ columns, target names, ... following the \code{tasks.json}
 \href{https://hubdocs.readthedocs.io/en/latest/user-guide/hub-config.html}{Hubverse }
 format}
 
-\item{lst_gs}{named list of data frame containing the
-observed data. For COVID-19, we highly recommend to use the output of the
-\code{pull_gs_data()} function. The list should have the same format: each data
-frame should be named with the corresponding covidcast signal except
-\code{"hospitalization"} instead of \code{"confirmed_admissions_covid_1d"}.
+\item{target_data}{data frame containing the
+observed data. We highly recommend to use the output of the
+\code{pull_gs_data()} function. The data frame should have the time
+series hubverse format.
 Set to \code{NULL} (default), to NOT run comparison with observed data.}
 
 \item{pop_path}{path to a table containing the population size of each
@@ -42,14 +41,16 @@ geographical entities by FIPS (in a column \code{"location"}).
 Use to compare that value is not higher than expected population size.
 Set to \code{NULL} (default), to NOT run comparison with population data.}
 
-\item{merge_sample_col}{boolean to indicate if the for the output type
-\code{"sample"}, the \code{output_type_id} column is set to \code{NA} and the information is
-contained into 2 columns: \code{"run_grouping"} and \verb{"stochastic_run}".
-By default, \code{FALSE}}
+\item{merge_sample_col}{vector to indicate if the for the output type
+"sample", the output_type_id column is set to NA and the information is
+contained into other columns. If so the parameter should be set to the sample
+ID columns names, for example: \verb{c("run_grouping" and "stochastic_run")}.
+By default, \code{NULL} (sample ID information in the output type id column)}
 
 \item{partition}{vector, for csv and parquet files, allow to validate files
 in a partition format, see \code{arrow} package for more information, and
-\code{arrow::write_dataset()}, \code{arrow::open_dataset()} functions.}
+\code{arrow::write_dataset()}, \code{arrow::open_dataset()} functions.  By default
+\code{NULL}, no partition}
 
 \item{n_decimal}{integer,  number of decimal point accepted in the column
 value (only for \code{"sample"} output type), if \code{NULL} (default) no limit
@@ -68,11 +69,11 @@ the \code{js_def} JSON file. (only for partition files)}
 }
 \description{
 Runs all the different validation checks functions (\code{test_column()},
-\code{test_scenario()}, \code{test_origindate()}, \code{test_quantiles()}, \code{test_val()},
-\code{test_target()}, \code{test_location()},\code{ test_sample()}, \code{test_agegroup()},
-\code{test_raceethnicity()}) on a Scenario Modeling Hub (SMH)
-submissions and prints information about the results of each tests on the
-submission: warning(s), error(s) or message if all the tests were successful.
+\code{test_scenario()}, \code{test_origindate()}, \code{test_type()}, \code{test_val()},
+\code{test_target()}, \code{test_location()}, \code{test_other_col()}) on SMH submission
+file(s) and prints information about the results of each tests on the
+submission file(s): warning(s), error(s) or message if all the tests were
+successful.
 }
 \details{
 For more information on all tests run on the submission, please refer
