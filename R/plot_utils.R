@@ -38,6 +38,15 @@ format_tables <- function(tab_data, metric, sel_group) {
   return(tab_data)
 }
 
+# Additional columns filtering (keep only overall populatiobn)
+add_filter_col <- function(df) {
+  if (any("age_group" %in% colnames(df)))
+    df <- dplyr::filter(df, grepl("0-130", .data[["age_group"]]))
+  if (any("race_ethnicity" %in% colnames(df)))
+    df <- dplyr::filter(df, grepl("overall", .data[["race_ethnicity"]]))
+  return(df)
+}
+
 
 #' Format - Highlight NA cells
 #'
@@ -84,7 +93,7 @@ print_table <- function(data, tab_title, metric = "prctdiff_gt", #"median",
                                   "ground truth")),
                   value = tidyr::all_of(metric)) |>
     tidyr::pivot_wider(names_from = .data[["scenario_id"]],
-                       alues_from = .data[["value"]])
+                       values_from = .data[["value"]])
 
   # Cells to highlight
   nas <- na_cells(tab_data, sel_group)
@@ -218,7 +227,7 @@ plot_projections <- function(data, st, projection_date, legend_rows = 1,
     ggplot2::coord_cartesian(xlim = c(projection_date - 7 * 3,
                                       lubridate::as_date(max(data$date)))) +
     ggplot2::facet_wrap(~outcome, ncol = 1, scales = "free_y") +
-    scale_y_funct(glue::glue("Weekly {ifelse(data$incid_cum=='inc', ",
+    scale_y_funct(glue::glue("Weekly {ifelse(data$type=='inc', ",
                              "'Incident', 'Cumulative')} Outcomes, {st}"))
 
 }
@@ -268,11 +277,6 @@ make_state_plot_pdf <- function(proj_data, target_data, team_model_name,
     col_sel <- c("scenario_id", "location", "type", "outcome", "date",
                  "quantile", "value")
   }
-  if (any("age_group" %in% colnames(proj_data)))
-    proj_data <- dplyr::filter(proj_data, grepl("0-130", .data[["age_group"]]))
-  if (any("race_ethnicity" %in% colnames(proj_data)))
-    proj_data <- dplyr::filter(proj_data, grepl("overall",
-                                                .data[["race_ethnicity"]]))
 
   proj_data <- dplyr::select(proj_data, tidyr::all_of(col_sel)) |>
     dplyr::mutate(state =  as.character(.data[["location"]])) |>
@@ -406,7 +410,7 @@ make_state_plot_pdf <- function(proj_data, target_data, team_model_name,
   pdf(save_path, width = 8.5, height = 11)
 
   # Tables
-  if (!is.null(gs_data)) {
+  if (!is.null(target_data)) {
     gridExtra::grid.arrange(grid::textGrob(paste0("MODEL PROJECTIONS:\n",
                                                   team_model_name, "  --  ",
                                                   projection_date),

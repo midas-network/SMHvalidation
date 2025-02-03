@@ -52,6 +52,7 @@ generate_validation_plots <- function(path_proj, target_data = NULL,
     target_data <- tidyr::separate(target_data, tidyr::matches("signal"),
                                    into = c("type", "outcome"), sep = " ") |>
       dplyr::mutate(pre_gs_end = .data[["date"]] < projection_date)
+    target_data <- add_filter_col(target_data)
   }
 
   # Projections - Read files
@@ -63,8 +64,8 @@ generate_validation_plots <- function(path_proj, target_data = NULL,
 
   # Projection - Standardized format
   proj_data <-
-    dplyr::filter(proj_data,
-                  grepl(paste0("inc case|inc death|inc hosp|inc inf",
+    add_filter_col(proj_data) |>
+    dplyr::filter(grepl(paste0("inc case|inc death|inc hosp|inc inf",
                                "cum case|cum death|cum hosp|inc inf"),
                         .data[["target"]]) &
                     grepl("quantile", .data[["output_type"]])) |>
