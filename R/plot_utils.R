@@ -6,39 +6,43 @@
 #' @param metric character vector, metric
 #'
 #' @importFrom dplyr mutate across
-#' @importFrom scales comma percent
-#' @importFrom tibble tibble
-#' @importFrom tidyselect all_of
+#' @importFrom tidyr all_of
+#'
 #' @noRd
 format_tables <- function(tab_data, metric, sel_group) {
   tab_data <-
     dplyr::mutate(tab_data,
-                  `ground truth` = scales::comma(.data[["ground truth"]],
-                                                 accuracy = 1))
+                  `ground truth` = format(.data[["ground truth"]], digits = 1,
+                                          big.mark = ",", trim = TRUE))
 
   if (grepl("prct|percent", metric)) {
     tab_data <- tab_data |>
-      dplyr::mutate(dplyr::across(tidyselect::all_of(sel_group),
-                                  ~ scales::percent(.x, accuracy = 1)))
+      dplyr::mutate(dplyr::across(tidyr::all_of(sel_group),
+                                  ~ paste0(format(.x * 100, digits = 1,
+                                                  trim = TRUE,
+                                                  scientific = FALSE), "%")))
   } else if (grepl("ratio", metric)) {
     tab_data <- tab_data |>
-      dplyr::mutate(dplyr::across(tidyselect::all_of(sel_group),
-                                  ~ round(.x, 2)))
+      dplyr::mutate(dplyr::across(tidyr::all_of(sel_group), ~ round(.x, 2)))
   } else {
     tab_data <- tab_data |>
-      dplyr::mutate(dplyr::across(tidyselect::all_of(sel_group),
-                                  ~ scales::comma(.x, accuracy = 1)))
+      dplyr::mutate(dplyr::across(tidyr::all_of(sel_group),
+                                  ~ format(.x, digits = 1, trim = TRUE)))
   }
 
   if (nrow(tab_data) == 0) {
     tab_data <-
-      tibble::tibble(value = paste0("There are no projections in this category",
-                                    " for this submission. Well done!"))
+      data.frame(value = paste0("                               ",
+                                "There are no projections in this category",
+                                " for this submission. Well done!",
+                                "                               "))
   }
   return(tab_data)
 }
 
-# Additional columns filtering (keep only overall populatiobn)
+# Additional columns filtering (keep only overall population)
+#' @importFrom dplyr filter
+#' @noRd
 add_filter_col <- function(df) {
   if (any("age_group" %in% colnames(df)))
     df <- dplyr::filter(df, grepl("0-130", .data[["age_group"]]))
@@ -54,7 +58,6 @@ add_filter_col <- function(df) {
 #'
 #' @param tab_data data frame
 #'
-#' @importFrom tibble tibble
 #' @noRd
 na_cells <- function(tab_data, sel_group) {
   # Cells to highlight
@@ -64,7 +67,7 @@ na_cells <- function(tab_data, sel_group) {
                                            sel_group)), ]
   }
   if (nrow(nas) > 0 || is.null(nrow(nas))) {
-    nas <- tibble::tibble(row = nas[["row"]], col = nas[["col"]])
+    nas <- data.frame(row = nas[["row"]], col = nas[["col"]])
     nas[[1]] <- nas[[1]] + 1
 
   }
@@ -80,7 +83,11 @@ na_cells <- function(tab_data, sel_group) {
 #' @param colors vector, colors
 #'
 #' @noRd
-#'
+#' @importFrom dplyr filter select
+#' @importFrom tidyr all_of pivot_wider
+#' @importFrom gridExtra ttheme_default tableGrob
+#' @importFrom grid rectGrob gpar textGrob unit grobHeight
+#' @importFrom gtable gtable_add_rows gtable_add_grob
 print_table <- function(data, tab_title, metric = "prctdiff_gt", #"median",
                         thresholds = c(-Inf, -.20, -.06, 0),
                         colors = c("red", "orange", "yellow", "orange")) {
@@ -168,7 +175,13 @@ print_table <- function(data, tab_title, metric = "prctdiff_gt", #"median",
 #' @param y_sqrt boolean, FALSE by default
 #'
 #' @noRd
-#'
+#' @importFrom ggplot2 scale_y_sqrt scale_y_continuous ggplot aes geom_ribbon
+#' @importFrom ggplot2 geom_line geom_vline geom_point scale_x_date
+#' @importFrom ggplot2 scale_x_date scale_color_viridis_d scale_fill_viridis_d
+#' @importFrom ggplot2 theme_bw theme element_text guide_legend guides xlab
+#' @importFrom ggplot2 coord_cartesian facet_wrap
+#' @importFrom dplyr filter
+#' @importFrom glue glue
 plot_projections <- function(data, st, projection_date, legend_rows = 1,
                              y_sqrt = FALSE) {
 
@@ -200,7 +213,7 @@ plot_projections <- function(data, st, projection_date, legend_rows = 1,
                          linetype = 2)
   }
 
-  if (any(grepl("value_gt", colnames(data)))) {
+  if (any(grepl("observation", colnames(data)))) {
     plot <- plot +
       ggplot2::geom_point(data =
                             dplyr::filter(data, .data[["pre_gs_end"]] == TRUE),
@@ -225,11 +238,17 @@ plot_projections <- function(data, st, projection_date, legend_rows = 1,
     ggplot2::guides(fill = ggplot2::guide_legend(nrow = 1, byrow = TRUE)) +
     ggplot2::xlab(NULL) +
     ggplot2::coord_cartesian(xlim = c(projection_date - 7 * 3,
-                                      lubridate::as_date(max(data$date)))) +
-    ggplot2::facet_wrap(~outcome, ncol = 1, scales = "free_y") +
-    scale_y_funct(glue::glue("Weekly {ifelse(data$type=='inc', ",
-                             "'Incident', 'Cumulative')} Outcomes, {st}"))
+                                      as.Date(max(data$date)))) +
+    ggplot2::facet_wrap(~outcome, ncol = 1, scales = "free_y")
 
+  if (unique(data$type) == "inc") {
+    plot <- plot +
+      scale_y_funct(paste0("Weekly Incident Outcomes, ", st))
+  } else {
+    plot <- plot +
+      scale_y_funct(paste0("Weekly Cumulative Outcomes, ", st))
+  }
+  return(plot)
 }
 
 #' Generate PDF of state plots
@@ -246,7 +265,15 @@ plot_projections <- function(data, st, projection_date, legend_rows = 1,
 #' @param y_sqrt boolean, FALSE by default
 #'
 #' @noRd
-#'
+#' @importFrom dplyr filter rename bind_rows select mutate across arrange
+#' @importFrom dplyr full_join desc slice_head pull
+#' @importFrom tidyr separate matches all_of pivot_wider any_of
+#' @importFrom ggpubr get_legend
+#' @importFrom gridExtra grid.arrange
+#' @importFrom grid textGrob gpar unit
+#' @importFrom cowplot ggdraw draw_label plot_grid
+#' @importFrom ggplot2 margin theme
+#' @importFrom grDevices dev.off pdf
 #'
 make_state_plot_pdf <- function(proj_data, target_data, team_model_name,
                                 projection_date, save_path,
@@ -407,7 +434,7 @@ make_state_plot_pdf <- function(proj_data, target_data, team_model_name,
                      y_sqrt = y_sqrt)
   p_legend <- ggpubr::get_legend(p_inc)
 
-  pdf(save_path, width = 8.5, height = 11)
+  grDevices::pdf(save_path, width = 8.5, height = 11)
 
   # Tables
   if (!is.null(target_data)) {
@@ -444,19 +471,24 @@ make_state_plot_pdf <- function(proj_data, target_data, team_model_name,
     }
 
     title <- cowplot::ggdraw() +
-      cowplot::draw_label(glue::glue("{st} -- {projection_date} - ",
-                                     "{team_model_name}"), fontface = "bold",
+      cowplot::draw_label(paste0(st, " -- ", projection_date, " - ",
+                                 team_model_name), fontface = "bold",
                           x = 0.5, hjust = .5) +
       ggplot2::theme(plot.margin = ggplot2::margin(0, 0, 0, 0))
 
     # Plot it all together
-    plot_grid <- cowplot::plot_grid(p_inc +
-                                      ggplot2::theme(legend.position = "none"),
-                                    p_cum +
-                                      ggplot2::theme(legend.position = "none"),
-                                    nrow = 1)
+    if (is.null(p_cum)) {
+      plot_grid <-
+        cowplot::plot_grid(p_inc + ggplot2::theme(legend.position = "none"),
+                           nrow = 1)
+    } else {
+      plot_grid <-
+        cowplot::plot_grid(p_inc + ggplot2::theme(legend.position = "none"),
+                           p_cum + ggplot2::theme(legend.position = "none"),
+                           nrow = 1)
+    }
     plot(cowplot::plot_grid(title, p_legend, plot_grid, ncol = 1,
                             rel_heights = c(.05, .1, 1)))
   }
-  dev.off()
+  grDevices::dev.off()
 }
