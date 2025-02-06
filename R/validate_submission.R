@@ -1,117 +1,3 @@
-#' Merge and simple tests of Sample ID columns
-#'
-#' If the submission files contains the multiple columns for sample ID, the
-#' function will be called to: combines the columns into one `output_type_id`
-#' column (on `"sample"` output type only) and tests if: the columns names are
-#' correct, the two columns contains only integer values,and if the
-#' concatenation does not returns an unique value.
-#'
-#' The function returns a named list with: the output data frame (without the
-#' two columns, `"df"`) and a list of error message, if any issue
-#' (`"add_message"`)
-#'
-#' @param df data frame
-#' @param req_colnames character vector of the expected column names
-#' @param merge_sample_col character vector of the sample ID column names to
-#'  concatenate
-#' @param add_meesage character vector, error message to append
-#'
-#' @importFrom tidyr unite matches
-#' @importFrom dplyr mutate select .data
-#'
-#' @noRd
-merge_sample_id <- function(df, req_colnames, merge_sample_col,
-                            add_message = NULL) {
-  # Validation
-  if (!(all(c(req_colnames, merge_sample_col) %in% names(df)))) {
-    fail_col <- req_colnames[!req_colnames %in% names(df)]
-    colnames_test <-
-      paste0("\U000274c Error 101: At least one column name is misspelled or",
-             " does not correspond to the expected column names. The ",
-             "column(s) ", paste(fail_col, collapse = ", "),
-             " do(es) not correspond to the standard")
-    cat(colnames_test)
-    stop(" The submission contains an issue, the validation was not run, ",
-         "please see information above.")
-  }
-  sample_val <- na.omit(unlist(distinct(df[, merge_sample_col])))
-  if (isFALSE(all(is_wholenumber(sample_val))) ||
-        any(startsWith(as.character(sample_val), "0"))) {
-    err_message <-
-      paste0("\U000274c Error 903: The columns ",
-             paste(merge_sample_col, collapse = " and "),
-             " should contain integer values only for type ",
-             "'sample'. Please verify")
-    add_message <- paste(add_message, err_message, sep = "\n")
-  }
-  # Merge sample ID column
-  df <- tidyr::unite(df, col = "type_id_sample", merge_sample_col) |>
-    dplyr::mutate(output_type_id =
-                    ifelse(.data[["output_type"]] == "sample",
-                           as.numeric(as.factor(.data[["type_id_sample"]])),
-                           .data[["output_type_id"]])) |>
-    dplyr::select(-tidyr::matches("type_id_sample"))
-  if (length(unique(df[which(df$output_type == "sample"),
-                       "output_type_id"])) <= 1) {
-    add_message <- paste0(add_message,
-                          "\n\U000274c Error 902: The submission should ",
-                          "contains multiple sample output type groups, ",
-                          "please verify.\n")
-  }
-  return(list("df" = df, "add_message" = add_message))
-}
-
-#' Create the validation report
-#'
-#' Combine all the test output function into one report
-#'
-#' @param df data frame to test
-#' @param js_def list containing round definitions: names of columns,
-#' target names, ...
-#' @param out_req character vector, error message about the required values
-#'  to append to the report
-#' @param out_col character vector, error message about the columns
-#'  to append to the report
-#' @param out_scen character vector, error message about the `scenario_id`
-#'  column to append to the report
-#' @param out_ord character vector, error message about the `origin_date` column
-#'  to append to the report
-#' @param out_val character vector, error message about the `value` column
-#'  to append to the report
-#' @param out_target character vector, error message about the `target` column
-#'  to append to the report
-#' @param out_loc character vector, error message about the `location` column
-#'  to append to the report
-#' @param out_type character vector, error message about all output
-#' type to append to the report
-#' @param out_other character vector, error message about additional
-#' column to append to the report. Uses only if the submission is expected to
-#' contains a additional columns (than previously tested)
-#' @param add_message character vector, error message to append to the report,
-#' by default NULL, no additional error message to append
-#'
-#' @noRd
-create_report <- function(df, js_def, out_req, out_col,
-                          out_scen, out_ord, out_val, out_target, out_loc,
-                          out_type, out_other, add_message = NULL) {
-
-  test_report <-
-    paste("\n ## Required values: \n", paste(out_req, collapse = "\n"),
-          "\n\n ## Columns: \n", paste(out_col, collapse = "\n"),
-          "\n\n## Scenarios: \n", paste(out_scen, collapse = "\n"),
-          "\n\n## Origin Date Column:  \n", paste(out_ord, collapse = "\n"),
-          "\n\n## Value and Type Columns: \n", paste(out_val, collapse = "\n"),
-          "\n\n## Target Columns: \n", paste(out_target, collapse = "\n"),
-          "\n\n## Locations: \n", paste(out_loc, collapse = "\n"),
-          "\n\n## Output Type: \n", paste(out_type, collapse = "\n"))
-  if (!is.null(out_other) || !is.null(add_message)) {
-    test_report <- paste(test_report, "\n\n## Other Information: \n",
-                         paste(out_other, add_message, collapse = "\n"))
-  }
-  test_report <- paste0(test_report, "\n\n")
-  return(test_report)
-}
-
 #' Run all validation checks and output a report
 #'
 #' Runs all the different validation checks functions (test_column,
@@ -147,10 +33,21 @@ create_report <- function(df, js_def, out_req, out_col,
 #' documentation of each "test_*" function. A vignette with all the information
 #' might be created later on too.
 #'
+#' @importFrom hubValidations new_hub_validations parse_file_name try_check
+#' check_valid_round_id_col check_tbl_unique_round_id is_any_error
+#' check_tbl_match_round_id check_tbl_colnames check_tbl_col_types
+#' check_tbl_values check_tbl_rows_unique check_tbl_values_required
+#' check_tbl_value_col check_tbl_value_col_ascending
+#' check_tbl_spl_compound_taskid_set check_tbl_spl_compound_tid
+#' check_tbl_spl_non_compound_tid check_tbl_spl_n
+#'
+#' @importFrom hubData coerce_to_character
+#'
 #' @noRd
-run_all_validation <- function(df, path, js_def, pop = NULL, obs = NULL,
-                               merge_sample_col = NULL, pairing_col = "horizon",
-                               n_decimal = NULL, verbose = TRUE) {
+run_all_validation <- function(df, path, js_def0, js_def, round_id, hub_path,
+                               pop = NULL, obs = NULL, merge_sample_col = NULL,
+                               partition = NULL, n_decimal = NULL,
+                               verbose = TRUE) {
   ### Prerequisite
   req_colnames <-  c(get_tasksids_colnames(js_def), "output_type",
                      "output_type_id", "value")
@@ -158,6 +55,7 @@ run_all_validation <- function(df, path, js_def, pop = NULL, obs = NULL,
   # Merge sample ID column
   if (!is.null(merge_sample_col)) {
     sample_update <- merge_sample_id(df, req_colnames, merge_sample_col,
+                                     js_def0, partition = partition,
                                      add_message = NULL)
     df <- sample_update[["df"]]
     add_message <- sample_update[["add_message"]]
@@ -166,62 +64,95 @@ run_all_validation <- function(df, path, js_def, pop = NULL, obs = NULL,
     add_message <- NULL
   }
 
-  ### Tests:
-  # Test on column information (name and number)
-  out_col <- test_column(df, req_colnames)
-  # select only required column for the other tests
-  df <- df[, req_colnames]
+  checks <- new_hub_validations()
 
-  # Test missing required value
-  out_req <- test_req_value(df, js_def)
-
-  # Test on Scenario information
-  out_scen <- test_scenario(df, js_def)
-
-  # Test origin date information
-  out_ord <-
-    test_origindate(df, path,
-                    id = unique(unlist(purrr::map(purrr::map(js_def,
-                                                             "task_ids"),
-                                                  "origin_date"))))
-
-  # Test by output type
-  out_type <- test_type(df, js_def, pairing_col = pairing_col,
-                        verbose = verbose)
-
-  # Test on value
-  out_val <- test_val(df, pop, obs, js_def, n_decimal = n_decimal)
-
-  # Test on targets information
-  out_target <- test_target(df, js_def)
-
-  # Test on location information
-  out_loc <- test_location(df, js_def)
-
-  # Test for additional column
-  out_other <- test_other_col(df, js_def)
-
-  # Report:
-  test_report <- create_report(df, js_def, out_req, out_col, out_scen, out_ord,
-                               out_val, out_target, out_loc, out_type,
-                               out_other, add_message = add_message)
-
-  # Output:
-  if (any(grepl("\\\U000274c Error|\\\U0001f7e1 Warning", test_report))) {
-    if (any(grepl("\U000274c Error", test_report))) {
-      cat(test_report)
-      stop(" The submission contains one or multiple issues, please see ",
-           "information above")
-    } else {
-      cat(test_report)
-      warning(" The submission is accepted but contains some warnings, please ",
-              "verify the information above")
-    }
-  } else {
-    test_report <-
-      "End of validation check: all the validation checks were successful\n"
-    cat(test_report)
+  checks$valid_round_id_col <-
+    try_check(check_valid_round_id_col(df, file_path = path,
+                                       hub_path = hub_path), path)
+  checks$unique_round_id <-
+    try_check(check_tbl_unique_round_id(df, file_path = path,
+                                        hub_path = hub_path), path)
+  if (is_any_error(checks$unique_round_id)) {
+    return(checks)
   }
+
+  checks$match_round_id <-
+    try_check(check_tbl_match_round_id(df, file_path = path,
+                                       hub_path = hub_path), path)
+  if (is_any_error(checks$match_round_id)) {
+    return(checks)
+  }
+
+  checks$colnames <-
+    try_check(check_tbl_colnames(df, round_id = round_id, file_path = path,
+                                 hub_path = hub_path), path)
+  if (is_any_error(checks$colnames)) {
+    return(checks)
+  }
+
+  checks$col_types <-
+    try_check(check_tbl_col_types(df, file_path = path, hub_path = hub_path,
+                                  output_type_id_datatype = "from_config"),
+              path)
+  tbl_chr <- hubData::coerce_to_character(df)
+
+  checks$valid_vals <-
+    try_check(check_tbl_values(tbl_chr, round_id = round_id, file_path = path,
+                               hub_path = hub_path, derived_task_ids = NULL),
+              path)
+  if (is_any_error(checks$valid_vals)) {
+    return(checks)
+  }
+
+  checks$rows_unique <-
+    try_check(check_tbl_rows_unique(tbl_chr, file_path = path,
+                                    hub_path = hub_path), path)
+  checks$req_vals <-
+    try_check(check_tbl_values_required(tbl_chr, round_id = round_id,
+                                        file_path = path, hub_path = hub_path,
+                                        derived_task_ids = NULL), path)
+  # -- slow
+  checks$value_col_valid <-
+    try_check(check_tbl_value_col(df, round_id = round_id, file_path = path,
+                                  hub_path = hub_path, derived_task_ids = NULL),
+              path)
+
+  checks$value_col_non_desc <-
+    try_check(check_tbl_value_col_ascending(tbl_chr, file_path = path,
+                                            hub_path = hub_path,
+                                            round_id = round_id,
+                                            derived_task_ids = NULL), path)
+
+  checks$spl_compound_taskid_set <-
+    try_check(check_tbl_spl_compound_taskid_set(tbl_chr, round_id = round_id,
+                                                file_path = path,
+                                                hub_path = hub_path,
+                                                derived_task_ids = NULL), path)
+  cmd_tkid_set <- checks$spl_compound_taskid_set$compound_taskid_set
+  checks$spl_compound_tid <-
+    try_check(check_tbl_spl_compound_tid(tbl_chr, round_id = round_id,
+                                         file_path = path, hub_path = hub_path,
+                                         compound_taskid_set = cmd_tkid_set,
+                                         derived_task_ids = NULL), path)
+  if (is_any_error(checks$spl_compound_tid)) {
+    return(checks)
+  }
+  checks$spl_non_compound_tid <-
+    try_check(check_tbl_spl_non_compound_tid(tbl_chr, round_id = round_id,
+                                             file_path = path,
+                                             hub_path = hub_path,
+                                             compound_taskid_set = cmd_tkid_set,
+                                             derived_task_ids = NULL), path)
+  if (is_any_error(checks$spl_non_compound_tid)) {
+    return(checks)
+  }
+  checks$spl_n <-
+    try_check(check_tbl_spl_n(tbl_chr, round_id = round_id, file_path = path,
+                              hub_path = hub_path,
+                              compound_taskid_set = cmd_tkid_set,
+                              derived_task_ids = NULL), path)
+
+  return(checks)
 }
 
 
@@ -245,6 +176,8 @@ run_all_validation <- function(df, path, js_def, pop = NULL, obs = NULL,
 #' [Hubverse
 #' ](https://hubdocs.readthedocs.io/en/latest/user-guide/hub-config.html)
 #' format
+#' @param hub_path path to the repository contains the submissions files
+#' and js_def file
 #'@param target_data data frame containing the
 #' observed data. We highly recommend to use the output of the
 #' `pull_gs_data()` function. The data frame should have the time
@@ -307,7 +240,7 @@ run_all_validation <- function(df, path, js_def, pop = NULL, obs = NULL,
 #' validate_submission("PATH/TO/SUBMISSION", "PATH/TO/ROUND/tasks.json")
 #' }
 #'@export
-validate_submission <- function(path, js_def, target_data = NULL,
+validate_submission <- function(path, js_def, hub_path, target_data = NULL,
                                 pop_path = NULL, merge_sample_col = NULL,
                                 partition = NULL, n_decimal = NULL,
                                 round_id = NULL, verbose = TRUE,
@@ -321,81 +254,83 @@ validate_submission <- function(path, js_def, target_data = NULL,
   # Select the associated round (add error message if no match)
   if (is.null(round_id)) round_id <- team_round_id(path, partition = partition)
 
-  # Read hub config JSON file ------
-  js_def0 <- hubUtils::read_config_file(js_def)
-  if (round_id %in% hubUtils::get_round_ids(js_def0)) {
-    js_def <- hubUtils::get_round_model_tasks(js_def0, as.character(round_id))
-  } else {
-    err004 <-
-      paste0("\U000274c Error 004: The round id (date in the submission file) ",
-             "is not associated with any task_ids round. Please verify the ",
-             "date information in 'path' or in the 'round_id' parameter.\n",
-             "Possible round ids are: ",
-             paste(unique(hubUtils::get_round_ids(js_def0)), collapse = ", "))
-    cat(err004)
-    stop(" The submission contains an issue, the validation was not run, ",
-         "please see information above.")
-  }
-
   # Select validation file(s) and print message --------
   if (!is.null(partition)) {
     file_path <- grep(round_id, dir(path, recursive = TRUE), value = TRUE) |>
       unique()
-    file_path <- c(file_path[1:min(max(length(file_path) - 1, 1), 5)], "etc.")
+    file_path_mess <- c(file_path[1:min(max(length(file_path) - 1, 1), 5)],
+                        "etc.")
     cat(paste0("Run validation on files: ",
-               paste(file_path, collapse = ", "), "\n"))
+               paste(file_path_mess, collapse = ", "), "\n"))
   } else {
     file_path <- basename(path)
     cat(paste0("Run validation on files: ", paste(unique(file_path),
                                                   collapse = ", "), "\n"))
   }
 
-  # Process file to test and associated information --------
-  # Read file
-  if (length(path) == 1 &&
-        all(grepl(".csv$|.zip$|.gz$|.pqt$|.parquet$", path))) {
-    df <- read_files(path)
-  } else if (!is.null(partition)) {
-    schema <- make_schema(js_def0, js_def, round_id, path = path,
-                          merge_sample_col = merge_sample_col,
-                          r_schema = r_schema)
-    df <- load_partition_arrow(path, partition = partition, schema = schema)
+  # Read hub config JSON file ------
+  js_def0 <- hubUtils::read_config_file(js_def)
+  check_round_id <- round_id %in% hubUtils::get_round_ids(js_def0)
+  details_mess <-
+    paste0("The round id (date in the submission file or parameters) is not ",
+           "associated with any task_ids round. Please verify the date ",
+           "information in 'path' or in the 'round_id' parameter.\nPossible ",
+           "round ids are: ", paste(unique(hubUtils::get_round_ids(js_def0)),
+                                    collapse = ", "))
+  check <-
+    hubValidations::capture_check_cnd(check_round_id, file_path,
+                                      msg_subject = "{.var round_id}",
+                                      msg_attribute = "valid.",
+                                      details = details_mess, error = TRUE)
+  if (hubValidations::is_any_error(check)) {
+    return(check)
   } else {
-    err005 <-
-      paste0("\U000274c Error 005: The file format of the submission was not ",
-             "recognized, please use one unique files or multiple parquet file",
-             ". For more information, please look at the documentation of the ",
-             "hub. \n")
-    cat(err005)
-    stop(" The submission contains an issue, the validation was not run, ",
-         "please see information above.")
+    js_def <- hubUtils::get_round_model_tasks(js_def0, as.character(round_id))
+  }
+
+  # Process file to test and associated information --------
+  sub_file_ext <- unique(sub(".*\\.", "", file_path))
+  config_ext <- hubValidations::read_config(hub_path, "admin")$file_format
+  check_file_ext <- sub_file_ext %in% config_ext
+  details_mess <- paste0("Extension(s) accepted: {.val ", config_ext,"}")
+  check <-
+    hubValidations::capture_check_cnd(check_file_ext, file_path,
+                                      msg_subject = "File(s) format extension",
+                                      msg_attribute = "valid.",
+                                      details = details_mess, error = TRUE)
+  if (hubValidations::is_any_error(check)) {
+    return(check)
+  } else {
+    # Read file
+    if (length(path) == 1) {
+      df <- read_files(path)
+    } else if (!is.null(partition)) {
+      schema <- make_schema(js_def0, js_def, round_id, path = path,
+                            merge_sample_col = merge_sample_col,
+                            r_schema = r_schema)
+      df <- load_partition_arrow(path, partition = partition, schema = schema)
+    }
   }
 
   # test date format
   test_date <- df[, grepl("date", names(df)), FALSE]
   test_date <- unlist(dplyr::mutate_all(dplyr::distinct(test_date),
                                         as.character))
-  if (any(is.na(as.Date(na.omit(test_date), "%Y-%m-%d")))) {
-    err003 <-
-      paste0("\U000274c Error 003: The columns containing date information ",
-             "should be in a date format `YYYY-MM-DD`. Please verify \n")
-    cat(err003)
-    stop(" The submission contains an issue, the validation was not run, ",
-         "please see information above.")
+  check_test_format <- !any(is.na(as.Date(na.omit(test_date), "%Y-%m-%d")))
+  details_mess <- "The column should be in a ISO date format {.val YYYY-MM-DD}"
+  message <- "The column(s) containing date information"
+  check <-
+    hubValidations::capture_check_cnd(check_test_format, file_path,
+                                      msg_subject = message,
+                                      msg_attribute = "in a valid format.",
+                                      details = details_mess, error = TRUE)
+  if (hubValidations::is_any_error(check)) {
+    return(check)
+  } else {
+    col_date <- grep("date", names(df), value = TRUE)
+    df <- dplyr::mutate(df, dplyr::across(col_date, as.Date))
   }
 
-  # Extract pairing information
-  sample_js <- purrr::map(purrr::map(js_def, "output_type"), "sample")
-  tasks_ids <- get_tasksids_colnames(js_def)
-  if (!all(is.null(sample_js))) {
-    sample_list <- purrr::map(sample_js, "output_type_id_params")
-    comp_col <- purrr::map(sample_list, "compound_taskid_set")
-    if (!all(purrr::map_vec(comp_col, is.null))) {
-      pairing_col <- tasks_ids[!tasks_ids %in% unique(unlist(comp_col))]
-    } else {
-      pairing_col <- "horizon"
-    }
-  }
   # Extract week 0 or week -1 of observed data
   or_date <- unique(unlist(purrr::map_depth(js_def, 2, "origin_date")))
   if (!is.null(obs)) {
@@ -405,8 +340,8 @@ validate_submission <- function(path, js_def, target_data = NULL,
   }
 
   # Run tests --------
-  run_all_validation(df, path = path, js_def = js_def, pop = pop,
-                     last_lst_gs = obs, merge_sample_col = merge_sample_col,
-                     pairing_col = pairing_col, n_decimal = n_decimal,
-                     verbose = verbose)
+  run_all_validation(df, path, js_def0, js_def, round_id, hub_path, pop = pop,
+                     obs = obs, merge_sample_col = merge_sample_col,
+                     n_decimal = n_decimal, verbose = verbose,
+                     partition = partition)
 }

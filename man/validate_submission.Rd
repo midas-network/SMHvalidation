@@ -7,6 +7,7 @@
 validate_submission(
   path,
   js_def,
+  hub_path,
   target_data = NULL,
   pop_path = NULL,
   merge_sample_col = NULL,
@@ -29,6 +30,9 @@ partitioned data.}
 columns, target names, ... following the \code{tasks.json}
 \href{https://hubdocs.readthedocs.io/en/latest/user-guide/hub-config.html}{Hubverse }
 format}
+
+\item{hub_path}{path to the repository contains the submissions files
+and js_def file}
 
 \item{target_data}{data frame containing the
 observed data. We highly recommend to use the output of the
