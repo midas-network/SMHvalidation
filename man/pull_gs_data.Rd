@@ -4,7 +4,14 @@
 \alias{pull_gs_data}
 \title{Pull Truth data from COVIDCast}
 \usage{
-pull_gs_data()
+pull_gs_data(
+  signals = c("deaths_cumulative_num", "confirmed_cumulative_num",
+    "confirmed_incidence_num", "deaths_incidence_num", "confirmed_admissions_covid_1d")
+)
+}
+\arguments{
+\item{signals}{list of signals to download (should be one or multiple in
+the default list)}
 }
 \value{
 a list of dataframe, each dataframe named with the corresponding
@@ -58,4 +65,5 @@ For hospitalization data, we use:
  lst_df
  str(lst_df)
 }
+
 }

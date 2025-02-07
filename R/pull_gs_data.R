@@ -1,124 +1,56 @@
-#' Calculate Weekly Incidence
-#'
-#' Calculate data from Daily to Weekly Incidence (Epiweek from CDC) by States,
-#' by summing the value for the day of the week (remove any NA value).
-#'
-#' @param df data frame containing value, geo_value, year and week columns
-#'
-#' @noRd
-#' @importFrom data.table setDT :=
-#' @importFrom dplyr as_tibble %>%
-gs_week_process <- function(df) {
-  df <- data.table::setDT(df)
-  df[, value := sum(value, na.rm = TRUE), by = .(geo_value, year, week)] %>%
-    dplyr::as_tibble()
-}
-
-#'Add Location Name column
-#'
-#' Create a column "geo_value_fullname" with the full name of each state.
-#'
-#' @param df data frame containing geo_value column
-#' @param loc_dictionary_name named vector containing the FIPS as name and the
-#'  corresponding location name as value (example: name: "01", value: "Alabama")
-#'
-#'@noRd
-location_full <- function(df, loc_dictionary_name) {
-  df$geo_value_fullname <- loc_dictionary_name[df$geo_value]
-  df
-}
-
-#' Calculate US level by adding all the states
-#'
-#' Summarize the information by adding all the states value by time.
-#'
-#' @param df data frame containing geo_value column
-#'
-#' @noRd
-#' @importFrom dplyr group_by summarise mutate %>%
-#' @importFrom lubridate epiweek epiyear
-gs_sum <- function(df) {
-  df <- dplyr::group_by(df, time_value) %>%
-    dplyr::summarise(value = sum(value, na.rm = TRUE), .groups = "drop") %>%
-    dplyr::mutate(week = lubridate::epiweek(time_value),
-                  year = lubridate::epiyear(time_value))
-}
-
-#' Recalculate date
-#'
-#' Recalculate date to have the non-cumulative data by week with time-value is
-#' the maximum of the week
-#'
-#' @param df data frame containing geo_value column
-#'
-#' @noRd
-#' @importFrom dplyr group_by ungroup mutate %>%
-#' @importFrom lubridate epiweek epiyear
-week_date <- function(df) {
-  if (any(grepl("geo_value", names(df)))) {
-    df <- dplyr::group_by(df, geo_value, week, year)
-  } else {
-    df <- dplyr::group_by(df, week, year)
-  }
-  df %>%
-    dplyr::mutate(time_value = max(time_value)) %>%
-    dplyr::ungroup()
-  class(df) <- c("covidcast_signal", "data.frame")
-  df
-}
-
-#' Calculate Saturday
-#'
-#' From a year and week number returns last Saturday of the epiweek
-#'
-#' @param year_number numeric
-#' @param week_number numeric
-#'
-#' @noRd
-#' @importFrom lubridate ymd weeks
-last_sat <- function(year_number, week_number) {
-  lubridate::ymd("2021-01-02") + (lubridate::weeks(week_number + 52 *
-                                                     (year_number - 2021)))
-}
-
-#' Select last day / epiweek
-#'
-#' Select the last day of the epi week
-#'
-#' @param df a data frame containing value, geo_value, year and week columns
-#' @param date_sel a vector of a date to select from
-#'
-#' @noRd
-#' @importFrom dplyr group_by mutate ungroup filter
-sel_last_day_week <- function(df, date_sel, sel = "week") {
-  if (any(grepl("geo_value_fullname", names(df)))) {
-    df <- dplyr::group_by(df, geo_value_fullname, week, year)
-  } else {
-    df <- dplyr::group_by(df, week, year)
-  }
-  df <- dplyr::mutate(df, sel = ifelse(time_value %in% date_sel, 1, 0)) %>%
-    dplyr::ungroup() %>%
-    dplyr::filter(sel == 1)
-
-}
-
 # nolint start
+# Processed data:
+#   - Transform Daily incidence in Weekly incidence
+#   - Generate a notional level data frame (sum by state)
+std_covidcast_signal <- function(signal, limit_date, vect_week_date) {
+
+  if (signal == "confirmed_admissions_covid_1d") {
+    source <- "hhs"
+  } else {
+    source <- "jhu-csse"
+  }
+
+  # Call API to generate gold standard data from COVIDCast
+  df <- covidcast::covidcast_signal(data_source = source, signal = signal,
+                                    geo_type = "state", end_day = limit_date,
+                                    as_of = Sys.Date())
+  df$week <- MMWRweek::MMWRweek(df$time_value)$MMWRweek
+  df$year <- MMWRweek::MMWRweek(df$time_value)$MMWRyear
+  if (!(grepl("cumulative", signal))) {
+    ## See fast version of gs_week_process
+    df_state <- dplyr::summarise(df,
+                                 value = sum(.data[["value"]], na.rm = TRUE),
+                                 .by = c("geo_value", "year", "week")) |>
+      dplyr::mutate(time_value = MMWRweek::MMWRweek2Date(.data[["year"]],
+                                                         .data[["week"]],
+                                                         7)) |>
+      dplyr::distinct()
+  }
+  df_state <- dplyr::filter(df, .data[["time_value"]] %in% vect_week_date) |>
+    dplyr::select(tidyr::all_of(c("time_value", "geo_value","value")))
+  df_us <- dplyr::summarise(df_state,
+                            value = sum(.data[["value"]], na.rm = TRUE),
+                            .by = c("time_value")) |>
+    dplyr::mutate(geo_value = "us")
+  df_tot <- dplyr::bind_rows(df_state, df_us)
+  return(df_tot)
+}
+
+
 #' Pull Truth data from COVIDCast
 #'
 #' Download and returns data from COVIDcast package in a Scenario Modeling
 #' Hub format, with the incidence and cumulative data for each state and
 #' US national level by epiweek.
 #'
+#' @param signals list of signals to download (should be one or multiple in
+#' the default list)
 #'
 #' @return a list of dataframe, each dataframe named with the corresponding
 #' covidcast signal except "hospitalization" instead of
 #' "confirmed_admissions_covid_1d"
 #'
 #' @export
-#' @importFrom dplyr mutate select %>%
-#' @importFrom lubridate epiweek epiyear
-#' @importFrom stats setNames
-#' @importFrom covidcast covidcast_signal
 #'
 #' @details
 #' The function output a list of 5 data frame (one by target) of observed
@@ -158,14 +90,25 @@ sel_last_day_week <- function(df, date_sel, sel = "week") {
 #'  lst_df
 #'  str(lst_df)
 #' }
+#'
+#' @importFrom dplyr mutate select summarise distinct filter bind_rows
+#' @importFrom tidyr all_of
+#' @importFrom MMWRweek MMWRweek MMWRweek2Date
+#' @importFrom covidcast covidcast_signal
 # nolint end
-pull_gs_data <- function() {
+pull_gs_data <- function(signals = c("deaths_cumulative_num",
+                                     "confirmed_cumulative_num",
+                                     "confirmed_incidence_num",
+                                     "deaths_incidence_num",
+                                     "confirmed_admissions_covid_1d")) {
+  .Deprecated("pull_nhsn_data")
   # date prerequisite
   # Date limit for Gold Standard data (data included the last full epiweek):
-  eweek <- lubridate::epiweek(Sys.Date())
-  eyear <- lubridate::epiyear(Sys.Date())
+  eweek <- MMWRweek::MMWRweek(Sys.Date())$MMWRweek
+  eyear <- MMWRweek::MMWRweek(Sys.Date())$MMWRyear
 
-  limit_date <- last_sat(eyear, eweek)
+  limit_date <- as.Date("2021-01-02") + (as.numeric(eweek) + 52 *
+                                           (as.numeric(eyear) - 2021)) * 7
   if (limit_date > Sys.Date()) limit_date <- limit_date - 1
 
   vect_week_date <- as.Date("2020-01-04")
@@ -174,76 +117,9 @@ pull_gs_data <- function() {
     vect_week_date <- c(vect_week_date, j)
   }
   rm(j)
-  # location prerequisite
-  # Pull population data and prepare location hash vector
-  pop_path <- paste0("https://raw.githubusercontent.com/midas-network/",
-                     "covid19-scenario-modeling-hub/master/data-locations/",
-                     "locations.csv")
-  pop <- read_files(pop_path)
-  pop_num <- na.omit(as.numeric(pop$location))
-  loc_dictionary_name <-
-    setNames(c(rep(pop$location_name, 2), "US",
-               rep(grep("US$", pop$location_name, value = TRUE, invert = TRUE),
-                   2), rep(pop$location_name, 2), "New York"),
-             c(pop$location, tolower(pop$abbreviation), "US",
-               suppressWarnings(pop_num),
-               suppressWarnings(as.character(pop_num)),
-               tolower(pop$location_name),
-               toupper(pop$location_name), "new york state"))
-  location2number <- setNames(pop$location, pop$location_name)
-
   # signals
-  signals <- c("deaths_cumulative_num", "confirmed_cumulative_num",
-               "confirmed_incidence_num", "deaths_incidence_num",
-               "confirmed_admissions_covid_1d")
-  lst_df <- lapply(signals, function(x) {
-    if (x == "confirmed_admissions_covid_1d") {
-      source <- "hhs"
-    } else {
-      source <- "jhu-csse"
-    }
-
-    # Call API to generate gold standard data from COVIDCast
-    df <- covidcast::covidcast_signal(data_source = source, signal = x,
-                                      geo_type = "state", end_day = limit_date,
-                                      as_of = Sys.Date())
-
-    # Processed data:
-    #   - Transform Daily incidence in Weekly incidence
-    #   - Add a column for the full name of the states
-    #   - Generate a notional level data frame (sum by state)
-    df$week <- lubridate::epiweek(df$time_value)
-    df$year <- lubridate::epiyear(df$time_value)
-    if (!(grepl("cumulative", x))) {
-
-      ## See fast version of gs_week_process
-      df <- gs_week_process(df) %>%
-        week_date()
-
-      df_state <- dplyr::distinct(df) %>%
-        location_full(loc_dictionary_name = loc_dictionary_name) %>%
-        sel_last_day_week(vect_week_date)
-      df_us <- gs_sum(df_state) %>%
-        week_date() %>%
-        dplyr::distinct() %>%
-        sel_last_day_week(vect_week_date) %>%
-        dplyr::mutate(geo_value_fullname = "US", geo_value = "us")
-      df_tot <- dplyr::bind_rows(df_state, df_us)
-    } else {
-      df_state <- location_full(df, loc_dictionary_name = loc_dictionary_name)
-      df_state <- sel_last_day_week(df_state, vect_week_date)
-      df_us <- gs_sum(df_state) %>%
-        sel_last_day_week(vect_week_date) %>%
-        dplyr::mutate(geo_value_fullname = "US", geo_value = "us")
-      df_tot <- dplyr::bind_rows(df_state, df_us)
-    }
-    # Add geographical information for the mapping
-    df_tot <- dplyr::mutate(df_tot,
-                            fips = location2number[geo_value_fullname]) %>%
-      dplyr::select(time_value, geo_value_fullname, fips, value)
-  }) %>%
-    setNames(c("deaths_cumulative_num", "confirmed_cumulative_num",
-               "confirmed_incidence_num", "deaths_incidence_num",
-               "hospitalization"))
+  lst_df <- purrr::map(signals, std_covidcast_signal, limit_date,
+                       vect_week_date) |>
+    setNames(signals)
   return(lst_df)
 }
