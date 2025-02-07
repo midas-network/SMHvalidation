@@ -292,7 +292,7 @@ validate_submission <- function(path, js_def, hub_path, target_data = NULL,
   sub_file_ext <- unique(sub(".*\\.", "", file_path))
   config_ext <- hubValidations::read_config(hub_path, "admin")$file_format
   check_file_ext <- sub_file_ext %in% config_ext
-  details_mess <- paste0("Extension(s) accepted: {.val ", config_ext,"}")
+  details_mess <- paste0("Extension(s) accepted: {.val ", config_ext, "}")
   check <-
     hubValidations::capture_check_cnd(check_file_ext, file_path,
                                       msg_subject = "File(s) format extension",
@@ -307,7 +307,7 @@ validate_submission <- function(path, js_def, hub_path, target_data = NULL,
     } else if (!is.null(partition)) {
       schema <- make_schema(js_def0, js_def, round_id, path = path,
                             merge_sample_col = merge_sample_col,
-                            r_schema = r_schema)
+                            r_schema = r_schema, partition = partition)
       df <- load_partition_arrow(path, partition = partition, schema = schema)
     }
   }

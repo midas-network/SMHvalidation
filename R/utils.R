@@ -56,7 +56,8 @@ id_file_format <- function(path) {
 # Create schema for loading files using arrow
 # optional testing of the column names matching the schema
 make_schema <- function(js_def, js_def_round, round_id, path = NULL,
-                        merge_sample_col = NULL, r_schema = NULL) {
+                        merge_sample_col = NULL, r_schema = NULL,
+                        partition = NULL) {
   exp_col <- c(unique(names(unlist(purrr::map(js_def_round, "task_ids"),
                                    FALSE))),
                "output_type", "output_type_id", "value")
@@ -164,7 +165,7 @@ merge_sample_id <- function(df, req_colnames, merge_sample_col, js_def0,
   }
   sample_val <- na.omit(unlist(dplyr::distinct(df[, merge_sample_col])))
   if (isFALSE(all(is_wholenumber(sample_val))) ||
-      any(startsWith(as.character(sample_val), "0"))) {
+        any(startsWith(as.character(sample_val), "0"))) {
     err_message <-
       paste0("\U000274c Error 903: The columns ",
              paste(merge_sample_col, collapse = " and "),
@@ -356,4 +357,3 @@ create_report <- function(df, js_def, out_req, out_col,
   test_report <- paste0(test_report, "\n\n")
   return(test_report)
 }
-
