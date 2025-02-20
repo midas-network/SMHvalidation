@@ -17,7 +17,7 @@
 #' `arrow::write_dataset()`, `arrow::open_dataset()` functions.
 #'
 #' @importFrom tidyr separate matches
-#' @importFrom dplyr mutate collect
+#' @importFrom dplyr mutate collect .data
 #' @importFrom arrow open_dataset
 #'
 #' @export

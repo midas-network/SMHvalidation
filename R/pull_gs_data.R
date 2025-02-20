@@ -93,6 +93,7 @@ std_covidcast_signal <- function(signal, limit_date, vect_week_date) {
 #'
 #' @importFrom dplyr mutate select summarise distinct filter bind_rows
 #' @importFrom tidyr all_of
+#' @importFrom purrr map
 #' @importFrom MMWRweek MMWRweek MMWRweek2Date
 #' @importFrom covidcast covidcast_signal
 # nolint end
