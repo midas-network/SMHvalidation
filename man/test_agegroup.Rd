@@ -4,13 +4,15 @@
 \alias{test_agegroup}
 \title{Runs Validation Checks on the \code{age_group} column}
 \usage{
-test_agegroup(df, model_task)
+test_agegroup(df, model_task, file_name = "")
 }
 \arguments{
 \item{df}{data frame to test}
 
 \item{model_task}{list containing round information for each id columns
-and model output (type, format, etc.)}
+and model output (type, format, etc.) for a specific round}
+
+\item{file_name}{optional, name of the file tested}
 }
 \description{
 Validate Scenario Modeling Hub submissions: test if the \code{age_group} column
