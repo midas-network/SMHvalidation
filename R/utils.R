@@ -174,7 +174,8 @@ merge_sample_id <- function(df, req_colnames, merge_sample_col, js_def0,
     add_message <- paste(add_message, err_message, sep = "\n")
   }
   # Merge sample ID column
-  df <- tidyr::unite(df, col = "type_id_sample", merge_sample_col) |>
+  df <- tidyr::unite(df, col = "type_id_sample",
+                     tidyr::all_of(merge_sample_col)) |>
     dplyr::mutate(output_type_id =
                     ifelse(.data[["output_type"]] == "sample",
                            as.numeric(as.factor(.data[["type_id_sample"]])),
