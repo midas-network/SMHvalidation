@@ -4,12 +4,14 @@
 \alias{test_column}
 \title{Runs Validation Checks on Columns names and number}
 \usage{
-test_column(df, req_colnames)
+test_column(df, req_colnames, file_name = "")
 }
 \arguments{
 \item{df}{data frame to test}
 
 \item{req_colnames}{vector of required column names}
+
+\item{file_name}{optional, name of the file tested}
 }
 \description{
 Validate Scenario Modeling Hub submissions: names and number of columns.
