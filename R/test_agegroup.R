@@ -38,7 +38,7 @@ check_age_group <- function(mtask, df, checks, file_path) {
                                        collapse = ", "),
                        "} not accepted value.")
     checks$expect_agegroup_value <-
-      capture_check_cnd(format_checks, file_path, error = TRUE,
+      capture_check_cnd(req_check, file_path, error = TRUE,
                         msg_subject = "{.var age_group}",
                         msg_verbs = c("contains expected",
                                       "contains unexpected"),
@@ -50,7 +50,7 @@ check_age_group <- function(mtask, df, checks, file_path) {
                        paste(age_vect[!(age_vect %in% all_agegroup)],
                              collapse = ", "), "} is missing.")
     checks$require_agegroup_value <-
-      capture_check_cnd(format_checks, file_path,  error = TRUE,
+      capture_check_cnd(req_check, file_path,  error = TRUE,
                         msg_subject = "{.var age_group}",
                         msg_verbs = c("has all", "is missing"),
                         msg_attribute = "required values.", details = msg_dt)
