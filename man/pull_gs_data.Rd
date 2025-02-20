@@ -21,7 +21,7 @@ covidcast signal except "hospitalization" instead of
 \description{
 Download and returns data from COVIDcast package in a Scenario Modeling
 Hub format, with the incidence and cumulative data for each state and
-US national level by epiweek.
+US national level by epiweek. \strong{DEPRECATED}
 }
 \details{
 The function output a list of 5 data frame (one by target) of observed
