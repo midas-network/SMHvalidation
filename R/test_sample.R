@@ -1,6 +1,9 @@
+#'@importFrom purrr map compact
+#'@importFrom dplyr group_split
 pairing_test <- function(df_sample, m_task, or_pair, pairing_col) {
   if (length(unique(df_sample$run_grouping)) > 1) {
-    run_group <- purrr::map(dplyr::group_split(df_sample, run_grouping),
+    run_group <- purrr::map(dplyr::group_split(df_sample,
+                                               .data[["run_grouping"]]),
                             paired_info,
                             rm_col = c("stochastic_run", "output_type_id",
                                        "output_type", "value"),
@@ -11,7 +14,8 @@ pairing_test <- function(df_sample, m_task, or_pair, pairing_col) {
     run_group <- NULL
   }
   if (length(unique(df_sample$stochastic_run)) > 1) {
-    sto_group <- purrr::map(dplyr::group_split(df_sample, stochastic_run),
+    sto_group <- purrr::map(dplyr::group_split(df_sample,
+                                               .data[["stochastic_run"]]),
                             paired_info, c("run_grouping",
                                            "output_type_id",
                                            "output_type", "value"),
@@ -26,16 +30,12 @@ pairing_test <- function(df_sample, m_task, or_pair, pairing_col) {
                          function(l) pairing_col[!(pairing_col %in% l)])
   miss_col <- unique(unlist(miss_col))
   if (length(miss_col) > 0) {
-    sample_unique <-
-      paste0("\U000274c Error 902: The minimal accepted grouping ",
-             "includes the column(s): ",
-             paste(pairing_col, collapse = ", "), ", the column(s): ",
-             paste(miss_col, collapse = ", "), " seem to be missing (or ",
-             "is missing a sub-group), please  verify.")
-  } else {
-    sample_unique <- NA
+    message("\U000274c Error: The minimal accepted grouping includes the ",
+            "column(s): ", paste(pairing_col, collapse = ", "),
+            ", the column(s): ", paste(miss_col, collapse = ", "),
+            " seem to be missing (or is missing a sub-group), please  verify.")
   }
-  return(sample_unique)
+  invisible(NULL)
 }
 
 #' Runs Validation Checks on the sample column
@@ -70,13 +70,17 @@ pairing_test <- function(df_sample, m_task, or_pair, pairing_col) {
 #' Function called in the `validate_submission()` function, only if the
 #' submission contains `"sample"` output type.
 #'
-#'@importFrom stats na.omit
-#'@importFrom dplyr filter n
+#'@importFrom dplyr select contains all_of mutate mutate_if left_join filter
+#'@importFrom dplyr group_by across n
+#'@importFrom purrr map keep
 #'@export
 test_sample <- function(df, model_task, pairing_col = "horizon",
                         verbose = TRUE, verbose_col = NULL) {
+
+  warning("Function deprecated")
+
   # Prerequisite
-  or_pair <- dplyr::select(df, -dplyr::contains("output_type"), -value,
+  or_pair <- dplyr::select(df, -dplyr::all_of(c("output_type", "value")),
                            -dplyr::contains("run_grouping"),
                            -dplyr::contains("stochastic_run")) |>
     as.list() |>
@@ -84,36 +88,33 @@ test_sample <- function(df, model_task, pairing_col = "horizon",
     purrr::keep(function(x) length(x) == 1) |>
     names()
 
-  test_sample <- lapply(model_task, function(x) {
+  lapply(model_task, function(x) {
     if ("sample" %in% names(x$output_type)) {
       # prerequisite
-      df_sample <- data.table::data.table(df) |>
-        dplyr::mutate(origin_date = as.Date(origin_date)) |>
+      df_sample <-
+        dplyr::mutate(df, origin_date = as.Date(.data[["origin_date"]])) |>
         loc_zero()
       tasks_list <- setNames(lapply(names(x$task_ids),
                                     function(z) unique(unlist(x$task_id[[z]]))),
                              names(x$task_ids))
       test_df <- expand.grid(tasks_list) |>
         dplyr::mutate_if(is.factor, as.character) |>
-        dplyr::mutate(origin_date = as.Date(origin_date))
+        dplyr::mutate(origin_date = as.Date(.data[["origin_date"]]))
       test_df$sel <- 1
       df_sample <- dplyr::left_join(df_sample, test_df,
                                     by = names(tasks_list)) |>
-        dplyr::filter(sel == 1, output_type == "sample") |>
-        dplyr::select(-sel)
-      vector_sample <- unlist(unique(df_sample[, output_type_id]))
+        dplyr::filter(.data[["sel"]] == 1,
+                      .data[["output_type"]] == "sample") |>
+        dplyr::select(-dplyr::all_of(c("sel")))
+      vector_sample <- unlist(unique(df_sample[, "output_type_id"]))
       task_ids <- x$task_ids
       # - sample column should be an integer
       if (dim(df_sample)[1] > 0) {
         if (isFALSE(all(is_wholenumber(vector_sample)))) {
-          sample_type <-
-            paste0("\U000274c Error 903: The column 'output_type_id' should ",
-                   "contains integer values only for type 'sample'. ",
-                   "Please verify")
-        } else {
-          sample_type <- NA
+          message("\U000274c Error: The column 'output_type_id' should ",
+                  "contains integer values only for type 'sample'. ",
+                  "Please verify")
         }
-
         df_sample$output_type_id <- as.integer(df_sample$output_type_id)
         vector_sample <- as.integer(vector_sample)
         # - sample output_type_id column contains the expected value
@@ -135,34 +136,26 @@ test_sample <- function(df, model_task, pairing_col = "horizon",
         n_sample <- unique(test_sample$n)
 
         if (length(n_sample) > 1) {
-          sample_value <-
-            paste0("\U000274c Error 905: All the groups should contains the ",
-                   "same number of trajectories per group. Please verify.")
+          message("\U000274c Error: All the groups should contains the ",
+                  "same number of trajectories per group. Please verify.")
         } else if (n_sample != max(exp_sample)) {
           if (n_sample < max(as.numeric(req_sample_max))) {
-            sample_value <-
-              paste0("\U0001f7e1 Warning 901: The column 'output_type_id' ",
-                     "should contains at least ",
-                     max(as.numeric(req_sample_max)),
-                     " (included) trajectories per group for the type 'sample'",
-                     ", the submission file contains: ",
-                     paste(n_sample, collapse = ", "),
-                     " trajectories per group. Please verify.")
+            message("\U0001f7e1 Warning: The column 'output_type_id' ",
+                    "should contains at least ",
+                    max(as.numeric(req_sample_max)),
+                    " (included) trajectories per group for the type 'sample'",
+                    ", the submission file contains: ",
+                    paste(n_sample, collapse = ", "),
+                    " trajectories per group. Please verify.")
           } else if (n_sample > max(exp_sample)) {
-            sample_value <-
-              paste0("\U0001f7e1 Warning 901: The column 'output_type_id' ",
-                     "should contains a maximum of ", max(exp_sample),
-                     " (included) trajectories per group for the type 'sample'",
-                     ", the submission file contains: ",
-                     paste(n_sample, collapse = ", "),
-                     " trajectories per group. Please verify.")
-          } else {
-            sample_value <- NA # nocov
+            message("\U0001f7e1 Warning: The column 'output_type_id' ",
+                    "should contains a maximum of ", max(exp_sample),
+                    " (included) trajectories per group for the type 'sample'",
+                    ", the submission file contains: ",
+                    paste(n_sample, collapse = ", "),
+                    " trajectories per group. Please verify.")
           }
-        } else {
-          sample_value <- NA
         }
-
         # - sample id should contains the expected number of repetition
         # for each group (task_ids)
         # For pairing information: test if only minimum pairing repeated the
@@ -184,32 +177,21 @@ test_sample <- function(df, model_task, pairing_col = "horizon",
               ("sample" %in% names(x$output_type))) {
           if ("required" %in% names(x$output_type$sample$output_type_id)) {
             if (!is.null(x$output_type$sample$output_type_id$required)) {
-              test_sample <-
-                paste0("\U000274c Error 904: Samples are expected in the ",
-                       "submission for the target(s): ",
-                       paste(unique(unlist(x$task_ids$target$required)),
-                             collapse = ", "), ". please verify.")
-            } else {
-              test_sample <- NA
+              message("\U000274c Error: Samples are expected in the ",
+                      "submission for the target(s): ",
+                      paste(unique(unlist(x$task_ids$target$required)),
+                            collapse = ", "), ". please verify.")
             }
           } else {
-            test_sample <-
-              paste0("\U000274c Error 904: Samples are expected in the ",
-                     "submission for the target(s): ",
-                     paste(unique(unlist(x$task_ids$target$required)),
-                           collapse = ", "), ". please verify.")
+            message("\U000274c Erro: Samples are expected in the submission ",
+                    "for the target(s): ",
+                    paste(unique(unlist(x$task_ids$target$required)),
+                          collapse = ", "), ". please verify.")
           }
-        } else {
-          test_sample <-  NA # nocov
         }
       }
-    } else {
-      test_sample <- NA
     }
-    return(test_sample)
+    invisible(NULL)
   })
-  test_sample <- unique(na.omit(unlist(test_sample)))
-  if (length(test_sample) == 0)
-    test_sample <- "No errors or warnings found on Sample"
-  return(test_sample)
+  invisible(NULL)
 }
