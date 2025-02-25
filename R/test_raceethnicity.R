@@ -35,18 +35,18 @@ test_raceethnicity <- function(df, model_task) {
       raceethn_vect <- unique(df_test$race_ethnicity)
       if (isFALSE(all(raceethn_vect %in% all_raceethn))) {
         message("\U000274c Error: The `race_ethnicity` column contains ",
-                 "unexpected value: '",
-                 paste(raceethn_vect[!(raceethn_vect %in% all_raceethn)],
-                       collapse = "', '"), "'. 'race_ethnicity' can only be: ",
-                 paste(all_raceethn, collapse = ", "), ".")
+                "unexpected value: '",
+                paste(raceethn_vect[!(raceethn_vect %in% all_raceethn)],
+                      collapse = "', '"), "'. 'race_ethnicity' can only be: ",
+                paste(all_raceethn, collapse = ", "), ".")
       }
       if (isFALSE(all(req_raceethn %in% raceethn_vect))) {
         message("\U000274c Error: The `race_ethnicity` column is ",
-                 "missing at least 1 required value: '",
-                 paste(req_raceethn[!(req_raceethn %in% raceethn_vect)],
-                       collapse = "', '"),
-                 "'. 'race_ethnicity' should contain: ",
-                 paste(req_raceethn, collapse = ", "), ".")
+                "missing at least 1 required value: '",
+                paste(req_raceethn[!(req_raceethn %in% raceethn_vect)],
+                      collapse = "', '"),
+                "'. 'race_ethnicity' should contain: ",
+                paste(req_raceethn, collapse = ", "), ".")
       }
     }
     invisible(NULL)
