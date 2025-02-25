@@ -13,9 +13,8 @@
 #'
 #' Function called in the `validate_submission()` function.
 #'
-#'@importFrom stats na.omit
-#'@importFrom purrr keep map discard
-#'@importFrom dplyr filter
+#'@importFrom purrr map
+#'@importFrom dplyr filter .data
 #'@export
 test_location <- function(df, model_task) {
 
