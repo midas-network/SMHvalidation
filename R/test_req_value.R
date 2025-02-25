@@ -15,26 +15,29 @@
 #'@importFrom tidyr drop_na
 #'@export
 test_req_value <- function(df, model_task) {
+
+  warning("Function deprecated")
+
   req_df <- lapply(model_task, function(x) {
     req_df <- setNames(lapply(names(x$task_ids),
                               function(z) {
-                                unlist(x$task_id[[z]]$required) %>%
+                                unlist(x$task_id[[z]]$required) |>
                                   unique()
                               }), names(x$task_ids))
-    req_df <- purrr::compact(req_df) %>%
-      expand.grid() %>%
-      dplyr::mutate_if(is.factor, as.character) %>%
-      dplyr::mutate(origin_date = as.Date(origin_date))
+    req_df <- purrr::compact(req_df) |>
+      expand.grid() |>
+      dplyr::mutate_if(is.factor, as.character) |>
+      dplyr::mutate(origin_date = as.Date(.data[["origin_date"]]))
     return(req_df)
-  }) %>%
-    dplyr::bind_rows() %>%
-    dplyr::distinct() %>%
+  }) |>
+    dplyr::bind_rows() |>
+    dplyr::distinct() |>
     tidyr::drop_na()
 
   col_sel <- names(req_df)
-  test_df <- dplyr::select(df, dplyr::all_of(col_sel)) %>%
-    dplyr::distinct() %>%
-    dplyr::mutate(origin_date = as.Date(origin_date)) %>%
+  test_df <- dplyr::select(df, dplyr::all_of(col_sel)) |>
+    dplyr::distinct() |>
+    dplyr::mutate(origin_date = as.Date(.data[["origin_date"]])) |>
     loc_zero()
 
   res <- dplyr::setdiff(req_df, test_df)
@@ -42,13 +45,8 @@ test_req_value <- function(df, model_task) {
     err <- purrr::map(as.list(res), unique)
     err <- paste(names(err), purrr::map(err, as.character), sep = ": ",
                  collapse = "\n")
-    miss_val <- paste0("\U000274c Error 006: The submission is missing some ",
-                       "required values, please check: \n ", err)
-  } else {
-    miss_val <- NA
+    message("\U000274c Error: The submission is missing some ",
+            "required values, please check: \n ", err)
   }
-  test_req <- unique(na.omit(unlist(miss_val)))
-  if (length(test_req) == 0)
-    test_req <- "No missing required value found"
-  return(test_req)
+  invisible(NULL)
 }
