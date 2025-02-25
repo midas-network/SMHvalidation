@@ -229,6 +229,11 @@ run_all_validation <- function(df, path, js_def0, js_def, round_id, hub_path,
 #'   (`js_def` parameter).
 #'  * Date format: All columns containing dates information should be in
 #'   "YYY-MM-DD" format.
+#' * Location name: The submission should contains projection by
+#'  location, the `location` column contains the location FIPS number as
+#'  available in the location table in the SMH GitHub Repository. If the FIPS
+#'  number are missing a trailing zero, the submission will be accepted but a
+#'  warning message will be returned.
 #'
 #' @importFrom hubUtils get_round_ids read_config_file get_round_model_tasks
 #' @importFrom stringr str_extract
