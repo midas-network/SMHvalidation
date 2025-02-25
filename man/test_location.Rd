@@ -2,7 +2,7 @@
 % Please edit documentation in R/test_location.R
 \name{test_location}
 \alias{test_location}
-\title{Runs Validation Checks on the Location column}
+\title{\strong{Deprecated} - Runs Validation Checks on the Location column}
 \usage{
 test_location(df, model_task)
 }
@@ -17,13 +17,8 @@ Validate Scenario Modeling Hub submissions: test if the  \code{location} column
 contains the expected  value.
 }
 \details{
-This function contains 2 tests:
+This function contains a test:
 \itemize{
-\item Location name: The submission should contains projection by
-location, the \code{location} column contains the location FIPS number as
-available in the location table in the SMH GitHub Repository. If the FIPS
-number are missing a trailing zero, the submission will be accepted but a
-warning message will be returned.
 \item Specific location: For the target(s) requiring only specific
 location(s), no additional location is provided in the submission file
 }
