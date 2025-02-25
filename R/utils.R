@@ -1,4 +1,5 @@
 # extract tasks ids column names
+#' @importFrom purrr flatten map
 get_tasksids_colnames <- function(js_def) {
   taskids_col <- purrr::map(js_def, "task_ids") |>
     purrr::flatten() |>
@@ -39,6 +40,7 @@ team_round_id <- function(path, partition = NULL) {
 }
 
 # Test of any factor columns
+#' @importFrom dplyr mutate_if
 factor_columns <- function(df) {
   if (any(sapply(colnames(df), function(x) is.factor(df[[x]])))) {
     warning("\U0001f7e1 Warning: At least one column is in a format: 'factor',",
@@ -50,8 +52,9 @@ factor_columns <- function(df) {
 }
 
 # Identify file format extension - Partitioned format
+#' @importFrom dplyr case_when
 id_file_format <- function(path) {
-  err005 <- paste0("\U000274c 005: The file format of the submission was not",
+  err005 <- paste0("\U000274c Error: The file format of the submission was not",
                    " recognized, please use one unique file or multiple ",
                    "parquet files. For more information, please look at the ",
                    "documentation of the hub. \n")
@@ -69,6 +72,9 @@ id_file_format <- function(path) {
 
 # Create schema for loading files using arrow
 # optional testing of the column names matching the schema
+#' @importFrom hubData create_hub_schema
+#' @importFrom purrr map
+#' @importFrom arrow Field int64 schema open_dataset
 make_schema <- function(js_def, js_def_round, round_id, path = NULL,
                         merge_sample_col = NULL, r_schema = NULL,
                         partition = NULL) {
@@ -98,7 +104,7 @@ make_schema <- function(js_def, js_def_round, round_id, path = NULL,
                                      format = filef)$schema$names
     col_names <- unique(c(col_names, partition))
     if (!(all(exp_col %in% col_names)) || !(all(col_names %in% exp_col))) {
-      stop("\U000274c 101: At least one column name is misspelled",
+      stop("\U000274c Error: At least one column name is misspelled",
            " or does not correspond to the expected column names \n")
     }
   }
@@ -107,6 +113,8 @@ make_schema <- function(js_def, js_def_round, round_id, path = NULL,
 }
 
 # Load partitioned files using Arrow
+#' @importFrom arrow open_dataset
+#' @importFrom dplyr collect
 load_partition_arrow <- function(path, partition, schema = NULL) {
   filef <- id_file_format(path)
   if (filef == "parquet") {
@@ -149,44 +157,42 @@ loc_zero <- function(df) {
 #' correct, the two columns contains only integer values,and if the
 #' concatenation does not returns an unique value.
 #'
-#' The function returns a named list with: the output data frame (without the
-#' two columns, `"df"`) and a list of error message, if any issue
-#' (`"add_message"`)
+#' The function returns the output data frame (without the `merge_sample_col`)
 #'
-#' @param df data frame
-#' @param req_colnames character vector of the expected column names
-#' @param merge_sample_col character vector of the sample ID column names to
-#'  concatenate
-#' @param add_meesage character vector, error message to append
-#'
-#' @importFrom tidyr unite matches all_of
-#' @importFrom dplyr mutate select .data
+#' @importFrom tidyr unite all_of
+#' @importFrom dplyr distinct filter group_by across n summarise mutate select
+#' @importFrom hubValidations create_hub_schema
+#' @importFrom purrr map
 #'
 #' @noRd
-merge_sample_id <- function(df, req_colnames, merge_sample_col, js_def0,
-                            add_message = NULL, partition = NULL) {
+merge_sample_id <- function(df, req_colnames, merge_sample_col, js_def0, js_def,
+                            partition = NULL, verbose = TRUE) {
   # Validation
   if (!(all(c(req_colnames, merge_sample_col) %in% names(df)))) {
     fail_col <- req_colnames[!req_colnames %in% names(df)]
-    colnames_test <-
-      paste0("\U000274c Error 101: At least one column name is misspelled or",
-             " does not correspond to the expected column names. The ",
-             "column(s) ", paste(fail_col, collapse = ", "),
-             " do(es) not correspond to the standard")
-    cat(colnames_test)
-    stop(" The submission contains an issue, the validation was not run, ",
-         "please see information above.")
+    stop("\U000274c Error: At least one column name is misspelled or does ",
+         "not correspond to the expected column names. The column(s) ",
+         paste(fail_col, collapse = ", "), " do(es) not correspond to the ",
+         "standard")
   }
   sample_val <- na.omit(unlist(dplyr::distinct(df[, merge_sample_col])))
   if (isFALSE(all(is_wholenumber(sample_val))) ||
         any(startsWith(as.character(sample_val), "0"))) {
-    err_message <-
-      paste0("\U000274c Error 903: The columns ",
-             paste(merge_sample_col, collapse = " and "),
-             " should contain integer values only for type ",
-             "'sample'. Please verify")
-    add_message <- paste(add_message, err_message, sep = "\n")
+    message("\U000274c Error: The columns ", paste(merge_sample_col,
+                                                   collapse = " and "),
+            " should contain integer values only for type 'sample'.")
   }
+  # Verbose
+  if (verbose) {
+    df_sample <- dplyr::filter(df, .data[["output_type"]] == "sample")
+    task_ids <- unique(unlist(purrr::map(purrr::map(js_def, "task_ids"),
+                                         names)))
+    test_sample <- dplyr::group_by(df_sample, dplyr::across(task_ids))
+    test_sample <- dplyr::summarise(test_sample, n = dplyr::n())
+    n_sample <- unique(test_sample$n)
+    verbose_pairing(df_sample, js_def, or_pair = NULL, n_sample = n_sample)
+  }
+
   # Merge sample ID column
   df <- tidyr::unite(df, col = "type_id_sample",
                      tidyr::all_of(merge_sample_col)) |>
@@ -203,14 +209,106 @@ merge_sample_id <- function(df, req_colnames, merge_sample_col, js_def0,
                                             "(df$output_type_id)")))
   if (length(unique(df[which(df$output_type == "sample"),
                        "output_type_id", TRUE])) <= 1) {
-    add_message <- paste0(add_message,
-                          "\n\U000274c Error 902: The submission should ",
-                          "contains multiple sample output type groups, ",
-                          "please verify.\n")
+    message("\n\U000274c Error: The submission should ",
+            "contains multiple sample output type groups, please verify.\n")
   }
-  return(list("df" = df, "add_message" = add_message))
+  return(df)
 }
 
+# Function for pairing information
+#' @importFrom purrr map
+#' @importFrom dplyr group_split
+verbose_pairing <- function(df_sample, m_task, or_pair, n_sample,
+                            verbose_col = NULL) {
+  if (length(unique(df_sample$run_grouping)) > 1) {
+    run_group <-
+      purrr::map(dplyr::group_split(df_sample, .data[["run_grouping"]]),
+                 paired_info, rm_col = c("stochastic_run", "output_type_id",
+                                         "output_type",  "value"),
+                 tasks_list = m_task$task_ids, verbose_col = verbose_col) |>
+      unique() |>
+      purrr::map(c, or_pair)
+  } else {
+    run_group <- "No run grouping"
+  }
+  if (length(unique(df_sample$stochastic_run)) > 1) {
+    sto_group <-
+      purrr::map(dplyr::group_split(df_sample, .data[["stochastic_run"]]),
+                 paired_info, c("run_grouping", "output_type_id",
+                                "output_type", "value"),
+                 tasks_list = m_task$task_ids, verbose_col = verbose_col) |>
+      unique() |>
+      purrr::map(c, or_pair)
+  } else {
+    sto_group <- "No stochasticity"
+  }
+  head_mess <- "\n# Column Pairing information: \n "
+  p_rg <- paste0(head_mess, "Run grouping pairing: \n",
+                 paste(run_group, collapse = ", \n"))
+  p_info <- paste0(p_rg, "\n", paste0(" Stochastic run pairing: \n",
+                                      paste(sto_group, collapse = ", \n")))
+  pair_inf <- paste0(p_info, "\n ", "Number of Samples: ", n_sample)
+  message(pair_inf)
+}
+
+# extract pairing information
+#' @importFrom dplyr select contains pick all_of arrange distinct
+#' @importFrom purrr map keep compact
+paired_info <- function(df, rm_col = NULL, tasks_list = NULL,
+                        verbose_col = NULL) {
+  if (!is.null(rm_col)) df <- dplyr::select(df, -dplyr::contains(rm_col))
+  sel_col <- grep("output|run_grou|stochas|value", names(df), value = TRUE,
+                  invert = TRUE)
+  df <- dplyr::arrange(df, dplyr::pick(dplyr::all_of(sel_col)))
+  test_pair_list <- dplyr::distinct(df) |>
+    as.list() |>
+    purrr::map(unique)
+  if (is.null(tasks_list)) { # nocov start
+    paired_info <- purrr::keep(test_pair_list, function(x) length(x) > 1) |>
+      names()
+  } else { # nocov end
+    paired_info <- lapply(seq_along(test_pair_list), function(x) {
+      if (is.null(verbose_col)) {
+        if (length(test_pair_list[[x]]) > 1) {
+          if (all(unlist((tasks_list[[names(test_pair_list[x])]])) %in%
+                    test_pair_list[[x]])) {
+            p_col <- names(test_pair_list[x])
+          } else {
+            t_list <- tasks_list[[names(test_pair_list[x])]]
+            if ((all(t_list$required %in% test_pair_list[[x]]) &&
+                   !is.null(t_list$required)) |
+                (all(t_list$optional %in% test_pair_list[[x]]) &&
+                 !is.null(t_list$optional))) {
+              p_col <- names(test_pair_list[x])
+            } else {
+              p_col <- NULL # nocov
+            }
+          }
+        } else {
+          p_col <- NULL
+        }
+      } else {
+        if (length(test_pair_list[[x]]) > 1) {
+          if (names(test_pair_list[x]) %in% verbose_col |
+                !all(unlist((tasks_list[[names(test_pair_list[x])]])) %in%
+                   test_pair_list[[x]])) {
+            p_col <- paste0(names(test_pair_list[x]), " (",
+                            paste(test_pair_list[[x]], collapse = ", "), ")")
+          } else {
+            p_col <- names(test_pair_list[x])
+          }
+        } else {
+          p_col <- NULL
+        }
+      }
+      return(p_col)
+    }) |>
+      purrr::compact() |>
+      unlist() |>
+      unique()
+  }
+  return(paired_info)
+}
 
 
 ##############
@@ -264,62 +362,7 @@ filter_df <- function(df, task_id, exclusion = NULL, required = FALSE,
   return(df_test)
 }
 
-# extract pairing information
-paired_info <- function(df, rm_col = NULL, tasks_list = NULL,
-                        verbose_col = NULL) {
-  if (!is.null(rm_col)) df <- dplyr::select(df, -dplyr::contains(rm_col))
-  sel_col <- grep("output|run_grou|stochas|value", names(df), value = TRUE,
-                  invert = TRUE)
-  df <- dplyr::arrange(df, dplyr::pick(dplyr::all_of(sel_col)))
-  test_pair_list <- dplyr::distinct(df) %>%
-    as.list() %>%
-    purrr::map(unique)
-  if (is.null(tasks_list)) { # nocov start
-    paired_info <- purrr::keep(test_pair_list, function(x) length(x) > 1) %>%
-      names()
-  } else { # nocov end
-    paired_info <- lapply(seq_along(test_pair_list), function(x) {
-      if (is.null(verbose_col)) {
-        if (length(test_pair_list[[x]]) > 1) {
-          if (all(unlist((tasks_list[[names(test_pair_list[x])]])) %in%
-                    test_pair_list[[x]])) {
-            p_col <- names(test_pair_list[x])
-          } else {
-            t_list <- tasks_list[[names(test_pair_list[x])]]
-            if ((all(t_list$required %in% test_pair_list[[x]]) &&
-                   !is.null(t_list$required)) |
-                  (all(t_list$optional %in% test_pair_list[[x]]) &&
-                     !is.null(t_list$optional))) {
-              p_col <- names(test_pair_list[x])
-            } else {
-              p_col <- NULL # nocov
-            }
-          }
-        } else {
-          p_col <- NULL
-        }
-      } else {
-        if (length(test_pair_list[[x]]) > 1) {
-          if (names(test_pair_list[x]) %in% verbose_col |
-                !all(unlist((tasks_list[[names(test_pair_list[x])]])) %in%
-                       test_pair_list[[x]])) {
-            p_col <- paste0(names(test_pair_list[x]), " (",
-                            paste(test_pair_list[[x]], collapse = ", "), ")")
-          } else {
-            p_col <- names(test_pair_list[x])
-          }
-        } else {
-          p_col <- NULL
-        }
-      }
-      return(p_col)
-    }) %>%
-      purrr::compact() %>%
-      unlist() %>%
-      unique()
-  }
-  return(paired_info)
-}
+
 
 
 #' Create the validation report

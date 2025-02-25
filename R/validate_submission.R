@@ -54,14 +54,8 @@ run_all_validation <- function(df, path, js_def0, js_def, round_id, hub_path,
 
   # Merge sample ID column
   if (!is.null(merge_sample_col)) {
-    sample_update <- merge_sample_id(df, req_colnames, merge_sample_col,
-                                     js_def0, partition = partition,
-                                     add_message = NULL)
-    df <- sample_update[["df"]]
-    add_message <- sample_update[["add_message"]]
-  } else {
-    df <- df
-    add_message <- NULL
+    df <- merge_sample_id(df, req_colnames, merge_sample_col,  js_def0, js_def,
+                          partition = partition, verbose = verbose)
   }
 
   checks <- new_hub_validations()

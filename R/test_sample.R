@@ -1,51 +1,11 @@
-verbose_pairing <- function(df_sample, m_task, or_pair, n_sample,
-                            verbose_col = NULL) {
-  if (length(unique(df_sample$run_grouping)) > 1) {
-    run_group <- purrr::map(dplyr::group_split(df_sample, run_grouping),
-                            paired_info,
-                            rm_col = c("stochastic_run",
-                                       "output_type_id",
-                                       "output_type", "value"),
-                            tasks_list = m_task$task_ids,
-                            verbose_col = verbose_col) %>%
-      unique() %>%
-      purrr::map(c, or_pair)
-  } else {
-    run_group <- "No run grouping"
-  }
-  if (length(unique(df_sample$stochastic_run)) > 1) {
-    sto_group <- purrr::map(dplyr::group_split(df_sample,
-                                               stochastic_run),
-                            paired_info, c("run_grouping",
-                                           "output_type_id",
-                                           "output_type", "value"),
-                            tasks_list = m_task$task_ids,
-                            verbose_col = verbose_col) %>%
-      unique() %>%
-      purrr::map(c, or_pair)
-  } else {
-    sto_group <- "No stochasticity"
-  }
-  head_mess <- "\n ### Column Pairing information: \n "
-  p_rg <- paste0(head_mess, "Run grouping pairing: \n",
-                 paste(run_group, collapse = ", \n"))
-  p_info <- paste0(p_rg, "\n",
-                   paste0(" Stochastic run pairing: \n",
-                          paste(sto_group, collapse = ", \n")))
-  pair_inf <- paste0(p_info, "\n ",
-                     "Number of Samples: ", n_sample)
-  return(pair_inf)
-}
-
-
 pairing_test <- function(df_sample, m_task, or_pair, pairing_col) {
   if (length(unique(df_sample$run_grouping)) > 1) {
     run_group <- purrr::map(dplyr::group_split(df_sample, run_grouping),
                             paired_info,
                             rm_col = c("stochastic_run", "output_type_id",
                                        "output_type", "value"),
-                            tasks_list = m_task$task_ids) %>%
-      unique() %>%
+                            tasks_list = m_task$task_ids) |>
+      unique() |>
       purrr::map(c, or_pair)
   } else {
     run_group <- NULL
@@ -55,8 +15,8 @@ pairing_test <- function(df_sample, m_task, or_pair, pairing_col) {
                             paired_info, c("run_grouping",
                                            "output_type_id",
                                            "output_type", "value"),
-                            tasks_list = m_task$task_ids) %>%
-      unique() %>%
+                            tasks_list = m_task$task_ids) |>
+      unique() |>
       purrr::map(c, or_pair)
   } else {
     sto_group <- NULL
@@ -118,28 +78,28 @@ test_sample <- function(df, model_task, pairing_col = "horizon",
   # Prerequisite
   or_pair <- dplyr::select(df, -dplyr::contains("output_type"), -value,
                            -dplyr::contains("run_grouping"),
-                           -dplyr::contains("stochastic_run")) %>%
-    as.list() %>%
-    purrr::map(unique) %>%
-    purrr::keep(function(x) length(x) == 1) %>%
+                           -dplyr::contains("stochastic_run")) |>
+    as.list() |>
+    purrr::map(unique) |>
+    purrr::keep(function(x) length(x) == 1) |>
     names()
 
   test_sample <- lapply(model_task, function(x) {
     if ("sample" %in% names(x$output_type)) {
       # prerequisite
-      df_sample <- data.table::data.table(df) %>%
-        dplyr::mutate(origin_date = as.Date(origin_date)) %>%
+      df_sample <- data.table::data.table(df) |>
+        dplyr::mutate(origin_date = as.Date(origin_date)) |>
         loc_zero()
       tasks_list <- setNames(lapply(names(x$task_ids),
                                     function(z) unique(unlist(x$task_id[[z]]))),
                              names(x$task_ids))
-      test_df <- expand.grid(tasks_list) %>%
-        dplyr::mutate_if(is.factor, as.character) %>%
+      test_df <- expand.grid(tasks_list) |>
+        dplyr::mutate_if(is.factor, as.character) |>
         dplyr::mutate(origin_date = as.Date(origin_date))
       test_df$sel <- 1
       df_sample <- dplyr::left_join(df_sample, test_df,
-                                    by = names(tasks_list)) %>%
-        dplyr::filter(sel == 1, output_type == "sample") %>%
+                                    by = names(tasks_list)) |>
+        dplyr::filter(sel == 1, output_type == "sample") |>
         dplyr::select(-sel)
       vector_sample <- unlist(unique(df_sample[, output_type_id]))
       task_ids <- x$task_ids
@@ -211,7 +171,7 @@ test_sample <- function(df, model_task, pairing_col = "horizon",
         # Add pairing information
         if (verbose) {
           pair_inf <- verbose_pairing(df_sample, x, NULL, n_sample,
-                                      verbose_col = c(verbose_col)) %>%
+                                      verbose_col = c(verbose_col)) |>
             purrr::map(unique)
         } else {
           pair_inf <- NA
