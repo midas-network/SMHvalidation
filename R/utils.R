@@ -7,6 +7,20 @@ get_tasksids_colnames <- function(js_def) {
   return(taskids_col)
 }
 
+# Check location format - FIPS code of 2 character (not numeric)
+location_fips_format <- function(df) {
+  if (any(nchar(df$location) == 1)) {
+    vect <- unique(df$location[which(nchar(df$location) == 1)])
+    warning("Some location value are missing a trailing 0. For example, ",
+            paste(vect, collapse = ", "), " instead of ",
+            paste(paste0(0, vect), collapse = ", "))
+    df$location[which(nchar(df$location) == 1)] <-
+      paste0(0,  df$location[which(nchar(df$location) == 1)])
+  }
+  if (any("location" %in% names(df))) df$location <- as.character(df$location)
+  return(df)
+}
+
 # extract team round id information
 team_round_id <- function(path, partition = NULL) {
   # Select the associated round (add error message if no match)
