@@ -32,33 +32,31 @@
 #' Function called in the `validate_submission()` function.
 #'
 #'@importFrom stats na.omit
-#'@importFrom dplyr %>% mutate filter
+#'@importFrom dplyr mutate filter select distinct everything
+#'@importFrom tidyr all_of unite
 #'@importFrom purrr map keep
 #'@export
 test_target <- function(df, model_task) {
-
+  warning("Function deprecated")
   # - target names (should be the same as in the GitHub)
   target_names <- unique(unlist(purrr::map(purrr::map(model_task, "task_ids"),
                                            "target")))
   if (isFALSE(all(df$target %in% target_names))) {
-    targetname_test <-
-      paste0("\U000274c Error 601: At least one of the target_names is ",
-             "misspelled. Please verify, the target_names should be (optional ",
-             "target(s) inluded): '", paste(target_names, collapse = ", "),
-             "'. The data frame contains: '",
-             paste(unique(df$target), collapse = ", "), "', as targets names.")
-  } else {
-    targetname_test <- NA
+    message("\U000274c Error: At least one of the target_names is ",
+            "misspelled. Please verify, the target_names should be (optional ",
+            "target(s) inluded): '", paste(target_names, collapse = ", "),
+            "'. The data frame contains: '",
+            paste(unique(df$target), collapse = ", "), "', as targets names.")
   }
-
-  target_test <- lapply(model_task, function(x) {
+  lapply(model_task, function(x) {
     # Prerequisite
     target_req <- x$task_ids$target$required
     req_horizon <- x$task_ids$horizon$required
     opt_horizon <- x$task_ids$horizon$optional
-    df_target <- data.table::data.table(df)
-    df_target <- df_target[target %in% unique(unlist(x$task_ids$target)) &
-                             output_type %in% names(x$output_type)]
+    df_target <-
+      dplyr::filter(df,
+                    .data[["target"]] %in% unique(unlist(x$task_ids$target)) &
+                      .data[["output_type"]] %in% names(x$output_type))
     df_target <- loc_zero(df_target)
     if (dim(df_target)[1] > 0) {
       # - the submission contains all the targets. It is also accepted
@@ -67,12 +65,9 @@ test_target <- function(df, model_task) {
       df_req_target <- grep(paste(target_req, collapse = "|"),
                             unique(df_target$target), value = TRUE)
       if (length(df_req_target) < length(target_req)) {
-        targetnum_test <-
-          paste0("\U000274c Error 602: The data frame does not contain ",
-                 "projections for '",
-                 target_req[!target_req %in% df_req_target], "' target(s).")
-      }  else {
-        targetnum_test <- NA
+        message("\U000274c Error: The data frame does not contain ",
+                "projections for '",
+                target_req[!target_req %in% df_req_target], "' target(s).")
       }
       # - Model projects for the expected number of weeks or more
       #  (if a team submit more we will still accept it)
@@ -80,20 +75,15 @@ test_target <- function(df, model_task) {
       max_week <- length(unique(c(req_horizon, opt_horizon)))
       if (isFALSE(length(unique(na.omit(df_target$horizon))) >=
                     n_target_week)) {
-        targetweek_test <-
-          paste0("\U0001f7e1 Warning 605: The projections should contain at ",
-                 "least ", n_target_week,
-                 " weeks of projection. The data frame contains only: ",
-                 length(unique(df_target$horizon)), " week(s). The projection",
-                 " might not be included in the Ensembles.")
+        message("\U0001f7e1 Warning: The projections should contain at least ",
+                n_target_week, " weeks of projection. The data frame contains ",
+                "only: ", length(unique(df_target$horizon)), " week(s). The",
+                " projection might not be included in the Ensembles.")
       } else {
         if (isTRUE(length(unique(na.omit(df_target$horizon))) > max_week)) {
-          targetweek_test <-
-            paste0("\U000274c Error 606: The projection contains more ",
-                   "projected week than expected. The projection should ",
-                   "contain ", max_week, " maximum.")
-        } else {
-          targetweek_test <- NA
+          message("\U000274c Error: The projection contains more projected ",
+                  "week than expected. The projection should contain ",
+                  max_week, " maximum.")
         }
       }
       # targets information for the horizon
@@ -109,97 +99,66 @@ test_target <- function(df, model_task) {
       # - all target weeks are present (1,2,3, etc.) by target, scenario,
       # location, quantile or sample for the target(s) requiring it
       if (!is.null(target_ts)) {
-        df_ts <- df_target[grepl(paste(target_ts, collapse = "|"), target)]
+        df_ts <- dplyr::filter(df_target,
+                               grepl(paste(target_ts, collapse = "|"),
+                                     .data[["target"]]))
         sel_group <- grep(paste0("value|target_end_date|model_projection_date|",
                                  "scenario_name|horizon"),
                           names(df_ts), invert = TRUE, value = TRUE)
-        df_ts[, sel := ifelse(all(req_horizon %in% horizon), 0, 1),
-              by = sel_group]
-        df_ts <- df_ts[sel > 0]
+        df_ts <-
+          dplyr::mutate(df_ts,
+                        sel = ifelse(all(req_horizon %in% .data[["horizon"]]),
+                                     0, 1), .by = tidyr::all_of(sel_group)) |>
+          dplyr::filter(.data[["sel"]] > 0)
         if (dim(df_ts)[1] > 0) {
-          err_groups <- df_ts %>%
-            dplyr::select(-sel, -value) %>%
-            dplyr::distinct() %>%
-            tidyr::unite("group", dplyr::everything(), sep = ", ") %>%
+          err_groups <- df_ts |>
+            dplyr::select(-tidyr::all_of(c("sel", "value"))) |>
+            dplyr::distinct() |>
+            tidyr::unite("group", dplyr::everything(), sep = ", ") |>
             unlist()
-          targetwnum_test <-
-            paste0("\U000274c Error 607: At least one target week is missing ",
-                   "in the time series. Please verify: ", err_groups)
-        } else {
-          targetwnum_test <- NA
+          err_groups <- err_groups[1:25]
+          message("\U000274c Error: At least one target week is missing ",
+                  "in the time series. Please verify: ", err_groups)
         }
-        if (length(na.omit(unlist(targetwnum_test))) > 100) {
-          targetwnum_test <-
-            paste0(unique(unlist(purrr::map(strsplit(targetwnum_test,
-                                                     "Please verify: "), 1))),
-                   length(targetwnum_test),
-                   " unique groups have been identified with this issue. ",
-                   "For example: \n",
-                   paste("group: ", head(purrr::map(strsplit(targetwnum_test,
-                                                             "verify: "), 2),
-                                         3), collapse = ";\n"), "; \netc.")
-        }
-      } else {
-        targetwnum_test <- NA
       }
       # - all target weeks are NA by target, scenario, location, quantile/sample
       # for the target(s) requiring it
       if (length(target_pnt) > 0) {
-        df_pnt <- df_target[grepl(paste(target_pnt, collapse = "|"), target)]
+        df_pnt <- dplyr::filter(df_target,
+                                grepl(paste(target_pnt, collapse = "|"),
+                                      .data[["target"]]))
         if (isFALSE(all(is.na(df_pnt$horizon)))) {
-          df_pnt <- df_pnt[!is.na(horizon)]
+          df_pnt <- dplyr::filter(df_pnt, !is.na(.data[["horizon"]]))
           sel_group <- grep("value|model_projection_date|scenario_name",
                             names(df_pnt), invert = TRUE, value = TRUE)
-          df_pnt <- dplyr::distinct(df_pnt[, ..sel_group])
-          err_groups <- df_pnt %>%
-            tidyr::unite("group", dplyr::everything(), sep = ", ") %>%
+          df_pnt <- dplyr::distinct(dplyr::select(df_pnt,
+                                                  tidyr::all_of(sel_group)))
+          err_groups <- df_pnt |>
+            tidyr::unite("group", dplyr::everything(), sep = ", ") |>
             unlist()
-          targetwna_test <-
-            paste0("\U000274c Error 612: The 'horizon' should be equal to NA",
-                   " for the target(s): ", paste(target_pnt, collapse = ", "),
-                   ". Please verify: ", err_groups)
-        } else {
-          targetwna_test <- NA
+          err_groups <- err_groups[1:25]
+          message("\U000274c Error: The 'horizon' should be equal to NA for",
+                  " the target(s): ", paste(target_pnt, collapse = ", "),
+                  ". Please verify: ", err_groups)
         }
-      } else {
-        targetwna_test <- NA
       }
-      if (length(na.omit(unlist(targetwna_test))) > 100) {
-        targetwna_test <-
-          paste0(unique(unlist(purrr::map(strsplit(targetwna_test,
-                                                   "Please verify: "), 1))),
-                 length(targetwna_test), " unique groups have been identified ",
-                 "with this issue. For example: \n",
-                 paste("group: ", head(purrr::map(strsplit(targetwna_test,
-                                                           "verify: "), 2),
-                                       3), collapse = ";\n"), "; \netc.")
-      }
-      target_test <- na.omit(c(targetnum_test, targetweek_test, targetwnum_test,
-                               targetwna_test))
     } else {
       missing_target <-
         paste(unlist(x$task_ids$target), " (",
               gsub("\\d$", "", names(unlist(x$task_ids$target))), ")", sep = "",
               collapse = ", ")
       if (any(grepl("required", missing_target))) {
-        target_test <-
-          paste0("\U000274c Error 602: No value found associated with the ",
-                 "targets: ", missing_target, "; output_type: ",
-                 paste(names(x$output_type), collapse = ", "),
-                 ". Please verify.")
+        message("\U000274c Error: No value found associated with the targets: ",
+                missing_target, "; output_type: ", paste(names(x$output_type),
+                                                         collapse = ", "),
+                ". Please verify.")
       } else {
-        target_test <-
-          paste0("\U0001f7e1 Warning 602: No value found associated with the ",
-                 "targets: ", missing_target, "; output_type: ",
-                 paste(names(x$output_type), collapse = ", "), ".")
+        message("\U0001f7e1 Warning: No value found associated with the ",
+                "targets: ", missing_target, "; output_type: ",
+                paste(names(x$output_type), collapse = ", "), ".")
       }
     }
-    return(target_test)
+    invisible(NULL)
   })
-  target_test <- unique(na.omit(unlist(c(targetname_test, target_test))))
-  if (length(target_test) == 0)
-    target_test <- paste0("No errors or warnings found in target and ",
-                          "associated columns")
-
-  return(target_test)
+  invisible(NULL)
 }

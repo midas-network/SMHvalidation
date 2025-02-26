@@ -278,8 +278,8 @@ paired_info <- function(df, rm_col = NULL, tasks_list = NULL,
             t_list <- tasks_list[[names(test_pair_list[x])]]
             if ((all(t_list$required %in% test_pair_list[[x]]) &&
                    !is.null(t_list$required)) |
-                (all(t_list$optional %in% test_pair_list[[x]]) &&
-                 !is.null(t_list$optional))) {
+                  (all(t_list$optional %in% test_pair_list[[x]]) &&
+                     !is.null(t_list$optional))) {
               p_col <- names(test_pair_list[x])
             } else {
               p_col <- NULL # nocov
@@ -292,7 +292,7 @@ paired_info <- function(df, rm_col = NULL, tasks_list = NULL,
         if (length(test_pair_list[[x]]) > 1) {
           if (names(test_pair_list[x]) %in% verbose_col |
                 !all(unlist((tasks_list[[names(test_pair_list[x])]])) %in%
-                   test_pair_list[[x]])) {
+                       test_pair_list[[x]])) {
             p_col <- paste0(names(test_pair_list[x]), " (",
                             paste(test_pair_list[[x]], collapse = ", "), ")")
           } else {
