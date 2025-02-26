@@ -190,7 +190,8 @@ merge_sample_id <- function(df, req_colnames, merge_sample_col, js_def0, js_def,
     test_sample <- dplyr::group_by(df_sample, dplyr::across(task_ids))
     test_sample <- dplyr::summarise(test_sample, n = dplyr::n())
     n_sample <- unique(test_sample$n)
-    verbose_pairing(df_sample, js_def, or_pair = NULL, n_sample = n_sample)
+    verbose_pairing(df_sample, js_def, or_pair = NULL, n_sample = n_sample) |>
+      purrr::map(unique)
   }
 
   # Merge sample ID column

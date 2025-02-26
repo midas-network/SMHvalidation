@@ -160,31 +160,20 @@ test_sample <- function(df, model_task, pairing_col = "horizon",
         # for each group (task_ids)
         # For pairing information: test if only minimum pairing repeated the
         # expected number of times
-        sample_unique <- pairing_test(df_sample, x, or_pair, pairing_col)
+        pairing_test(df_sample, x, or_pair, pairing_col)
         # Add pairing information
         if (verbose) {
           pair_inf <- verbose_pairing(df_sample, x, NULL, n_sample,
                                       verbose_col = c(verbose_col)) |>
             purrr::map(unique)
-        } else {
-          pair_inf <- NA
+          message(pair_inf)
         }
-        # - result output
-        test_sample <- unique(na.omit(c(sample_value, unlist(sample_unique),
-                                        sample_type, pair_inf)))
       } else {
         if (!is.null(x$task_ids$target$required) &
               ("sample" %in% names(x$output_type))) {
-          if ("required" %in% names(x$output_type$sample$output_type_id)) {
-            if (!is.null(x$output_type$sample$output_type_id$required)) {
-              message("\U000274c Error: Samples are expected in the ",
-                      "submission for the target(s): ",
-                      paste(unique(unlist(x$task_ids$target$required)),
-                            collapse = ", "), ". please verify.")
-            }
-          } else {
-            message("\U000274c Erro: Samples are expected in the submission ",
-                    "for the target(s): ",
+          if (x$output_type$sample$is_required) {
+            message("\U000274c Error: Samples are expected in the ",
+                    "submission for the target(s): ",
                     paste(unique(unlist(x$task_ids$target$required)),
                           collapse = ", "), ". please verify.")
           }
