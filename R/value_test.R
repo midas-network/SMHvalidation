@@ -1,4 +1,5 @@
-#'@importFrom dplyr filter mutate left_join
+#'@importFrom dplyr filter mutate left_join lag arrange distinct everything
+#'@importFrom tidyr all_of unite
 cumul_value_test <- function(df, checks, obs, file_path) {
   # - Cumulative value should not be lower than GS cumulative data
   # (deaths; cases only)
@@ -32,7 +33,7 @@ cumul_value_test <- function(df, checks, obs, file_path) {
     msg_dt <- NULL
     if (!dim(df_cum)[1] > 0) {
       err_groups <- df_cum %>%
-        dplyr::select(-tidyr::all_of("diff", "value")) %>%
+        dplyr::select(-tidyr::all_of(c("diff", "value"))) %>%
         dplyr::distinct() %>%
         tidyr::unite("group", dplyr::everything(), sep = ", ") %>%
         unlist()
@@ -51,6 +52,7 @@ cumul_value_test <- function(df, checks, obs, file_path) {
 #'@importFrom hubValidations capture_check_cnd
 #'@importFrom dplyr filter mutate select distinct everything left_join
 #'@importFrom tidyr all_of unite
+#'@importFrom stats var
 value_test <- function(df, checks, file_path, n_decimal = NULL, pop = NULL,
                        obs = NULL) {
 
@@ -91,7 +93,7 @@ value_test <- function(df, checks, file_path, n_decimal = NULL, pop = NULL,
   df_loc <- dplyr::filter(df, .data[["location"]] %in% test_loc)
   sel_group <- c(grep("horizon|target_end_date|value", names(df_loc),
                       value = TRUE, invert = TRUE))
-  df_loc <- dplyr::mutate(df_loc, var = var(.data[["value"]]),
+  df_loc <- dplyr::mutate(df_loc, var = stats::var(.data[["value"]]),
                           .by = tidyr::all_of(sel_group)) |>
     dplyr::filter(.data[["var"]] == 0)
   msg_dt <- NULL
