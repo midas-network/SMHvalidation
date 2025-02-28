@@ -126,7 +126,7 @@ load_partition_arrow <- function(path, partition, schema = NULL) {
       arrow::open_dataset(path, format = filef, partitioning = partition,
                           hive_style = FALSE, col_types = schema)
   }
-  df <- dplyr::collect(ds) |> factor_columns()
+  df <- dplyr::collect(ds) |> location_fips_format() |> factor_columns()
   return(df)
 }
 

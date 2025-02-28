@@ -146,6 +146,9 @@ run_all_validation <- function(df, path, js_def0, js_def, round_id, hub_path,
                               compound_taskid_set = cmd_tkid_set,
                               derived_task_ids = NULL), path)
 
+  checks <- value_test(df, checks, path, n_decimal = n_decimal, pop = pop,
+                       obs = obs)
+
   return(checks)
 }
 

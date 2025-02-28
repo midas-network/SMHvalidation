@@ -84,7 +84,6 @@ value_test <- function(df, checks, file_path, n_decimal = NULL, pop = NULL,
                       msg_subject = "{.var value}",
                       msg_attribute = "`NA` value.")
 
-
   # - test for all location and target if the projection does not contains
   # only 1 value (for example just 0 incident cases all along the
   #  projections)
@@ -97,7 +96,7 @@ value_test <- function(df, checks, file_path, n_decimal = NULL, pop = NULL,
                           .by = tidyr::all_of(sel_group)) |>
     dplyr::filter(.data[["var"]] == 0)
   msg_dt <- NULL
-  if (!(dim(df_loc)[1] > 0)) {
+  if ((dim(df_loc)[1] > 0)) {
     err_groups <- df_loc |>
       dplyr::select(-tidyr::all_of(c("var", "value", "horizon"))) |>
       dplyr::distinct() |>
@@ -107,10 +106,12 @@ value_test <- function(df, checks, file_path, n_decimal = NULL, pop = NULL,
     msg_dt <- paste0("Please verify, for example: ",
                      paste(err_groups, collapse = "; "))
   }
-  check$flat_projection <-
+  checks$flat_projection <-
     capture_check_cnd(!dim(df_loc)[1] > 0, file_path, error = FALSE,
-                      msg_verbs = c("have not", "have"), details = msg_dt,
-                      msg_subject = "Some time series projections",
+                      msg_verbs = c("All projections don't have",
+                                    "Some projections have"),
+                      details = msg_dt,
+                      msg_subject = "",
                       msg_attribute = paste0("a unique value for the whole ",
                                              "projection period."))
   # - Value should be lower than population size
@@ -120,7 +121,7 @@ value_test <- function(df, checks, file_path, n_decimal = NULL, pop = NULL,
                                       1, 0)) |>
       dplyr::filter(.data[["pop_test"]] > 0)
     msg_dt <- NULL
-    if (!(dim(test)[1] > 0)) {
+    if ((dim(test)[1] > 0)) {
       err_groups <-
         dplyr::distinct(dplyr::select(test,
                                       tidyr::all_of(c("location_name")))) |>
@@ -128,7 +129,7 @@ value_test <- function(df, checks, file_path, n_decimal = NULL, pop = NULL,
         unlist()
       msg_dt <- paste0("Please verify: ", paste(err_groups, collapse = "; "))
     }
-    check$flat_projection <-
+    checks$population_size <-
       capture_check_cnd(!dim(test)[1] > 0, file_path, error = TRUE,
                         msg_verbs = c("All {.var value} are equal or lower",
                                       "Some {.var value} are greater"),
