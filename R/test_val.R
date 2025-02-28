@@ -162,7 +162,7 @@ test_val <- function(df, pop, last_lst_gs, model_task, n_decimal = NULL) {
       value_format_test(df_test, x, outputtype, n_decimal = n_decimal)
       if (isTRUE(any(is.na(df_test$value)))) {
         df_test <- dplyr::filter(df_test, !is.na(.data[["value"]]))
-        message("\U000274c Error 5042: All values should be numeric,",
+        message("\U000274c Error: All values should be numeric,",
                 " the data frame contains 'NA' values.")
       }
 
@@ -178,8 +178,8 @@ test_val <- function(df, pop, last_lst_gs, model_task, n_decimal = NULL) {
           dplyr::distinct() %>%
           tidyr::unite("group", dplyr::everything(), sep = ", ") %>%
           unlist()
-        err_groups <- err_groups[1:25]
-        message("\U000274c Error 510: Each group combination",
+        err_groups <- paste(err_groups[1:5], collapse = "; ")
+        message("\U000274c Error: Each group combination",
                 " should have one unique value. Please verify: ", err_groups)
       }
 
