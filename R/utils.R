@@ -315,6 +315,7 @@ paired_info <- function(df, rm_col = NULL, tasks_list = NULL,
 ##############
 
 # Internal function to filter data frame according to a set of task_id value
+#' @importFrom purrr discard map
 filter_df <- function(df, task_id, exclusion = NULL, required = FALSE,
                       location_fix = TRUE) {
   # transform to data.table format
@@ -365,54 +366,3 @@ filter_df <- function(df, task_id, exclusion = NULL, required = FALSE,
 
 
 
-
-#' Create the validation report
-#'
-#' Combine all the test output function into one report
-#'
-#' @param df data frame to test
-#' @param js_def list containing round definitions: names of columns,
-#' target names, ...
-#' @param out_req character vector, error message about the required values
-#'  to append to the report
-#' @param out_col character vector, error message about the columns
-#'  to append to the report
-#' @param out_scen character vector, error message about the `scenario_id`
-#'  column to append to the report
-#' @param out_ord character vector, error message about the `origin_date` column
-#'  to append to the report
-#' @param out_val character vector, error message about the `value` column
-#'  to append to the report
-#' @param out_target character vector, error message about the `target` column
-#'  to append to the report
-#' @param out_loc character vector, error message about the `location` column
-#'  to append to the report
-#' @param out_type character vector, error message about all output
-#' type to append to the report
-#' @param out_other character vector, error message about additional
-#' column to append to the report. Uses only if the submission is expected to
-#' contains a additional columns (than previously tested)
-#' @param add_message character vector, error message to append to the report,
-#' by default NULL, no additional error message to append
-#'
-#' @noRd
-create_report <- function(df, js_def, out_req, out_col,
-                          out_scen, out_ord, out_val, out_target, out_loc,
-                          out_type, out_other, add_message = NULL) {
-
-  test_report <-
-    paste("\n ## Required values: \n", paste(out_req, collapse = "\n"),
-          "\n\n ## Columns: \n", paste(out_col, collapse = "\n"),
-          "\n\n## Scenarios: \n", paste(out_scen, collapse = "\n"),
-          "\n\n## Origin Date Column:  \n", paste(out_ord, collapse = "\n"),
-          "\n\n## Value and Type Columns: \n", paste(out_val, collapse = "\n"),
-          "\n\n## Target Columns: \n", paste(out_target, collapse = "\n"),
-          "\n\n## Locations: \n", paste(out_loc, collapse = "\n"),
-          "\n\n## Output Type: \n", paste(out_type, collapse = "\n"))
-  if (!is.null(out_other) || !is.null(add_message)) {
-    test_report <- paste(test_report, "\n\n## Other Information: \n",
-                         paste(out_other, add_message, collapse = "\n"))
-  }
-  test_report <- paste0(test_report, "\n\n")
-  return(test_report)
-}
