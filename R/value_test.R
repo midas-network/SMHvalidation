@@ -32,10 +32,10 @@ cumul_value_test <- function(df, checks, obs, file_path) {
       dplyr::filter(diff < 0)
     msg_dt <- NULL
     if (!dim(df_cum)[1] > 0) {
-      err_groups <- df_cum %>%
-        dplyr::select(-tidyr::all_of(c("diff", "value"))) %>%
-        dplyr::distinct() %>%
-        tidyr::unite("group", dplyr::everything(), sep = ", ") %>%
+      err_groups <- df_cum |>
+        dplyr::select(-tidyr::all_of(c("diff", "value"))) |>
+        dplyr::distinct() |>
+        tidyr::unite("group", dplyr::everything(), sep = ", ") |>
         unlist()
       msg_dt <- paste0("Please verify the group: ",
                        paste(err_groups[1:5], collapse = "; "))

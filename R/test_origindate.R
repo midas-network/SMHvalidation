@@ -18,8 +18,6 @@
 #'
 #' Function called in the `validate_submission()` function.
 #'
-#'@importFrom stats na.omit
-#'@importFrom stringr str_extract
 #'@export
 test_origindate <- function(df, path, id) {
 

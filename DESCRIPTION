@@ -15,7 +15,8 @@ Authors@R:
             comment = ""),
       person(given = "Scenario Modeling Hub Coordination Team",
              role = "aut"))
-Description: The Scenario Modeling Hub Validations package contains functions for validation and visualization scenario modeling hub submissions.
+Description: The Scenario Modeling Hub Validations package contains functions 
+  for validation and visualization scenario modeling hub submissions.
 License: MIT + file LICENSE
 Encoding: UTF-8
 LazyData: true
@@ -25,7 +26,6 @@ Roxygen: list(markdown = TRUE)
 Imports: arrow, 
          covidcast, 
          cowplot,
-         data.table,
          dplyr, 
          ggplot2,
          ggpubr,
@@ -36,17 +36,13 @@ Imports: arrow,
          gtable,
          hubData,
          hubUtils,
-         jsonlite,
-         lubridate, 
-         purrr, 
-         scales,
-         stringr, 
-         tibble,
-         tidyr,
-         tidyselect
+         hubValidations,
+         purrr,
+         tidyr
 Remotes:
-    Infectious-Disease-Modeling-Hubs/hubUtils,
-    Infectious-Disease-Modeling-Hubs/hubData
+    hubverse-org/hubUtils,
+    hubverse-org/hubData,
+    hubverse-org/hubValidations
 Suggests:
     gh, 
     knitr,

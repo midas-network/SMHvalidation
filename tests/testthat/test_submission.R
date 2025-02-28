@@ -12,14 +12,6 @@ test_that("Test validation process", {
   js_def <- "tst_dt/covid_tasks.json"
   js_def_flu <- "tst_dt/flu_tasks.json"
 
-  err_cd <- function(expr) {
-    test <- capture.output(try(suppressWarnings(expr), silent = TRUE))
-    code <-
-      stringr::str_extract(test,
-                           "(?<=(\U0001f7e1 Warning|\U000274c Error) )\\d{3,4}")
-    code <- as.character(unique(na.omit(code)))
-    return(code)
-  }
 
   ### Test on COVID ###
   # File corresponding to the expected format

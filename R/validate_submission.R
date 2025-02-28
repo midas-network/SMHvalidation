@@ -230,7 +230,6 @@ run_all_validation <- function(df, path, js_def0, js_def, round_id, hub_path,
 #'  warning message will be returned.
 #'
 #' @importFrom hubUtils get_round_ids read_config_file get_round_model_tasks
-#' @importFrom stringr str_extract
 #' @importFrom arrow open_dataset
 #' @importFrom dplyr collect mutate_if mutate_all distinct across
 #' @importFrom tidyr all_of

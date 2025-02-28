@@ -173,10 +173,10 @@ test_val <- function(df, pop, last_lst_gs, model_task, n_decimal = NULL) {
                                    .by = tidyr::all_of(sel_group)) |>
         dplyr::filter(.data[["N"]] > 1)
       if (dim(df_test2)[1] > 0) {
-        err_groups <- df_test2 %>%
-          dplyr::select(-.data[["N"]]) %>%
-          dplyr::distinct() %>%
-          tidyr::unite("group", dplyr::everything(), sep = ", ") %>%
+        err_groups <- df_test2 |>
+          dplyr::select(-.data[["N"]]) |>
+          dplyr::distinct() |>
+          tidyr::unite("group", dplyr::everything(), sep = ", ") |>
           unlist()
         err_groups <- paste(err_groups[1:5], collapse = "; ")
         message("\U000274c Error: Each group combination",
