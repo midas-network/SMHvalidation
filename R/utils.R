@@ -363,6 +363,3 @@ filter_df <- function(df, task_id, exclusion = NULL, required = FALSE,
   attr(df_test, "filter") <- text_var
   return(df_test)
 }
-
-
-

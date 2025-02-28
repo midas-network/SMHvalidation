@@ -1,4 +1,4 @@
-# nolint start
+# nocov start
 # Processed data:
 #   - Transform Daily incidence in Weekly incidence
 #   - Generate a notional level data frame (sum by state)
@@ -27,7 +27,7 @@ std_covidcast_signal <- function(signal, limit_date, vect_week_date) {
       dplyr::distinct()
   }
   df_state <- dplyr::filter(df, .data[["time_value"]] %in% vect_week_date) |>
-    dplyr::select(tidyr::all_of(c("time_value", "geo_value","value")))
+    dplyr::select(tidyr::all_of(c("time_value", "geo_value", "value")))
   df_us <- dplyr::summarise(df_state,
                             value = sum(.data[["value"]], na.rm = TRUE),
                             .by = c("time_value")) |>
@@ -76,7 +76,7 @@ std_covidcast_signal <- function(signal, limit_date, vect_week_date) {
 #' **Source data:**
 #'
 #' For case/death data, we use:
-#' * https://cmu-delphi.github.io/delphi-epidata/api/covidcast-signals/jhu-csse.html
+#' * https://cmu-delphi.github.io/delphi-epidata/api/covidcast-signals/jhu-csse.html # nolint
 #' * Signals: `"deaths_cumulative_num"`, `"confirmed_cumulative_num"`,
 #' `"confirmed_incidence_num"`, `"deaths_incidence_num"`
 #'
@@ -96,7 +96,6 @@ std_covidcast_signal <- function(signal, limit_date, vect_week_date) {
 #' @importFrom purrr map
 #' @importFrom MMWRweek MMWRweek MMWRweek2Date
 #' @importFrom covidcast covidcast_signal
-# nolint end
 pull_gs_data <- function(signals = c("deaths_cumulative_num",
                                      "confirmed_cumulative_num",
                                      "confirmed_incidence_num",
@@ -124,3 +123,4 @@ pull_gs_data <- function(signals = c("deaths_cumulative_num",
     setNames(signals)
   return(lst_df)
 }
+# nocov end

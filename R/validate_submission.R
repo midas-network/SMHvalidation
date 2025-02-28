@@ -338,7 +338,8 @@ validate_submission <- function(path, js_def, hub_path, target_data = NULL,
   if (!is.null(obs)) {
     obs <- dplyr::filter(obs, date < as.Date(or_date) + 6) |>
       dplyr::filter(date == max(date)) |>
-      dplyr::select(tidyr::all_of(c("observation", "location", "signal")))
+      dplyr::select(tidyr::all_of(c("observation", "location", "target",
+                                    "age_group")))
   }
 
   # Run tests --------

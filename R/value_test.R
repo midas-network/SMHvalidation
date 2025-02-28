@@ -11,9 +11,9 @@ cumul_value_test <- function(df, checks, obs, file_path) {
       dplyr::mutate(dff = ifelse(.data[["observation"]] - .data[["value"]] >
                                    (.data[["observation"]] * 0.05), 1, 0)) |>
       dplyr::filter(.data[["dff"]] > 0)
-    check$cumul_value <-
+    checks$cumul_value <-
       capture_check_cnd(!(dim(test)[1] > 0), file_path, error = TRUE,
-                        msg_verbs = c("are", "are not"), details = msg_dt,
+                        msg_verbs = c("are", "are not"), details = NULL,
                         msg_subject = "{.var value} at {.var horizon} 1",
                         msg_attribute = paste0("equal or greater than the last",
                                                " observed cumulative count"))
@@ -31,7 +31,7 @@ cumul_value_test <- function(df, checks, obs, file_path) {
                     .by = tidyr::all_of(sel_group)) |>
       dplyr::filter(diff < 0)
     msg_dt <- NULL
-    if (!dim(df_cum)[1] > 0) {
+    if (dim(df_cum)[1] > 0) {
       err_groups <- df_cum |>
         dplyr::select(-tidyr::all_of(c("diff", "value"))) |>
         dplyr::distinct() |>
@@ -40,7 +40,7 @@ cumul_value_test <- function(df, checks, obs, file_path) {
       msg_dt <- paste0("Please verify the group: ",
                        paste(err_groups[1:5], collapse = "; "))
     }
-    check$cumul_proj <-
+    checks$cumul_proj <-
       capture_check_cnd(!dim(df_cum)[1] > 0, file_path, error = TRUE,
                         msg_verbs = c("are not", "are"), details = msg_dt,
                         msg_subject = "The cumulative values",

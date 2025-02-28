@@ -48,7 +48,7 @@ are added between all states to obtains the US level data.
 
 For case/death data, we use:
 \itemize{
-\item https://cmu-delphi.github.io/delphi-epidata/api/covidcast-signals/jhu-csse.html
+\item https://cmu-delphi.github.io/delphi-epidata/api/covidcast-signals/jhu-csse.html # nolint
 \item Signals: \code{"deaths_cumulative_num"}, \code{"confirmed_cumulative_num"},
 \code{"confirmed_incidence_num"}, \code{"deaths_incidence_num"}
 }

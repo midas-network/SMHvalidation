@@ -1,22 +1,25 @@
 test_that("Test validation process", {
 
-  lst_gs <- readRDS("tst_dt/2022-08-22_lst_gs.rds")
-  lst_gs_flu <- NULL
-  gh_rep <- "https://raw.githubusercontent.com/midas-network/"
-  pop_path <-
-    paste0(gh_rep,
-           "covid19-scenario-modeling-hub/master/data-locations/locations.csv")
-  pop_path_flu <-
-    paste0(gh_rep,
-           "flu-scenario-modeling-hub/main/data-locations/locations.csv")
-  js_def <- "tst_dt/covid_tasks.json"
-  js_def_flu <- "tst_dt/flu_tasks.json"
+  obs <- "example_hub/target-data/time-series.csv"
+  hub_path <- "example_hub/"
+  pop_path <- "example_hub/auxiliary-data/location_census/locations.csv"
+  js_def <- "example_hub/hub-config/tasks.json"
+  merge_sample_col <- c("run_grouping", "stochastic_run")
+  partition <- round_id <- r_schema <- NULL
+  n_decimal <- 1
+  verbose <- TRUE
 
 
   ### Test on COVID ###
   # File corresponding to the expected format
-  expect_equal(validate_submission("tst_dt/2022-01-09_no_error.csv",
-                                   js_def, lst_gs, pop_path), NULL)
+  path <- paste0(hub_path,
+                 "model-output/team2-modelb/2023-11-12-team2-modelb.parquet")
+  validate_submission(path = path, js_def = js_def, hub_path = hub_path,
+                      target_data = obs, pop_path = pop_path,
+                      merge_sample_col = merge_sample_col,
+                      partition = partition, n_decimal = n_decimal,
+                      round_id = round_id, verbose = verbose,
+                      r_schema = r_schema)
 
   expect_equal(validate_submission("tst_dt/2024-03-26-team1-modela.parquet",
                                    js_def, NULL, pop_path,

@@ -109,7 +109,9 @@ print_table <- function(data, tab_title, metric = "prctdiff_gt", #"median",
     tmp <- which(tab_data >= thresholds[x] &
                    tab_data < c(thresholds, Inf)[x + 1] & is.na(tab_data),
                  arr.ind = TRUE)
-    if (nrow(nas) > 0 & !is.null(nrow(nas))) {
+    if (nrow(tmp) == 0) {
+      tmp <- tmp
+    } else if (nrow(nas) > 0 & !is.null(nrow(nas))) {
       tmp <- tmp[which(tmp$col %in%  which(names(tab_data) %in% sel_group)), ]
       tmp$row <- tmp$row + 1
     } else {
