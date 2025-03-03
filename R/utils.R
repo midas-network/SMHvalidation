@@ -166,7 +166,7 @@ loc_zero <- function(df) {
 #'
 #' @noRd
 merge_sample_id <- function(df, req_colnames, merge_sample_col, js_def0, js_def,
-                            partition = NULL, verbose = TRUE) {
+                            checks, partition = NULL, verbose = TRUE) {
   # Validation
   if (!(all(c(req_colnames, merge_sample_col) %in% names(df)))) {
     fail_col <- req_colnames[!req_colnames %in% names(df)]
@@ -190,8 +190,11 @@ merge_sample_id <- function(df, req_colnames, merge_sample_col, js_def0, js_def,
     test_sample <- dplyr::group_by(df_sample, dplyr::across(task_ids))
     test_sample <- dplyr::summarise(test_sample, n = dplyr::n())
     n_sample <- unique(test_sample$n)
-    verbose_pairing(df_sample, js_def, or_pair = NULL, n_sample = n_sample) |>
+    pair_info <- verbose_pairing(df_sample, js_def, checks, or_pair = NULL,
+                                 n_sample = n_sample) |>
       purrr::map(unique)
+  } else {
+    pair_info <- NULL
   }
 
   # Merge sample ID column
@@ -203,7 +206,7 @@ merge_sample_id <- function(df, req_colnames, merge_sample_col, js_def0, js_def,
                            .data[["output_type_id"]])) |>
     dplyr::select(-tidyr::all_of(c("type_id_sample")))
   col_format <-
-    hubValidations::create_hub_schema(js_def0, partitions = partition,
+    hubValidations::create_hub_schema(js_def0, partitions = NULL,
                                       r_schema = TRUE,
                                       output_type_id_datatype = "from_config")
   df$output_type_id <- eval(str2lang(paste0("as.", col_format["output_type_id"],
@@ -213,13 +216,13 @@ merge_sample_id <- function(df, req_colnames, merge_sample_col, js_def0, js_def,
     message("\n\U000274c Error: The submission should ",
             "contains multiple sample output type groups, please verify.\n")
   }
-  return(df)
+  return(list(df = df, msg = pair_info))
 }
 
 # Function for pairing information
 #' @importFrom purrr map
 #' @importFrom dplyr group_split
-verbose_pairing <- function(df_sample, m_task, or_pair, n_sample,
+verbose_pairing <- function(df_sample, m_task, checks, or_pair, n_sample,
                             verbose_col = NULL) {
   if (length(unique(df_sample$run_grouping)) > 1) {
     run_group <-
@@ -243,13 +246,15 @@ verbose_pairing <- function(df_sample, m_task, or_pair, n_sample,
   } else {
     sto_group <- "No stochasticity"
   }
-  head_mess <- "\n# Column Pairing information: \n "
-  p_rg <- paste0(head_mess, "Run grouping pairing: \n",
-                 paste(run_group, collapse = ", \n"))
-  p_info <- paste0(p_rg, "\n", paste0(" Stochastic run pairing: \n",
-                                      paste(sto_group, collapse = ", \n")))
-  pair_inf <- paste0(p_info, "\n ", "Number of Samples: ", n_sample)
-  message(pair_inf)
+
+  p_rg <- paste0("Run grouping pairing: ",
+                 paste(gsub("^c\\(|\\)", "", run_group), collapse = ","))
+  p_info <- paste0(p_rg, ";",
+                   paste0(" stochastic run pairing: \n",
+                          paste(gsub("^c\\(|\\)", "", sto_group),
+                                collapse = ",")))
+  pair_inf <- paste0(p_info, ". Number of Samples: ", n_sample)
+  return(pair_inf)
 }
 
 # extract pairing information

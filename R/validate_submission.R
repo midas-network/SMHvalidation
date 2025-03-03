@@ -51,14 +51,17 @@ run_all_validation <- function(df, path, js_def0, js_def, round_id, hub_path,
   ### Prerequisite
   req_colnames <-  c(get_tasksids_colnames(js_def), "output_type",
                      "output_type_id", "value")
+  checks <- new_hub_validations()
 
   # Merge sample ID column
   if (!is.null(merge_sample_col)) {
-    df <- merge_sample_id(df, req_colnames, merge_sample_col,  js_def0, js_def,
-                          partition = partition, verbose = verbose)
+    all <- merge_sample_id(df, req_colnames, merge_sample_col,  js_def0, js_def,
+                           checks, partition = partition, verbose = verbose)
+    df <- all$df
+    msg <- all$msg
+    if (!is.null(msg))
+      checks$pairing_info <- capture_check_info(file_path = path, msg = msg)
   }
-
-  checks <- new_hub_validations()
 
   checks$valid_round_id_col <-
     try_check(check_valid_round_id_col(df, file_path = path,
