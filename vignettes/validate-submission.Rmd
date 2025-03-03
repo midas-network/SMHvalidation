@@ -142,7 +142,7 @@ message about the issue and if the issue is:
 Before running the function, we will prepare the required and optional
 parameter as explained above:
 
-```{r prerequisite, message=FALSE, warning=FALSE}
+```{r prerequisite, message=FALSE, warning=FALSE, eval=FALSE}
 js_def <- system.file("extdata", "covid_tasks.json", package = "SMHvalidation")
 ```
 
@@ -151,7 +151,7 @@ js_def <- system.file("extdata", "covid_tasks.json", package = "SMHvalidation")
 We can now run the `validate_submission()` function on a first example
 file.
 
-```{r test1}
+```{r test1, eval=FALSE}
 path_test <- system.file("extdata", "2022-01-09_team-model.csv",
                          package = "SMHvalidation")
 validate_submission(path_test, js_def)
@@ -163,7 +163,7 @@ found.
 
 ## Example 2: Warnings & Error
 
-```{r test3, error=TRUE}
+```{r test3, error=TRUE, eval=FALSE}
 path_test <- system.file("extdata", "2021-11-14_team-model.parquet",
                          package = "SMHvalidation")
 validate_submission(path_test, js_def)
@@ -207,7 +207,7 @@ The `SMHvalidation` R package also contains plotting functionality to
 output a plot of each location and target, with all scenarios and (optional)
 observed data (only for quantile type output).
 
-```{r proj_plots}
+```{r proj_plots, eval=FALSE}
 path_test <- system.file("extdata", "2022-01-09_team-model.csv",
                          package = "SMHvalidation")
 save_path <- getwd()
