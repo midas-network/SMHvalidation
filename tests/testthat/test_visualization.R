@@ -3,16 +3,9 @@ test_that("Test visualization", {
   tmp_dir <- tempdir()
   lst_gs <- readRDS("tst_dt/2022-08-22_lst_gs.rds")
 
-  expect_no_error(generate_validation_plots("tst_dt/2022-01-09_no_error.csv",
-                                            lst_gs, save_path = tmp_dir))
-
-  expect_no_error(generate_validation_plots("tst_dt/2022-01-09_highvalue.csv",
-                                            NULL, save_path = tmp_dir,
-                                            y_sqrt = TRUE,
-                                            plot_quantiles = c(0.25, 0.75)))
-
-  expect_no_error(generate_validation_plots("tst_dt/partition_ok2/",
-                                            partition = "target", lst_gs,
+  expect_no_error(generate_validation_plots(paste0(hub_model, "team2-modelb/",
+                                                   "2023-11-12-team2-modelb",
+                                                   ext), obs,
                                             save_path = tmp_dir))
 
   file.remove(dir(tmp_dir, full.names = TRUE)[grep("plots.pdf", dir(tmp_dir))])

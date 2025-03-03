@@ -250,7 +250,7 @@ verbose_pairing <- function(df_sample, m_task, checks, or_pair, n_sample,
   p_rg <- paste0("Run grouping pairing: ",
                  paste(gsub("^c\\(|\\)", "", run_group), collapse = ","))
   p_info <- paste0(p_rg, ";",
-                   paste0(" stochastic run pairing: \n",
+                   paste0(" stochastic run pairing: ",
                           paste(gsub("^c\\(|\\)", "", sto_group),
                                 collapse = ",")))
   pair_inf <- paste0(p_info, ". Number of Samples: ", n_sample)

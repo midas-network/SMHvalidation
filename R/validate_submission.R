@@ -52,6 +52,11 @@ run_all_validation <- function(df, path, js_def0, js_def, round_id, hub_path,
   req_colnames <-  c(get_tasksids_colnames(js_def), "output_type",
                      "output_type_id", "value")
   checks <- new_hub_validations()
+  if (!is.null(partition)) {
+    file_path <- unique(basename(dir(path, recursive = TRUE)))
+  } else {
+    file_path <- path
+  }
 
   # Merge sample ID column
   if (!is.null(merge_sample_col)) {
@@ -60,75 +65,82 @@ run_all_validation <- function(df, path, js_def0, js_def, round_id, hub_path,
     df <- all$df
     msg <- all$msg
     if (!is.null(msg))
-      checks$pairing_info <- capture_check_info(file_path = path, msg = msg)
+      checks$pairing_info <- capture_check_info(file_path = file_path,
+                                                msg = msg)
   }
 
   checks$valid_round_id_col <-
-    try_check(check_valid_round_id_col(df, file_path = path,
+    try_check(check_valid_round_id_col(df, file_path = file_path,
                                        hub_path = hub_path), path)
   checks$unique_round_id <-
-    try_check(check_tbl_unique_round_id(df, file_path = path,
+    try_check(check_tbl_unique_round_id(df, file_path = file_path,
                                         hub_path = hub_path), path)
   if (is_any_error(checks$unique_round_id)) {
     return(checks)
   }
 
   checks$match_round_id <-
-    try_check(check_tbl_match_round_id(df, file_path = path,
+    try_check(check_tbl_match_round_id(df, file_path = file_path,
                                        hub_path = hub_path), path)
   if (is_any_error(checks$match_round_id)) {
     return(checks)
   }
 
   checks$colnames <-
-    try_check(check_tbl_colnames(df, round_id = round_id, file_path = path,
+    try_check(check_tbl_colnames(df, round_id = round_id,
+                                 file_path = file_path,
                                  hub_path = hub_path), path)
   if (is_any_error(checks$colnames)) {
     return(checks)
   }
 
   checks$col_types <-
-    try_check(check_tbl_col_types(df, file_path = path, hub_path = hub_path,
+    try_check(check_tbl_col_types(df, file_path = file_path,
+                                  hub_path = hub_path,
                                   output_type_id_datatype = "from_config"),
               path)
   tbl_chr <- hubData::coerce_to_character(df)
 
   checks$valid_vals <-
-    try_check(check_tbl_values(tbl_chr, round_id = round_id, file_path = path,
-                               hub_path = hub_path, derived_task_ids = NULL),
+    try_check(check_tbl_values(tbl_chr, round_id = round_id,
+                               file_path = file_path, hub_path = hub_path,
+                               derived_task_ids = NULL),
               path)
   if (is_any_error(checks$valid_vals)) {
     return(checks)
   }
 
   checks$rows_unique <-
-    try_check(check_tbl_rows_unique(tbl_chr, file_path = path,
+    try_check(check_tbl_rows_unique(tbl_chr, file_path = file_path,
                                     hub_path = hub_path), path)
   checks$req_vals <-
     try_check(check_tbl_values_required(tbl_chr, round_id = round_id,
-                                        file_path = path, hub_path = hub_path,
+                                        file_path = file_path,
+                                        hub_path = hub_path,
                                         derived_task_ids = NULL), path)
   # -- slow
   checks$value_col_valid <-
-    try_check(check_tbl_value_col(df, round_id = round_id, file_path = path,
+    try_check(check_tbl_value_col(df, round_id = round_id,
+                                  file_path = file_path,
                                   hub_path = hub_path, derived_task_ids = NULL),
               path)
 
   checks$value_col_non_desc <-
-    try_check(check_tbl_value_col_ascending(tbl_chr, file_path = path,
+    try_check(check_tbl_value_col_ascending(tbl_chr, file_path = file_path,
                                             hub_path = hub_path,
                                             round_id = round_id,
                                             derived_task_ids = NULL), path)
 
   checks$spl_compound_taskid_set <-
     try_check(check_tbl_spl_compound_taskid_set(tbl_chr, round_id = round_id,
-                                                file_path = path,
+                                                file_path = file_path,
                                                 hub_path = hub_path,
                                                 derived_task_ids = NULL), path)
   cmd_tkid_set <- checks$spl_compound_taskid_set$compound_taskid_set
   checks$spl_compound_tid <-
     try_check(check_tbl_spl_compound_tid(tbl_chr, round_id = round_id,
-                                         file_path = path, hub_path = hub_path,
+                                         file_path = file_path,
+                                         hub_path = hub_path,
                                          compound_taskid_set = cmd_tkid_set,
                                          derived_task_ids = NULL), path)
   if (is_any_error(checks$spl_compound_tid)) {
@@ -136,7 +148,7 @@ run_all_validation <- function(df, path, js_def0, js_def, round_id, hub_path,
   }
   checks$spl_non_compound_tid <-
     try_check(check_tbl_spl_non_compound_tid(tbl_chr, round_id = round_id,
-                                             file_path = path,
+                                             file_path = file_path,
                                              hub_path = hub_path,
                                              compound_taskid_set = cmd_tkid_set,
                                              derived_task_ids = NULL), path)
@@ -144,12 +156,12 @@ run_all_validation <- function(df, path, js_def0, js_def, round_id, hub_path,
     return(checks)
   }
   checks$spl_n <-
-    try_check(check_tbl_spl_n(tbl_chr, round_id = round_id, file_path = path,
-                              hub_path = hub_path,
+    try_check(check_tbl_spl_n(tbl_chr, round_id = round_id,
+                              file_path = file_path, hub_path = hub_path,
                               compound_taskid_set = cmd_tkid_set,
                               derived_task_ids = NULL), path)
 
-  checks <- value_test(df, checks, path, n_decimal = n_decimal, pop = pop,
+  checks <- value_test(df, checks, file_path, n_decimal = n_decimal, pop = pop,
                        obs = obs)
 
   return(checks)
@@ -307,7 +319,7 @@ validate_submission <- function(path, js_def, hub_path, target_data = NULL,
     return(check)
   } else {
     # Read file
-    if (length(path) == 1) {
+    if (length(file_path) == 1) {
       df <- read_files(path)
     } else if (!is.null(partition)) {
       schema <- make_schema(js_def0, js_def, round_id, path = path,
