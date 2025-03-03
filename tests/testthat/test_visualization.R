@@ -1,7 +1,9 @@
 test_that("Test visualization", {
 
   tmp_dir <- tempdir()
-  lst_gs <- readRDS("tst_dt/2022-08-22_lst_gs.rds")
+  obs <- read.csv("example_hub/target-data/time-series.csv")
+  hub_model <- "example_hub/model-output/"
+  ext <- ".parquet"
 
   expect_no_error(generate_validation_plots(paste0(hub_model, "team2-modelb/",
                                                    "2023-11-12-team2-modelb",
