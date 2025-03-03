@@ -49,7 +49,7 @@ generate_validation_plots <- function(path_proj, target_data = NULL,
 
   # Ground Truth Data
   if (!is.null(target_data)) {
-    target_data <- tidyr::separate(target_data, tidyr::matches("signal"),
+    target_data <- tidyr::separate(target_data, tidyr::matches("target"),
                                    into = c("type", "outcome"), sep = " ") |>
       dplyr::mutate(pre_gs_end = .data[["date"]] < projection_date)
     target_data <- add_filter_col(target_data)

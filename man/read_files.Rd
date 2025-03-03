@@ -8,6 +8,10 @@ read_files(path, na_string = c("", "NA", "NaN"), sep = ",")
 }
 \arguments{
 \item{path}{path of the file which the date are to be read from}
+
+\item{na_string}{character vector to be interpreted as \code{NA} values}
+
+\item{sep}{character, separator character between columns}
 }
 \description{
 Reads a file and output a data frame. The function can read files in CSV,

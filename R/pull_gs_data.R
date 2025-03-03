@@ -96,6 +96,7 @@ std_covidcast_signal <- function(signal, limit_date, vect_week_date) {
 #' @importFrom purrr map
 #' @importFrom MMWRweek MMWRweek MMWRweek2Date
 #' @importFrom covidcast covidcast_signal
+#' @importFrom stats setNames
 pull_gs_data <- function(signals = c("deaths_cumulative_num",
                                      "confirmed_cumulative_num",
                                      "confirmed_incidence_num",

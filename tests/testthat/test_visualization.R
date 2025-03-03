@@ -1,8 +1,8 @@
 test_that("Test visualization", {
 
   tmp_dir <- tempdir()
-  obs <- read.csv("example_hub/target-data/time-series.csv")
-  hub_model <- "example_hub/model-output/"
+  obs <- read.csv("../exp/target-data/time-series.csv")
+  hub_model <- ".../exp/model-output/"
   ext <- ".parquet"
 
   expect_no_error(generate_validation_plots(paste0(hub_model, "team2-modelb/",

@@ -1,9 +1,9 @@
 test_that("Test validation process", {
 
-  obs <- "example_hub/target-data/time-series.csv"
-  hub_path <- "example_hub/"
-  pop_path <- "example_hub/auxiliary-data/location_census/locations.csv"
-  js_def <- "example_hub/hub-config/tasks.json"
+  obs <- "../exp/target-data/time-series.csv"
+  hub_path <- "../exp/"
+  pop_path <- "../exp/auxiliary-data/location_census/locations.csv"
+  js_def <- "../exp/hub-config/tasks.json"
   merge_sample_col <- c("run_grouping", "stochastic_run")
   partition <- round_id <- r_schema <- NULL
   n_decimal <- 1
@@ -29,7 +29,7 @@ test_that("Test validation process", {
 
   ## Partition
   path <- paste0(hub_path,
-                 "model-output/team3-modelc")
+                 "model-output/t3-mc")
   check <- validate_submission(path = path, js_def = js_def,
                                hub_path = hub_path, target_data = NULL,
                                pop_path = pop_path,

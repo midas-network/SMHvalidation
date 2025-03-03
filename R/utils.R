@@ -187,7 +187,8 @@ merge_sample_id <- function(df, req_colnames, merge_sample_col, js_def0, js_def,
     df_sample <- dplyr::filter(df, .data[["output_type"]] == "sample")
     task_ids <- unique(unlist(purrr::map(purrr::map(js_def, "task_ids"),
                                          names)))
-    test_sample <- dplyr::group_by(df_sample, dplyr::across(task_ids))
+    test_sample <- dplyr::group_by(df_sample,
+                                   dplyr::across(dplyr::all_of(task_ids)))
     test_sample <- dplyr::summarise(test_sample, n = dplyr::n())
     n_sample <- unique(test_sample$n)
     pair_info <- verbose_pairing(df_sample, js_def, checks, or_pair = NULL,
@@ -321,6 +322,7 @@ paired_info <- function(df, rm_col = NULL, tasks_list = NULL,
 
 # Internal function to filter data frame according to a set of task_id value
 #' @importFrom purrr discard map
+#' @importFrom stats setNames
 filter_df <- function(df, task_id, exclusion = NULL, required = FALSE,
                       location_fix = TRUE) {
   # transform to data.table format

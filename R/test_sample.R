@@ -73,6 +73,7 @@ pairing_test <- function(df_sample, m_task, or_pair, pairing_col) {
 #'@importFrom dplyr select contains all_of mutate mutate_if left_join filter
 #'@importFrom dplyr group_by across n
 #'@importFrom purrr map keep
+#'@importFrom stats setNames
 #'@export
 test_sample <- function(df, model_task, pairing_col = "horizon",
                         verbose = TRUE, verbose_col = NULL) {

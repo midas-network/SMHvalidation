@@ -4,6 +4,8 @@
 #'  ZIP, GZ and PQT format
 #'
 #' @param path path of the file which the date are to be read from
+#' @param na_string character vector to be interpreted as `NA` values
+#' @param sep character, separator character between columns
 #'
 #' @importFrom utils read.csv unzip
 #' @importFrom arrow read_parquet

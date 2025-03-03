@@ -13,6 +13,7 @@
 #'@importFrom purrr compact map
 #'@importFrom dplyr mutate_if mutate bind_rows distinct select all_of setdiff
 #'@importFrom tidyr drop_na
+#'@importFrom stats setNames
 #'@export
 test_req_value <- function(df, model_task) {
 
