@@ -312,7 +312,7 @@ paired_info <- function(df, rm_col = NULL, tasks_list = NULL,
 
 
 ##############
-
+# nocov start
 # Internal function to filter data frame according to a set of task_id value
 #' @importFrom purrr discard map
 #' @importFrom stats setNames
@@ -363,3 +363,4 @@ filter_df <- function(df, task_id, exclusion = NULL, required = FALSE,
   attr(df_test, "filter") <- text_var
   return(df_test)
 }
+# nocov end
