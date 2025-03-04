@@ -167,14 +167,7 @@ loc_zero <- function(df) {
 #' @noRd
 merge_sample_id <- function(df, req_colnames, merge_sample_col, js_def0, js_def,
                             checks, partition = NULL, verbose = TRUE) {
-  # Validation
-  if (!(all(c(req_colnames, merge_sample_col) %in% names(df)))) {
-    fail_col <- req_colnames[!req_colnames %in% names(df)]
-    stop("\U000274c Error: At least one column name is misspelled or does ",
-         "not correspond to the expected column names. The column(s) ",
-         paste(fail_col, collapse = ", "), " do(es) not correspond to the ",
-         "standard")
-  }
+
   sample_val <- na.omit(unlist(dplyr::distinct(df[, merge_sample_col])))
   if (isFALSE(all(is_wholenumber(sample_val))) ||
         any(startsWith(as.character(sample_val), "0"))) {

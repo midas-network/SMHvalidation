@@ -34,13 +34,8 @@
 #' might be created later on too.
 #'
 #' @importFrom hubValidations new_hub_validations parse_file_name try_check
-#' check_valid_round_id_col check_tbl_unique_round_id is_any_error
-#' check_tbl_match_round_id check_tbl_colnames check_tbl_col_types
-#' check_tbl_values check_tbl_rows_unique check_tbl_values_required
-#' check_tbl_value_col check_tbl_value_col_ascending
-#' check_tbl_spl_compound_taskid_set check_tbl_spl_compound_tid
-#' check_tbl_spl_non_compound_tid check_tbl_spl_n
-#'
+#' check_tbl_colnames check_tbl_col_types check_tbl_values check_tbl_rows_unique
+#' check_tbl_values_required check_tbl_value_col check_tbl_value_col_ascending
 #' @importFrom hubData coerce_to_character
 #'
 #' @noRd
@@ -60,6 +55,21 @@ run_all_validation <- function(df, path, js_def0, js_def, round_id, hub_path,
 
   # Merge sample ID column
   if (!is.null(merge_sample_col)) {
+    # Validation
+    if (!(all(c(req_colnames, merge_sample_col) %in% names(df)))) {
+      fail_col <- req_colnames[!req_colnames %in% names(df)]
+      details_mess <- paste0("Unexpected column(s) '",
+                             paste(fail_col, collapse = "', '"),
+                             "' present in the file.")
+      mgs_attr <- paste0("consistent with expected round task IDs and std ",
+                         "column names.")
+      checks$col_names <-
+        try_check(capture_check_cnd(!length(fail_col) > 0, file_path,
+                                    msg_subject = "Column names",
+                                    msg_attribute = mgs_attr,
+                                    details = details_mess, error = TRUE))
+      return(checks)
+    }
     all <- merge_sample_id(df, req_colnames, merge_sample_col,  js_def0, js_def,
                            checks, partition = partition, verbose = verbose)
     df <- all$df
@@ -69,20 +79,9 @@ run_all_validation <- function(df, path, js_def0, js_def, round_id, hub_path,
                                                 msg = msg)
   }
 
-  checks$valid_round_id_col <-
-    try_check(check_valid_round_id_col(df, file_path = file_path,
-                                       hub_path = hub_path), path)
-  checks$unique_round_id <-
-    try_check(check_tbl_unique_round_id(df, file_path = file_path,
-                                        hub_path = hub_path), path)
-  if (is_any_error(checks$unique_round_id)) {
-    return(checks)
-  }
-
-  checks$match_round_id <-
-    try_check(check_tbl_match_round_id(df, file_path = file_path,
-                                       hub_path = hub_path), path)
-  if (is_any_error(checks$match_round_id)) {
+  checks <- round_id_test(checks, df, file_path, hub_path, path)
+  if (is_any_error(checks$match_round_id) ||
+        is_any_error(checks$unique_round_id)) {
     return(checks)
   }
 
@@ -131,36 +130,8 @@ run_all_validation <- function(df, path, js_def0, js_def, round_id, hub_path,
                                             round_id = round_id,
                                             derived_task_ids = NULL), path)
 
-  checks$spl_compound_taskid_set <-
-    try_check(check_tbl_spl_compound_taskid_set(tbl_chr, round_id = round_id,
-                                                file_path = file_path,
-                                                hub_path = hub_path,
-                                                derived_task_ids = NULL), path)
-  cmd_tkid_set <- checks$spl_compound_taskid_set$compound_taskid_set
-  checks$spl_compound_tid <-
-    try_check(check_tbl_spl_compound_tid(tbl_chr, round_id = round_id,
-                                         file_path = file_path,
-                                         hub_path = hub_path,
-                                         compound_taskid_set = cmd_tkid_set,
-                                         derived_task_ids = NULL), path)
-  if (is_any_error(checks$spl_compound_tid)) {
-    return(checks)
-  }
-  checks$spl_non_compound_tid <-
-    try_check(check_tbl_spl_non_compound_tid(tbl_chr, round_id = round_id,
-                                             file_path = file_path,
-                                             hub_path = hub_path,
-                                             compound_taskid_set = cmd_tkid_set,
-                                             derived_task_ids = NULL), path)
-  if (is_any_error(checks$spl_non_compound_tid)) {
-    return(checks)
-  }
-  checks$spl_n <-
-    try_check(check_tbl_spl_n(tbl_chr, round_id = round_id,
-                              file_path = file_path, hub_path = hub_path,
-                              compound_taskid_set = cmd_tkid_set,
-                              derived_task_ids = NULL), path)
-
+  checks <- sample_test(checks, tbl_chr, round_id, file_path, hub_path,
+                        path)
   checks <- value_test(df, checks, file_path, n_decimal = n_decimal, pop = pop,
                        obs = obs)
 
