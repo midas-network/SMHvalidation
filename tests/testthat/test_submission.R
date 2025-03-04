@@ -72,43 +72,40 @@ test_that("Test validation process", {
   expect_equal(length(check), 1)
   expect_contains(attr(check$col_names, "class"), c("error", "check_error"))
 
-# # Partition test
-# expect_equal(err_cd(validate_submission("tst_dt/partition_format/",
-#                                         js_def, NULL, pop_path,
-#                                         merge_sample_col = TRUE,
-#                                         partition = "target",
-#                                         round_id = "2024-03-26")), "005")
-# expect_equal(err_cd(validate_submission("tst_dt/partition_err/",
-#                                         js_def, NULL, pop_path,
-#                                         merge_sample_col = TRUE,
-#                                         partition = "target",
-#                                         round_id = "2024-03-26")), "101")
+  ### Test value error -----
+  df <- dplyr::mutate(df0, scenario_id = gsub("2023", "2013",
+                                              .data[["scenario_id"]]))
+  arrow::write_parquet(df, path_f)
+  check <- validate_submission(path_f, js_def, hub_path,
+                               merge_sample_col = merge_sample_col)
+  expect_contains(attr(check$valid_vals, "class"), c("error", "check_error"))
 
+  ### Test origin_date and file-name date error -----
+  df <- dplyr::mutate(df0,
+                      origin_date = rep(c(as.Date("2023-11-10"),
+                                          as.Date("2024-07-28")), nrow(df) / 2))
+  arrow::write_parquet(df, path_f)
+  check <- validate_submission(path_f, js_def, hub_path,
+                               merge_sample_col = merge_sample_col)
+  expect_contains(attr(check$unique_round_id, "class"),
+                  c("error", "check_error"))
 
-# # File with "location" column renamed "fips"
-# expect_equal(err_cd(validate_submission("tst_dt/2022-01-09_colname.csv",
-#                                         js_def, lst_gs, pop_path)), "103")
+  arrow::write_parquet(df0, path_f)
+  file.copy(path_f, gsub("2023-11-12", "2024-07-28", path_f))
+  check <- validate_submission(gsub("2023-11-12", "2024-07-28", path_f),
+                               js_def, hub_path,
+                               merge_sample_col = merge_sample_col)
+  expect_contains(attr(check$match_round_id, "class"),
+                  c("error", "check_error"))
+  file.remove(gsub("2023-11-12", "2024-07-28", path_f))
 
-# # Test scenario error -----
-# # File with scenario name incorrect: A-2020 instead of A-2022
-# expect_equal(err_cd(validate_submission("tst_dt/2022-01-09_badidscen.csv",
-#                                         js_def, lst_gs, pop_path)),
-#              c("006", "202", "204"))
+  file.copy(path_f, gsub("2023-11-12", "2013-11-12", path_f))
+  check <- validate_submission(gsub("2023-11-12", "2013-11-12", path_f),
+                               js_def, hub_path,
+                               merge_sample_col = merge_sample_col)
+  expect_contains(attr(check$round_id, "class"), c("error", "check_error"))
+  file.remove(gsub("2023-11-12", "2013-11-12", path_f))
 
-# # Test origin_date and filename date error -----
-# # File with 2 values in the origin date column (1 expected and 1 not expected)
-# # half of all the row with incorrect value
-# expect_equal(err_cd(validate_submission("tst_dt/2022-01-09_multimpd.csv",
-#                                         js_def, lst_gs, pop_path)),
-#              c("006", "302", "303", "607"))
-# # File with incorrect origin date column value (unique value: 2922 instead of
-# # 2022) and filename
-# expect_equal(err_cd(validate_submission("tst_dt/2922-01-09_mpd_error.csv",
-#                                         js_def, lst_gs, pop_path)), c("004"))
-# # File with incorrect origin date column format (DD/MM/YYYY instead of
-# # YYYY-MM-DD)
-# expect_equal(err_cd(validate_submission("tst_dt/2022-01-09_mpd_format.csv",
-#                                         js_def, lst_gs, pop_path)), c("003"))
 
 # # File with date in POSIX format
 # expect_equal(err_cd(validate_submission("tst_dt/2024-03-26-format.parquet",
