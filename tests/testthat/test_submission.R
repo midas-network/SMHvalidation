@@ -45,27 +45,34 @@ test_that("Test validation process", {
                       "stochastic run pairing: \"horizon\", \"age_group\". ",
                       "Number of Samples: 100"))
 
-  # Test columns error -----
-  # File with additional column ("row": row number id)
-# expect_equal(err_cd(validate_submission("tst_dt/2022-01-09_addcol.pqt",
-#                                         js_def, lst_gs, pop_path)),
-#              c("104", "102"))
+  # Test errors
+  path <- paste0(hub_path,
+                 "model-output/team2-modelb/2023-11-12-team2-modelb.parquet")
+  path_f <- paste0(hub_path,
+                   "model-output/team4-modeld/2023-11-12-team4-modeld.parquet")
+  df0 <- arrow::read_parquet(path)
 
-# expect_equal(err_cd(validate_submission("tst_dt/2024-03-26-badcol.csv",
-#                                         js_def, NULL, pop_path,
-#                                         merge_sample_col = TRUE)), "101")
+  ## Test columns error -----
+  ### File with additional column ("row": row number id)
+  df <- dplyr::mutate(df0, row = seq_along(nrow(df0)))
+  arrow::write_parquet(df, path_f)
+
+  check <- validate_submission(path_f, js_def, hub_path,
+                               merge_sample_col = merge_sample_col)
+  expect_equal(length(check), 5)
+  expect_contains(attr(check$colnames, "class"), c("error", "check_error"))
+
+
+  ### File with badly named column
+  df <- dplyr::rename(df0, age = age_group)
+  arrow::write_parquet(df, path_f)
+  check <- validate_submission(path_f, js_def, hub_path,
+                               merge_sample_col = merge_sample_col)
+
+  expect_equal(length(check), 1)
+  expect_contains(attr(check$col_names, "class"), c("error", "check_error"))
 
 # # Partition test
-# expect_equal(err_cd(validate_submission("tst_dt/partition_ok/",
-#                                         js_def, NULL, pop_path,
-#                                         merge_sample_col = TRUE,
-#                                         partition = "target",
-#                                         round_id = "2024-03-26")),
-#              character(0))
-# expect_equal(err_cd(validate_submission("tst_dt/partition_ok2/",
-#                                         js_def, NULL, pop_path,
-#                                         partition = "target")),
-#              character(0))
 # expect_equal(err_cd(validate_submission("tst_dt/partition_format/",
 #                                         js_def, NULL, pop_path,
 #                                         merge_sample_col = TRUE,
