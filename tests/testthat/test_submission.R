@@ -90,6 +90,7 @@ test_that("Test validation process", {
   expect_contains(attr(check$unique_round_id, "class"),
                   c("error", "check_error"))
 
+  ### File Name or extension error --------
   arrow::write_parquet(df0, path_f)
   file.copy(path_f, gsub("2023-11-12", "2024-07-28", path_f))
   check <- validate_submission(gsub("2023-11-12", "2024-07-28", path_f),
@@ -107,7 +108,23 @@ test_that("Test validation process", {
   file.remove(gsub("2023-11-12", "2013-11-12", path_f))
 
 
-# # File with date in POSIX format
+  file.copy(path_f, gsub(".parquet$", ".arrow", path_f))
+  check <- validate_submission(gsub(".parquet$", ".arrow", path_f),
+                               js_def, hub_path,
+                               merge_sample_col = merge_sample_col)
+  expect_contains(attr(check$file_extension, "class"),
+                  c("error", "check_error"))
+  file.remove(gsub(".parquet$", ".arrow", path_f))
+
+  ### File with date in unexpected format
+  df <- dplyr::mutate(df0, origin_date = "11/12/2023")
+  arrow::write_parquet(df, path_f)
+  check <- validate_submission(path_f, js_def, hub_path,
+                               merge_sample_col = merge_sample_col)
+  expect_contains(attr(check$date_format, "class"),
+                  c("error", "check_error"))
+
+
 # expect_equal(err_cd(validate_submission("tst_dt/2024-03-26-format.parquet",
 #                                         js_def, NULL, pop_path,
 #                                         merge_sample_col = TRUE)),
