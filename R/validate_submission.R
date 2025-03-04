@@ -241,6 +241,7 @@ validate_submission <- function(path, js_def, hub_path, target_data = NULL,
   if (!is.null(pop_path)) pop <- read_files(pop_path) else pop <- NULL
   # Select the associated round (add error message if no match)
   if (is.null(round_id)) round_id <- team_round_id(path, partition = partition)
+  check <- new_hub_validations()
 
   # Select validation file(s) and print message --------
   if (!is.null(partition)) {
@@ -265,12 +266,12 @@ validate_submission <- function(path, js_def, hub_path, target_data = NULL,
            "information in 'path' or in the 'round_id' parameter.\nPossible ",
            "round ids are: ", paste(unique(hubUtils::get_round_ids(js_def0)),
                                     collapse = ", "))
-  check <-
-    hubValidations::capture_check_cnd(check_round_id, file_path,
-                                      msg_subject = "{.var round_id}",
-                                      msg_attribute = "valid.",
-                                      details = details_mess, error = TRUE)
-  if (hubValidations::is_any_error(check)) {
+  check$round_id <-
+    try_check(capture_check_cnd(check_round_id, file_path,
+                                msg_subject = "{.var round_id}",
+                                msg_attribute = "valid.",
+                                etails = details_mess, error = TRUE))
+  if (is_any_error(check$round_id)) {
     return(check)
   } else {
     js_def <- hubUtils::get_round_model_tasks(js_def0, as.character(round_id))
@@ -281,12 +282,12 @@ validate_submission <- function(path, js_def, hub_path, target_data = NULL,
   config_ext <- hubValidations::read_config(hub_path, "admin")$file_format
   check_file_ext <- sub_file_ext %in% config_ext
   details_mess <- paste0("Extension(s) accepted: {.val ", config_ext, "}")
-  check <-
-    hubValidations::capture_check_cnd(check_file_ext, file_path,
-                                      msg_subject = "File(s) format extension",
-                                      msg_attribute = "valid.",
-                                      details = details_mess, error = TRUE)
-  if (hubValidations::is_any_error(check)) {
+  check$file_extension <-
+    try_check(capture_check_cnd(check_file_ext, file_path,
+                                msg_subject = "File(s) format extension",
+                                msg_attribute = "valid.",
+                                details = details_mess, error = TRUE))
+  if (is_any_error(check$file_extension)) {
     return(check)
   } else {
     # Read file
@@ -307,12 +308,12 @@ validate_submission <- function(path, js_def, hub_path, target_data = NULL,
   check_test_format <- !any(is.na(as.Date(na.omit(test_date), "%Y-%m-%d")))
   details_mess <- "The column should be in a ISO date format {.val YYYY-MM-DD}"
   message <- "The column(s) containing date information"
-  check <-
-    hubValidations::capture_check_cnd(check_test_format, file_path,
-                                      msg_subject = message,
-                                      msg_attribute = "in a valid format.",
-                                      details = details_mess, error = TRUE)
-  if (hubValidations::is_any_error(check)) {
+  check$date_format <-
+    try_check(capture_check_cnd(check_test_format, file_path,
+                                msg_subject = message,
+                                msg_attribute = "in a valid format.",
+                                details = details_mess, error = TRUE))
+  if (is_any_error(check$date_format)) {
     return(check)
   } else {
     col_date <- grep("date", names(df), value = TRUE)
