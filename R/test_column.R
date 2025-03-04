@@ -20,6 +20,8 @@
 #'@export
 test_column <- function(df, req_colnames, file_name = "") {
 
+  warning("Function Deprecated")
+
   checks <- hubValidations::new_hub_validations()
   # The name of the columns are corresponding to the expected format
   format_checks <- (all(req_colnames %in% names(df)))
