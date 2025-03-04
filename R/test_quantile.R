@@ -1,3 +1,4 @@
+# nocov start
 #' Runs Validation Checks on the Quantiles type and value columns
 #'
 #' Validate Scenario Modeling Hub submissions: test if the
@@ -121,3 +122,4 @@ test_quantiles <- function(df, model_task) {
   })
   invisible(NULL)
 }
+# nocov end

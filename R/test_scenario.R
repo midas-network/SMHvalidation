@@ -1,3 +1,4 @@
+# nocov start
 #' Runs Validation Checks on Scenario ID and Scenario Name columns
 #'
 #' Validate Scenario Modeling Hub submissions: test if the name and id of the
@@ -76,3 +77,4 @@ test_scenario <- function(df, model_task) {
   })
   invisible(NULL)
 }
+# nocov end

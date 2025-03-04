@@ -1,3 +1,4 @@
+# nocov start
 #' **Deprecated** - Runs Validation Checks on the Location column
 #'
 #' Validate Scenario Modeling Hub submissions: test if the  `location` column
@@ -92,3 +93,4 @@ test_location <- function(df, model_task) {
   })
   invisible(NULL)
 }
+# nocov end

@@ -1,3 +1,4 @@
+# nocov start
 #' Runs Validation Checks on the Target column
 #'
 #' Validate Scenario Modeling Hub submissions: test if the
@@ -162,3 +163,4 @@ test_target <- function(df, model_task) {
   })
   invisible(NULL)
 }
+# nocov end

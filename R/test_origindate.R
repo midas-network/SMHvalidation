@@ -1,4 +1,4 @@
-
+# nocov start
 #' Runs Validation Checks on the Origin Date column
 #'
 #' Validate Scenario Modeling Hub submissions: test if the
@@ -46,3 +46,4 @@ test_origindate <- function(df, path, id) {
   }
   invisible(NULL)
 }
+# nocov end

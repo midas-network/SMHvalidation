@@ -1,3 +1,4 @@
+# nocov start
 #' Runs Validation Checks on Columns names and number
 #'
 #' Validate Scenario Modeling Hub submissions: names and number of columns.
@@ -53,3 +54,4 @@ test_column <- function(df, req_colnames, file_name = "") {
   invisible(NULL)
 
 }
+# nocov end

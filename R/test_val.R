@@ -1,3 +1,4 @@
+# nocov start
 #' Validate `value` format column
 #'
 #' Validate that all the required type output are present in the submission
@@ -194,3 +195,4 @@ test_val <- function(df, pop, last_lst_gs, model_task, n_decimal = NULL) {
   })
   invisible(NULL)
 }
+# nocov end

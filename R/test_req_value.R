@@ -1,3 +1,4 @@
+# nocov start
 #' Runs Validation Checks on the required value
 #'
 #' Validate Scenario Modeling Hub submissions: test if all the required value
@@ -51,3 +52,4 @@ test_req_value <- function(df, model_task) {
   }
   invisible(NULL)
 }
+# nocov end

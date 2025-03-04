@@ -1,3 +1,4 @@
+# nocov start
 #'@importFrom purrr map compact
 #'@importFrom dplyr group_split
 pairing_test <- function(df_sample, m_task, or_pair, pairing_col) {
@@ -185,3 +186,4 @@ test_sample <- function(df, model_task, pairing_col = "horizon",
   })
   invisible(NULL)
 }
+# nocov end

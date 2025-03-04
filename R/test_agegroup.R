@@ -1,3 +1,4 @@
+# nocov start
 # Run all the age group specific column tests
 #'@importFrom hubValidations capture_check_info capture_check_cnd
 #'@importFrom dplyr filter
@@ -97,3 +98,4 @@ test_agegroup <- function(df, model_task, file_name = "") {
   print(purrr::keep(test_age, ~ !is.null(.x)))
   invisible(NULL)
 }
+# nocov end

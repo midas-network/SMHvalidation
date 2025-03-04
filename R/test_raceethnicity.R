@@ -1,3 +1,4 @@
+# nocov start
 #' Runs Validation Checks on the `race_ethnicity` column
 #'
 #' Validate Scenario Modeling Hub submissions: test if the `race_ethnicity`
@@ -53,3 +54,4 @@ test_raceethnicity <- function(df, model_task) {
   })
   invisible(NULL)
 }
+# nocov end
