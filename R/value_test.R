@@ -3,7 +3,7 @@
 cumul_value_test <- function(df, checks, obs, file_path) {
   # - Cumulative value should not be lower than GS cumulative data
   # (deaths; cases only)
-  if (any(grepl("cum", df$target))) {
+  if (any(grepl("cum", df$target)) && !is.null(obs)) {
     cum_obs <- dplyr::filter(obs, grepl("cum ", .data[["target"]]))
     df_h1 <- dplyr::filter(df, grepl("cum ", .data[["target"]]),
                            .data[["horizon"]] == 1)
@@ -12,40 +12,39 @@ cumul_value_test <- function(df, checks, obs, file_path) {
                                    (.data[["observation"]] * 0.05), 1, 0)) |>
       dplyr::filter(.data[["dff"]] > 0)
     checks$cumul_value <-
-      capture_check_cnd(!(dim(test)[1] > 0), file_path, error = TRUE,
+      capture_check_cnd(!(dim(test)[1] > 0), file_path, error = FALSE,
                         msg_verbs = c("are", "are not"), details = NULL,
                         msg_subject = "{.var value} at {.var horizon} 1",
                         msg_attribute = paste0("equal or greater than the last",
                                                " observed cumulative count"))
-
-    df_cum <- dplyr::filter(df, grepl("cum ", .data[["target"]]))
-    df_cum <-
-      dplyr::arrange(df_cum,
-                     dplyr::across(tidyr::all_of(c("target", "horizon"))))
-    sel_group <- grep(paste0("value|target_end_date|model_projection_date",
-                             "|scenario_name|horizon"), names(df_cum),
-                      invert = TRUE, value = TRUE)
-    df_cum <-
-      dplyr::mutate(df_cum,
-                    diff = .data[["value"]] - dplyr::lag(.data[["value"]]),
-                    .by = tidyr::all_of(sel_group)) |>
-      dplyr::filter(diff < 0)
-    msg_dt <- NULL
-    if (dim(df_cum)[1] > 0) {
-      err_groups <- df_cum |>
-        dplyr::select(-tidyr::all_of(c("diff", "value"))) |>
-        dplyr::distinct() |>
-        tidyr::unite("group", dplyr::everything(), sep = ", ") |>
-        unlist()
-      msg_dt <- paste0("Please verify the group: ",
-                       paste(err_groups[1:5], collapse = "; "))
-    }
-    checks$cumul_proj <-
-      capture_check_cnd(!dim(df_cum)[1] > 0, file_path, error = TRUE,
-                        msg_verbs = c("are not", "are"), details = msg_dt,
-                        msg_subject = "The cumulative values",
-                        msg_attribute = "decreasing.")
   }
+  df_cum <- dplyr::filter(df, grepl("cum ", .data[["target"]]))
+  df_cum <-
+    dplyr::arrange(df_cum,
+                   dplyr::across(tidyr::all_of(c("target", "horizon"))))
+  sel_group <- grep(paste0("value|target_end_date|model_projection_date",
+                           "|scenario_name|horizon"), names(df_cum),
+                    invert = TRUE, value = TRUE)
+  df_cum <-
+    dplyr::mutate(df_cum,
+                  diff = .data[["value"]] - dplyr::lag(.data[["value"]]),
+                  .by = tidyr::all_of(sel_group)) |>
+    dplyr::filter(diff < 0)
+  msg_dt <- NULL
+  if (dim(df_cum)[1] > 0) {
+    err_groups <- df_cum |>
+      dplyr::select(-tidyr::all_of(c("diff", "value"))) |>
+      dplyr::distinct() |>
+      tidyr::unite("group", dplyr::everything(), sep = ", ") |>
+      unlist()
+    msg_dt <- paste0("Please verify the group: ",
+                     paste(err_groups[1:5], collapse = "; "))
+  }
+  checks$cumul_proj <-
+    capture_check_cnd(!dim(df_cum)[1] > 0, file_path, error = TRUE,
+                      msg_verbs = c("are not", "are"), details = msg_dt,
+                      msg_subject = "The cumulative values",
+                      msg_attribute = "decreasing.")
   return(checks)
 }
 
@@ -130,13 +129,13 @@ value_test <- function(df, checks, file_path, n_decimal = NULL, pop = NULL,
       msg_dt <- paste0("Please verify: ", paste(err_groups, collapse = "; "))
     }
     checks$population_size <-
-      capture_check_cnd(!dim(test)[1] > 0, file_path, error = TRUE,
+      capture_check_cnd(!dim(test)[1] > 0, file_path, error = FALSE,
                         msg_verbs = c("All {.var value} are equal or lower",
                                       "Some {.var value} are greater"),
                         details = msg_dt, msg_subject = "",
                         msg_attribute = "than the population size.")
 
-    if (!is.null(obs)) checks <- cumul_value_test(df, checks, obs, file_path)
+    checks <- cumul_value_test(df, checks, obs, file_path)
   }
   return(checks)
 }
