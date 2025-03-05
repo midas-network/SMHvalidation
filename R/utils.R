@@ -15,10 +15,9 @@ location_fips_format <- function(df) {
     warning("Some location value are missing a trailing 0. For example, ",
             paste(vect, collapse = ", "), " instead of ",
             paste(paste0(0, vect), collapse = ", "))
-    df$location[which(nchar(df$location) == 1)] <-
-      paste0(0,  df$location[which(nchar(df$location) == 1)])
   }
   if (any("location" %in% names(df))) df$location <- as.character(df$location)
+  df <- loc_zero(df)
   return(df)
 }
 
@@ -263,10 +262,10 @@ paired_info <- function(df, rm_col = NULL, tasks_list = NULL,
   test_pair_list <- dplyr::distinct(df) |>
     as.list() |>
     purrr::map(unique)
-  if (is.null(tasks_list)) { # nocov start
+  if (is.null(tasks_list)) {
     paired_info <- purrr::keep(test_pair_list, function(x) length(x) > 1) |>
       names()
-  } else { # nocov end
+  } else {  # nocov start
     paired_info <- lapply(seq_along(test_pair_list), function(x) {
       if (is.null(verbose_col)) {
         if (length(test_pair_list[[x]]) > 1) {
@@ -306,7 +305,7 @@ paired_info <- function(df, rm_col = NULL, tasks_list = NULL,
       purrr::compact() |>
       unlist() |>
       unique()
-  }
+  } # nocov end
   return(paired_info)
 }
 
