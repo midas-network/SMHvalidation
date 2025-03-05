@@ -52,18 +52,36 @@ test_that("Test validation process", {
                    "model-output/team4-modeld/2023-11-12-team4-modeld.parquet")
   df0 <- arrow::read_parquet(path)
 
+  ## Pass - only required value ---
+  df <- dplyr::filter(df0, .data[["output_type"]] == "sample") |>
+    dplyr::mutate(output_type_id =
+                    as.character(as.factor(paste0(.data[["run_grouping"]], "_",
+                                                  .data[["stochastic_run"]]))))
+  df <- dplyr::select(df, -tidyr::all_of(c("run_grouping", "stochastic_run")))
+  arrow::write_parquet(df, path_f)
+  rm(df)
+  check <- validate_submission(path = path_f, js_def = js_def,
+                               hub_path = hub_path, target_data = NULL,
+                               pop_path = pop_path,
+                               merge_sample_col = NULL, partition = NULL,
+                               n_decimal = NULL, round_id = round_id,
+                               verbose = FALSE, r_schema = r_schema)
+  expect_contains(attr(check$value_col_non_desc, "class"),
+                  c("check_info", "message"))
+  expect_null(check$pairing_info)
+
   ## Test columns error -----
   ### File with additional column ("row": row number id)
   df <- dplyr::mutate(df0, row = seq_along(nrow(df0)))
   arrow::write_parquet(df, path_f)
-
+  rm(df)
   check <- validate_submission(path_f, js_def, hub_path,
                                merge_sample_col = merge_sample_col)
   expect_equal(length(check), 5)
   expect_contains(attr(check$colnames, "class"), c("error", "check_error"))
 
   ### File with badly named column
-  df <- dplyr::rename(df0, age = age_group)
+  df <- dplyr::rename(df0, round_id = origin_date)
   arrow::write_parquet(df, path_f)
   check <- validate_submission(path_f, js_def, hub_path,
                                merge_sample_col = merge_sample_col)
