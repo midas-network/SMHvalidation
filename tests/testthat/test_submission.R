@@ -8,25 +8,13 @@ test_that("Test validation process", {
   partition <- round_id <- r_schema <- NULL
   n_decimal <- 1
   verbose <- TRUE
-
-  # Files corresponding to the expected format ------
-  ## Unique file -------
   path <- paste0(hub_path,
                  "model-output/team2-modelb/2023-11-12-team2-modelb.parquet")
-  check <- validate_submission(path = path, js_def = js_def,
-                               hub_path = hub_path, target_data = obs,
-                               pop_path = pop_path,
-                               merge_sample_col = merge_sample_col,
-                               partition = partition, n_decimal = n_decimal,
-                               round_id = round_id, verbose = verbose,
-                               r_schema = r_schema)
-  test <- unique(purrr::map_vec(purrr::map(check, ~attr(.x, "class")), 1))
-  expect_equal(test, c("check_info", "check_success"))
-  expect_equal(check$pairing_info$message,
-               paste0("Run grouping pairing: \"horizon\", \"age_group\"; ",
-                      "stochastic run pairing: No stochasticity. ",
-                      "Number of Samples: 100"))
+  path_f <- paste0(hub_path,
+                   "model-output/team4-modeld/2023-11-12-team4-modeld.parquet")
+  df0 <- arrow::read_parquet(path)
 
+  # Files corresponding to the expected format ------
   ## Partition -----
   path <- paste0(hub_path,
                  "model-output/t3-mc")
@@ -45,14 +33,24 @@ test_that("Test validation process", {
                       "stochastic run pairing: \"horizon\", \"age_group\". ",
                       "Number of Samples: 100"))
 
-  # Test errors --------
+  ## Unique file -------
   path <- paste0(hub_path,
                  "model-output/team2-modelb/2023-11-12-team2-modelb.parquet")
-  path_f <- paste0(hub_path,
-                   "model-output/team4-modeld/2023-11-12-team4-modeld.parquet")
-  df0 <- arrow::read_parquet(path)
+  check <- validate_submission(path = path, js_def = js_def,
+                               hub_path = hub_path, target_data = obs,
+                               pop_path = pop_path,
+                               merge_sample_col = merge_sample_col,
+                               partition = partition, n_decimal = n_decimal,
+                               round_id = round_id, verbose = verbose,
+                               r_schema = r_schema)
+  test <- unique(purrr::map_vec(purrr::map(check, ~attr(.x, "class")), 1))
+  expect_equal(test, c("check_info", "check_success"))
+  expect_equal(check$pairing_info$message,
+               paste0("Run grouping pairing: \"horizon\", \"age_group\"; ",
+                      "stochastic run pairing: No stochasticity. ",
+                      "Number of Samples: 100"))
 
-  ## Pass - only required value ---
+  ## only required value ---
   df <- dplyr::filter(df0, .data[["output_type"]] == "sample") |>
     dplyr::mutate(output_type_id =
                     as.character(as.factor(paste0(.data[["run_grouping"]], "_",
@@ -69,6 +67,28 @@ test_that("Test validation process", {
   expect_contains(attr(check$value_col_non_desc, "class"),
                   c("check_info", "message"))
   expect_null(check$pairing_info)
+
+  ## Exchange pairing information ---
+  df <- df0
+  df$run_grouping <- df0$stochastic_run
+  df$stochastic_run <- df0$run_grouping
+  arrow::write_parquet(df, path_f)
+  rm(df)
+  check <- validate_submission(path = path_f, js_def = js_def,
+                               hub_path = hub_path, target_data = obs,
+                               pop_path = pop_path,
+                               merge_sample_col = merge_sample_col,
+                               partition = partition, n_decimal = n_decimal,
+                               round_id = round_id, verbose = verbose,
+                               r_schema = r_schema)
+  test <- unique(purrr::map_vec(purrr::map(check, ~attr(.x, "class")), 1))
+  expect_equal(test, c("check_info", "check_success"))
+  expect_equal(check$pairing_info$message,
+               paste0("Run grouping pairing: No run grouping; stochastic run ",
+                      "pairing: \"horizon\", \"age_group\". Number of ",
+                      "Samples: 100"))
+
+  # Test errors --------
 
   ## Test columns error -----
   ### File with additional column ----
@@ -277,6 +297,7 @@ test_that("Test validation process", {
                         target = "cum hosp", age_group = "0-130",
                         date = as.Date("2023-11-17"))
   write.csv(tmp_obs, "../exp/target-data/tmp_ts.csv", row.names = FALSE)
+  rm(tmp_obs)
   check <- validate_submission(path, js_def, hub_path, pop_path = pop_path,
                                target_data =  "../exp/target-data/tmp_ts.csv",
                                merge_sample_col = merge_sample_col)
@@ -310,72 +331,78 @@ test_that("Test validation process", {
                                merge_sample_col = merge_sample_col)
   expect_contains(attr(check$n_decimal, "class"), c("error", "check_failure"))
 
-# # Test target error -----
-# # Contains 27 week horizons instead of 13 required 26 optional (round 8)
-# expect_equal(err_cd(validate_submission("tst_dt/2021-08-15_morewk.gz",
-#                                         js_def, lst_gs, pop_path)),
-#              c("606", "702"))
-# # Contains 12 week horizons instead of 52 required (round 13))
-# # JSON expect:
-# #  location (for all target expect cum case): "USA" required, "unknown"
-# #    optional and "US" not possible
-# #  location (cum case): null
-# val_test <-
-#   err_cd(validate_submission("tst_dt/2022-03-13_round13_missingweek.csv",
-#                              js_def, lst_gs, pop_path))
-# expect_equal(val_test, c("006", "509", "5041", "508", "605", "607", "703"))
-# # Cumulative cases with low value (after horizon 7)
-# # JSON expect:
-# #  location (for all target expect cum case): "USA" required, "unknown"
-# #    optional and "US" not possible
-# #  location (cum case): null
-# expect_equal(err_cd(validate_submission("tst_dt/2022-03-13_round13_err.csv",
-#                                         js_def, lst_gs, pop_path)),
-#              c("006", "509", "5041", "508", "511", "605", "607", "703"))
-# # Change inc case into inc inf target
-# # JSON expect:
-# #  target: inc case required inc inf optional
-# val_test <-
-#   err_cd(validate_submission("tst_dt/2022-06-05_round14_misswk_targ.csv",
-#                              js_def, lst_gs, pop_path))
-# expect_equal(val_test, c("006", "508", "509", "602", "605", "607"))
+  ## Read file error ---------
+  ### Location ---------
+  df <- dplyr::mutate(df0, location = gsub("0", "", .data[["location"]]))
+  arrow::write_parquet(df, path_f)
+  rm(df)
+  quiet_log <- purrr:::quietly(validate_submission)
+  check <- quiet_log(path_f, js_def, hub_path,
+                     merge_sample_col = merge_sample_col)
+  expect_equal(check$warnings,
+               paste0("Some location value are missing a trailing 0. ",
+                      "For example, 6, 8 instead of 06, 08"))
+  expect_equal(unique(purrr::map_vec(purrr::map(check$result,
+                                                ~attr(.x, "class")), 1)),
+               c("check_info", "check_success"))
 
-# # Test location error -----
-# # Rename US as "0202" for location
-# expect_equal(err_cd(validate_submission("tst_dt/2022-01-09_badlocation.csv",
-#                                         js_def, lst_gs, pop_path)),
-#              c("703"))
-# # Rename "02" as "2" for location
-# expect_equal(err_cd(validate_submission("tst_dt/2021-11-14_no0location.zip",
-#                                         js_def, lst_gs, pop_path)),
-#              c("509", "702"))
+  ### Factor -----------
+  df <- dplyr::mutate(df0, age_group = as.factor(.data[["age_group"]]))
+  arrow::write_parquet(df, path_f)
+  rm(df)
+  quiet_log <- purrr:::quietly(validate_submission)
+  check <- quiet_log(path_f, js_def, hub_path,
+                     merge_sample_col = merge_sample_col)
+  expect_contains(check$warnings,
+                  paste0("🟡 Warning: At least one column is in a format: ",
+                         "'factor', please verify. \n The column(s) will be ",
+                         "automatically set to  'character'."))
+  expect_equal(unique(purrr::map_vec(purrr::map(check$result,
+                                                ~attr(.x, "class")), 1)),
+               c("check_info", "check_success"))
 
-# ### Tests on FLU ###
-# # Test on target & horizon -----
-# # remove target with "time" in the name
-# val_test <- err_cd(validate_submission("tst_dt/2022-08-14_flu_misstarget.csv",
-#                                        js_def_flu, lst_gs_flu, pop_path_flu))
-# expect_equal(val_test, c("602"))
-# # For "size" target, horizon = 1
-# expect_equal(err_cd(validate_submission("tst_dt/2022-08-14_badhorizon.csv",
-#                                         js_def_flu, lst_gs_flu,
-#                                         pop_path_flu)), c("606", "612"))
+  ### Sample in unaccepted format
+  df <- dplyr::mutate(df0, stochastic_run = 1.25)
+  arrow::write_parquet(df, path_f)
+  rm(df)
+  quiet_log <- purrr:::quietly(validate_submission)
+  check <- quiet_log(path_f, js_def, hub_path, verbose = FALSE,
+                     merge_sample_col = merge_sample_col)
+  expect_contains(check$messages,
+                  paste0("❌ Error: The columns run_grouping and ",
+                         "stochastic_run should contain integer values ",
+                         "only for type 'sample'.\n"))
+  expect_equal(unique(purrr::map_vec(purrr::map(check$result,
+                                                ~attr(.x, "class")), 1)),
+               c("check_success"))
 
-# # Test additional location error -----
-# # add location "02" for "death" target(s)
-# expect_equal(err_cd(validate_submission("tst_dt/2022-08-14_flu_addloc.csv",
-#                                         js_def_flu, lst_gs_flu,
-#                                         pop_path_flu)), c("703"))
+  ### Add an schema
+  js_def0 <- hubUtils::read_config_file(js_def)
+  js_def2 <- hubUtils::get_round_model_tasks(js_def0, "2023-11-12")
+  schema <- SMHvalidation:::make_schema(js_def0, js_def2, "2023-11-12")
+  check <- validate_submission(path_f, js_def, hub_path, verbose = FALSE,
+                               merge_sample_col = merge_sample_col,
+                               r_schema = r_schema)
+  expect_equal(test, c("check_info", "check_success"))
 
-# # Change all age_group for peak size hosp to "00_12"
-# expect_equal(err_cd(validate_submission("tst_dt/2022-08-14_flu_badage.csv",
-#                                         js_def_flu, lst_gs_flu,
-#                                         pop_path_flu)),
-#              c("801", "802"))
-# # Remove age group column
-# expect_equal(err_cd(validate_submission("tst_dt/2022-08-14_flu_noage.csv",
-#                                         js_def_flu, lst_gs_flu,
-#                                         pop_path_flu)), c("103"))
+  ## Sample
+  ### All samples have the same group ID
+  df <- dplyr::mutate(df0, run_grouping = 1)
+  arrow::write_parquet(df, path_f)
+  rm(df)
+  check <- quiet_log(path_f, js_def, hub_path,
+                     merge_sample_col = merge_sample_col)
+  expect_contains(check$messages,
+                  paste0("\n❌ Error: The submission should contains multiple",
+                         " sample output type groups, please verify.\n\n"))
+  expect_contains(attr(check$result$rows_unique, "class"),
+                  c("error", "check_failure"))
+  expect_contains(attr(check$result$spl_n, "class"),
+                  c("error", "check_failure"))
+
+  ### Pairing information incorrect
+
+
 
 # # Test sample ----
 # # Filter sample < 90 and remove inc death and peak_time target
@@ -415,12 +442,5 @@ test_that("Test validation process", {
 #                              merge_sample_col = TRUE))
 # expect_equal(test_val, c("510", "702", "903", "902"))
 
-# # Test value ---
-# # Missing inc death (sample required) for all task_ids
-# # CDF values (optional) > 1
-# test_val <-
-#   err_cd(validate_submission("tst_dt/2023-09-03_noincdeath_timevalue.parquet",
-#                              js_def_flu, lst_gs_flu, pop_path_flu))
-# expect_equal(test_val, c("006", "204", "5041", "602", "904"))
 
 })
