@@ -10,3 +10,5 @@ inst/doc
 /Meta/
 *.pdf
 .idea/*
+tests/exp/model-output/team4-modeld/2023-11-12-team4-modeld.parquet
+/tests/exp/model-output/team4-modeld
