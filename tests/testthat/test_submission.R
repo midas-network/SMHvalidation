@@ -9,8 +9,8 @@ test_that("Test validation process", {
   n_decimal <- 1
   verbose <- TRUE
 
-  # Files corresponding to the expected format
-  ## Unique file
+  # Files corresponding to the expected format ------
+  ## Unique file -------
   path <- paste0(hub_path,
                  "model-output/team2-modelb/2023-11-12-team2-modelb.parquet")
   check <- validate_submission(path = path, js_def = js_def,
@@ -27,7 +27,7 @@ test_that("Test validation process", {
                       "stochastic run pairing: No stochasticity. ",
                       "Number of Samples: 100"))
 
-  ## Partition
+  ## Partition -----
   path <- paste0(hub_path,
                  "model-output/t3-mc")
   check <- validate_submission(path = path, js_def = js_def,
@@ -45,7 +45,7 @@ test_that("Test validation process", {
                       "stochastic run pairing: \"horizon\", \"age_group\". ",
                       "Number of Samples: 100"))
 
-  # Test errors
+  # Test errors --------
   path <- paste0(hub_path,
                  "model-output/team2-modelb/2023-11-12-team2-modelb.parquet")
   path_f <- paste0(hub_path,
@@ -71,7 +71,7 @@ test_that("Test validation process", {
   expect_null(check$pairing_info)
 
   ## Test columns error -----
-  ### File with additional column ("row": row number id)
+  ### File with additional column ----
   df <- dplyr::mutate(df0, row = seq_along(nrow(df0)))
   arrow::write_parquet(df, path_f)
   rm(df)
@@ -80,35 +80,52 @@ test_that("Test validation process", {
   expect_equal(length(check), 5)
   expect_contains(attr(check$colnames, "class"), c("error", "check_error"))
 
-  ### File with badly named column
+  ### File with badly named column ----
   df <- dplyr::rename(df0, round_id = origin_date)
   arrow::write_parquet(df, path_f)
+  rm(df)
   check <- validate_submission(path_f, js_def, hub_path,
                                merge_sample_col = merge_sample_col)
 
   expect_equal(length(check), 1)
   expect_contains(attr(check$col_names, "class"), c("error", "check_error"))
 
-  ### Test value error -----
+  ## Test value in tasks id columns error -----
+  ### Scenario ID error ----
   df <- dplyr::mutate(df0, scenario_id = gsub("2023", "2013",
                                               .data[["scenario_id"]]))
   arrow::write_parquet(df, path_f)
+  rm(df)
   check <- validate_submission(path_f, js_def, hub_path,
                                merge_sample_col = merge_sample_col)
   expect_contains(attr(check$valid_vals, "class"), c("error", "check_error"))
 
-  ### Test origin_date and file-name date error -----
+  ### Horizon for CDF output type  ----
+  df <-
+    dplyr::mutate(df0,
+                  horizon = ifelse(.data[["output_type"]] == "cdf" &
+                                     .data[["output_type_id"]] == "EW202346",
+                                   1, .data[["horizon"]]),
+                  horizon = as.integer(.data[["horizon"]]))
+  arrow::write_parquet(df, path_f)
+  rm(df)
+  check <- validate_submission(path_f, js_def, hub_path,
+                               merge_sample_col = merge_sample_col)
+  expect_contains(attr(check$valid_vals, "class"), c("error", "check_error"))
+
+  ## Test origin_date and file-name date error -----
   df <- dplyr::mutate(df0,
                       origin_date = c(rep(c(as.Date("2023-11-10"),
                                             as.Date("2024-07-28")),
-                                          (nrow(df) / 2)), "2023-11-10"))
+                                          (nrow(df0) / 2)), "2023-11-10"))
   arrow::write_parquet(df, path_f)
+  rm(df)
   check <- validate_submission(path_f, js_def, hub_path,
                                merge_sample_col = merge_sample_col)
   expect_contains(attr(check$unique_round_id, "class"),
                   c("error", "check_error"))
 
-  ### File Name or extension error --------
+  ## File Name or extension error --------
   arrow::write_parquet(df0, path_f)
   file.copy(path_f, gsub("2023-11-12", "2024-07-28", path_f))
   check <- validate_submission(gsub("2023-11-12", "2024-07-28", path_f),
@@ -133,22 +150,24 @@ test_that("Test validation process", {
                   c("error", "check_error"))
   file.remove(gsub(".parquet$", ".arrow", path_f))
 
-  ### File with date in unexpected format
+  ## File with date in unexpected format ----
   df <- dplyr::mutate(df0, origin_date = "11/12/2023")
   arrow::write_parquet(df, path_f)
+  rm(df)
   check <- validate_submission(path_f, js_def, hub_path,
                                merge_sample_col = merge_sample_col)
   expect_contains(attr(check$date_format, "class"),
                   c("error", "check_error"))
 
-  ### File with wrong output
-  #### Error in quantiles
+  ## File with wrong output ------
+  ### Quantile --------
   df <-
     dplyr::mutate(df0,
                   output_type_id = ifelse(.data[["output_type"]] == "quantile" &
                                             .data[["output_type_id"]] == 0.5,
                                           0.2, .data[["output_type_id"]]))
   arrow::write_parquet(df, path_f)
+  rm(df)
   check <- validate_submission(path_f, js_def, hub_path,
                                merge_sample_col = merge_sample_col)
   expect_contains(attr(check$rows_unique, "class"), c("error", "check_failure"))
@@ -156,72 +175,142 @@ test_that("Test validation process", {
                   c("error", "check_failure"))
   expect_contains(attr(check$req_vals, "class"), c("error", "check_failure"))
 
-  #### Remove optional quantile (only 0)
+  ### Remove optional quantile (only 0) --------
+  df <- rbind(df0,
+              dplyr::filter(df0, .data[["output_type_id"]] == 0.95) |>
+                dplyr::mutate(output_type_id = 1))
+  arrow::write_parquet(df, path_f)
+  rm(df)
+  check <- validate_submission(path_f, js_def, hub_path,
+                               merge_sample_col = merge_sample_col)
+  expect_contains(attr(check$req_vals, "class"), c("error", "check_failure"))
 
-# # Test quantile error -----
+  ### Add additional horizon -------
+  df <- rbind(df0,
+              dplyr::filter(df0, .data[["horizon"]] == 10) |>
+                dplyr::mutate(horizon = 11))
+  arrow::write_parquet(df, path_f)
+  rm(df)
+  check <- validate_submission(path_f, js_def, hub_path,
+                               merge_sample_col = merge_sample_col)
+  expect_contains(attr(check$valid_vals, "class"), c("error", "check_error"))
 
-# # File with missing required quantile: remove all 0.5 quantile
-# expect_equal(err_cd(validate_submission("tst_dt/2022-01-09_missquant.csv",
-#                                         js_def, lst_gs,  pop_path)),
-#              c("402", "406"))
-# # File with unique value for all US, Scenario A, quantile 1, inc death (= 0)
-# expect_equal(err_cd(validate_submission("tst_dt/2022-01-09_valquant.csv",
-#                                         js_def, lst_gs,  pop_path)),
-#              c("5042", "403"))
-# # File with missing optional quantile: remove all 0 and 1 quantile
-# expect_equal(err_cd(validate_submission("tst_dt/2022-01-09_missoptquant.csv",
-#                                         js_def, lst_gs, pop_path)),
-#              character(0))
+  ## Column Type -----------
+  df <- dplyr::mutate(df0, horizon = as.double(.data[["horizon"]]))
+  arrow::write_parquet(df, path_f)
+  rm(df)
+  check <- validate_submission(path_f, js_def, hub_path,
+                               merge_sample_col = merge_sample_col)
+  expect_contains(attr(check$col_types, "class"), c("error", "check_failure"))
 
-# # Test value error -----
-# # Rename type column with NA type_id value into "pnt" (instead of median)
-# expect_equal(err_cd(validate_submission("tst_dt/2022-01-09_badpointtype.csv",
-#                                         js_def, lst_gs, pop_path)), c("512"))
-# # Associated 0.5 instead of NA in the type_id column for median type value
-# expect_equal(err_cd(validate_submission("tst_dt/2022-01-09_badpointquant.csv",
-#                                         js_def, lst_gs, pop_path)), c("5040"))
-# # negative value of quantile 0, Scenario A, location US, inc death
-# expect_equal(err_cd(validate_submission("tst_dt/2022-01-09_negvalue.csv",
-#                                         js_def, lst_gs, pop_path)), c("5041"))
-# # Duplicates value for Scenario A location US, inc death
-# expect_equal(err_cd(validate_submission("tst_dt/2022-01-09_doublepoint.csv",
-#                                         js_def, lst_gs, pop_path)), c("510"))
-# # Duplicates value for Scenario A location US, inc death, quantile 0
-# # (optional)
-# val_test <-
-#   err_cd(validate_submission("tst_dt/2022-01-09_doublequantzero.csv",
-#                              js_def, lst_gs, pop_path))
-# expect_equal(val_test, c("510"))
-# # High value (1e9) of quantile 1, Scenario A, location US, inc death
-# expect_equal(err_cd(validate_submission("tst_dt/2022-01-09_highvalue.csv",
-#                                         js_def, lst_gs, pop_path)), c("507"))
-# expect_equal(validate_submission("tst_dt/2022-01-09_highvalue.csv", js_def),
-#              NULL)
-# # Low value (10) of Scenario A, location US, cum case
-# expect_equal(err_cd(validate_submission("tst_dt/2022-01-09_lowcumcase.csv",
-#                                         js_def, lst_gs, pop_path)),
-#              c("505", "508"))
-# # Low value (1) of Scenario A, location US, cum death
-# expect_equal(err_cd(validate_submission("tst_dt/2022-01-09_lowcumdeath.csv",
-#                                         js_def, lst_gs, pop_path)),
-#              c("505", "509"))
-# #  Unique value (1) of Scenario A, location US, inc death
-# expect_equal(err_cd(validate_submission("tst_dt/2022-01-09_uniquevalue.csv",
-#                                         js_def, lst_gs, pop_path)), c("505"))
-# # File with missing first 100 rows
-# expect_equal(err_cd(validate_submission("tst_dt/2022-01-09_missingrow.csv",
-#                                         js_def, lst_gs, pop_path)),
-#              c("607", "406"))
+  ## Error in the value column ------
+  ### Flat trajectory ---------
+  df <-
+    dplyr::mutate(df0, value = ifelse(.data[["scenario_id"]] == "A-2023-10-27" &
+                                        .data[["age_group"]] == "0-130" &
+                                        .data[["target"]] == "inc hosp" &
+                                        .data[["location"]] == "US" &
+                                        .data[["output_type"]] == "sample" &
+                                        .data[["run_grouping"]] %in% c(1:10),
+                                      0, .data[["value"]]))
+  arrow::write_parquet(df, path_f)
+  rm(df)
+  check <- validate_submission(path_f, js_def, hub_path,
+                               merge_sample_col = merge_sample_col)
+  expect_contains(attr(check$flat_projection, "class"),
+                  c("error", "check_failure"))
+
+  ### NA value -----------
+  df <-
+    dplyr::mutate(df0, value = ifelse(.data[["scenario_id"]] == "A-2023-10-27" &
+                                        .data[["age_group"]] == "0-130" &
+                                        .data[["target"]] == "inc hosp" &
+                                        .data[["location"]] == "US" &
+                                        .data[["output_type"]] == "sample" &
+                                        .data[["run_grouping"]] %in% c(1:10) &
+                                        .data[["horizon"]] == 10,
+                                      NA, .data[["value"]]))
+  arrow::write_parquet(df, path_f)
+  rm(df)
+  check <- validate_submission(path_f, js_def, hub_path,
+                               merge_sample_col = merge_sample_col)
+  expect_contains(attr(check$value_col_valid, "class"),
+                  c("error", "check_failure"))
+  expect_contains(attr(check$na_value, "class"), c("error", "check_error"))
+
+  ### Negative value -----------
+  df <-
+    dplyr::mutate(df0, value = ifelse(.data[["scenario_id"]] == "A-2023-10-27" &
+                                        .data[["age_group"]] == "0-130" &
+                                        .data[["target"]] == "inc hosp" &
+                                        .data[["location"]] == "US" &
+                                        .data[["output_type"]] == "sample" &
+                                        .data[["run_grouping"]] == 1 &
+                                        .data[["horizon"]] == 1,
+                                      -1, .data[["value"]]))
+  arrow::write_parquet(df, path_f)
+  rm(df)
+  check <- validate_submission(path_f, js_def, hub_path,
+                               merge_sample_col = merge_sample_col)
+  expect_contains(attr(check$value_col_valid, "class"),
+                  c("error", "check_failure"))
+
+  ### Greater than population size -----------
+  df <-
+    dplyr::mutate(df0, value = ifelse(.data[["scenario_id"]] == "A-2023-10-27" &
+                                        .data[["age_group"]] == "0-130" &
+                                        .data[["target"]] == "inc hosp" &
+                                        .data[["location"]] == "US" &
+                                        .data[["output_type"]] == "sample" &
+                                        .data[["run_grouping"]] == 1 &
+                                        .data[["horizon"]] == 1,
+                                      7e9, .data[["value"]]))
+  arrow::write_parquet(df, path_f)
+  rm(df)
+  check <- validate_submission(path_f, js_def, hub_path, pop_path = pop_path,
+                               merge_sample_col = merge_sample_col)
+  expect_contains(attr(check$population_size, "class"),
+                  c("error", "check_failure"))
+
+  ### Cumulative value lower than expected -----
+  tmp_obs <- data.frame(observation = 1000, location = c("US", "06", "08"),
+                        target = "cum hosp", age_group = "0-130",
+                        date = as.Date("2023-11-17"))
+  write.csv(tmp_obs, "../exp/target-data/tmp_ts.csv", row.names = FALSE)
+  check <- validate_submission(path, js_def, hub_path, pop_path = pop_path,
+                               target_data =  "../exp/target-data/tmp_ts.csv",
+                               merge_sample_col = merge_sample_col)
+  expect_contains(attr(check$cumul_value, "class"), c("error", "check_failure"))
+  file.remove("../exp/target-data/tmp_ts.csv")
+
+  ### Cumulative value decreasing -----
+  df <-
+    dplyr::mutate(df0, value = ifelse(.data[["scenario_id"]] == "A-2023-10-27" &
+                                        .data[["age_group"]] == "0-130" &
+                                        .data[["target"]] == "cum hosp" &
+                                        .data[["location"]] == "US" &
+                                        .data[["output_type"]] == "quantile" &
+                                        .data[["output_type_id"]] == 0.5 &
+                                        .data[["horizon"]] == 10,
+                                      1, .data[["value"]]))
+  arrow::write_parquet(df, path_f)
+  rm(df)
+  check <- validate_submission(path_f, js_def, hub_path, pop_path = pop_path,
+                               merge_sample_col = merge_sample_col)
+  expect_contains(attr(check$value_col_non_desc, "class"),
+                  c("error", "check_failure"))
+  expect_contains(attr(check$cumul_proj, "class"),
+                  c("error", "check_error"))
+
+  ### Number of decimal
+  df <- dplyr::mutate(df0, value = round(.data[["value"]], 5))
+  arrow::write_parquet(df, path_f)
+  rm(df)
+  check <- validate_submission(path_f, js_def, hub_path, n_decimal = 0,
+                               merge_sample_col = merge_sample_col)
+  expect_contains(attr(check$n_decimal, "class"), c("error", "check_failure"))
 
 # # Test target error -----
-# # Rename "inc case" into "inccase"
-# expect_equal(err_cd(validate_submission("tst_dt/2022-01-09_badnametarget.csv",
-#                                         js_def, lst_gs, pop_path)),
-#              c("006", "601", "602"))
-# # Remove horizon == 12 rows
-# expect_equal(err_cd(validate_submission("tst_dt/2022-01-09_misswk.csv",
-#                                         js_def, lst_gs, pop_path)),
-#              c("006", "605", "607"))
 # # Contains 27 week horizons instead of 13 required 26 optional (round 8)
 # expect_equal(err_cd(validate_submission("tst_dt/2021-08-15_morewk.gz",
 #                                         js_def, lst_gs, pop_path)),
@@ -262,15 +351,6 @@ test_that("Test validation process", {
 #              c("509", "702"))
 
 # ### Tests on FLU ###
-# # No error (contains optional point value)
-# expect_equal(validate_submission("tst_dt/2022-08-14_flu_no_error.csv",
-#                                  js_def_flu, lst_gs_flu, pop_path_flu), NULL)
-# # No error (missing optional point value)
-# expect_equal(validate_submission("tst_dt/2022-08-14_flu_nopoint_noerror.csv",
-#                                  js_def_flu, lst_gs_flu, pop_path_flu), NULL)
-# # No error (contains quantile and optional sample format)
-# expect_equal(validate_submission("tst_dt/2022-08-14_flu_sample.csv",
-#                                  js_def_flu, lst_gs_flu, pop_path_flu), NULL)
 # # Test on target & horizon -----
 # # remove target with "time" in the name
 # val_test <- err_cd(validate_submission("tst_dt/2022-08-14_flu_misstarget.csv",
@@ -281,24 +361,12 @@ test_that("Test validation process", {
 #                                         js_def_flu, lst_gs_flu,
 #                                         pop_path_flu)), c("606", "612"))
 
-# # Test value sample
-# # No error (contains quantile and optional sample format)
-# expect_equal(err_cd(validate_submission("tst_dt/2022-08-14_flu_sample.csv",
-#                                         js_def_flu, lst_gs_flu, pop_path_flu,
-#                                         n_decimal = 1)), c("5043"))
-
 # # Test additional location error -----
 # # add location "02" for "death" target(s)
 # expect_equal(err_cd(validate_submission("tst_dt/2022-08-14_flu_addloc.csv",
 #                                         js_def_flu, lst_gs_flu,
 #                                         pop_path_flu)), c("703"))
 
-# # Test age-group ----
-# # Change all age_group to "130-17"
-# expect_equal(err_cd(validate_submission("tst_dt/2022-08-14_flu_missage.csv",
-#                                         js_def_flu, lst_gs_flu,
-#                                         pop_path_flu)),
-#              c("006", "802"))
 # # Change all age_group for peak size hosp to "00_12"
 # expect_equal(err_cd(validate_submission("tst_dt/2022-08-14_flu_badage.csv",
 #                                         js_def_flu, lst_gs_flu,
@@ -355,40 +423,4 @@ test_that("Test validation process", {
 #                              js_def_flu, lst_gs_flu, pop_path_flu))
 # expect_equal(test_val, c("006", "204", "5041", "602", "904"))
 
-# # Missing inc death (sample required) for all task_ids
-# # Only sample as output_type
-# test_val <-
-#   err_cd(validate_submission("tst_dt/2023-09-03_noincdeath_sample.parquet",
-#                              js_def_flu, lst_gs_flu, pop_path_flu))
-# expect_equal(test_val, c("006", "204", "602", "904"))
-
-# # Contains both parquet files:
-# # Missing inc death (sample required) for all task_ids
-# # CDF values (optional) > 1
-# # double sample inc hosp
-# expect_equal(err_cd(validate_submission(dir("tst_dt/", pattern = "2023-09-03",
-#                                             full.names = TRUE),
-#                                         js_def_flu, lst_gs_flu,
-#                                         pop_path_flu, verbose = FALSE)),
-#              c("006", "204", "510", "5041", "602", "901", "904"))
-
-# # Test race/ethnicity -----
-# expect_equal(err_cd(validate_submission("tst_dt/2024-03-26-raceethn.csv",
-#                                         js_def, NULL, pop_path,
-#                                         merge_sample_col = TRUE)),
-#              c("006", "702", "902", "1002", "1001"))
-
-# ### Internal Functions ###
-# df <- read.csv("tst_dt/2022-08-14_flu_no_error.csv")
-# js <- jsonlite::read_json("tst_dt/flu_tasks.json")
-# js_tasks <- js$rounds[[1]]$model_tasks
-# df_test <- SMHvalidation:::filter_df(df, js_tasks)
-# expect_equal(nrow(dplyr::setdiff(df, df_test)), 0)
-
-# ### Error files ####
-# # Bad link
-# test_val <-
-#   err_cd(validate_submission("tst_dt/2023-09-03_noincdeath_sample.txt",
-#                              js_def_flu, lst_gs_flu, pop_path_flu))
-# expect_equal(test_val, c("005"))
 })
