@@ -21,14 +21,14 @@
 							"optional":null
 						},
 						"horizon":{
-							"required":[1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29],
+							"required":[1,2,3,4,5,6,7,8,9,10],
 							"optional":null
 						},"location":{
 							"required":null,
-							"optional":["US","06","08","09","13","24","26","27","35","36","41","47","49"]
+							"optional":["US","06","08"]
 						},"age_group":{
-							"required":["0-0.99","1-4","65-130","5-64","0-130"],
-							"optional":["5-17","18-49","50-64"]
+							"required":["65-130","0-130"],
+							"optional":["5-17"]
 						}
 					},
 					"output_type":{
@@ -36,7 +36,7 @@
 							"output_type_id_params": {
 								"type": "integer",
 							    "min_samples_per_task": 100,
-							    "max_samples_per_task": 100,
+							    "max_samples_per_task": 200,
 							    "compound_taskid_set": ["origin_date", "scenario_id", "target", "location"]
 							},
 							"value":{
@@ -77,15 +77,15 @@
 							"optional":["inc hosp","cum hosp"]
 						},
 						"horizon":{
-							"required":[1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29],
+							"required":[1,2,3,4,5,6,7,8,9,10],
 							"optional":null},
 						"location":{
 							"required":null,
-							"optional":["US","06","08","09","13","24","26","27","35","36","41","47","49"]
+							"optional":["US","06","08"]
 						},
 						"age_group":{
-							"required":["0-0.99","1-4","65-130","5-64","0-130"],
-							"optional":["5-17","18-49","50-64"]
+							"required":["65-130", "0-130"],
+							"optional":["5-17"]
 						}
 					},
 					"output_type":{
@@ -139,15 +139,15 @@
 							"optional":["inc hosp","cum hosp"]
 						},
 						"horizon":{
-							"required":[1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29],
+							"required":[1,2,3,4,5,6,7,8,9,10],
 							"optional":null},
 						"location":{
 							"required":null,
-							"optional":["US","06","08","09","13","24","26","27","35","36","41","47","49"]
+							"optional":["US","06","08"]
 						},
 						"age_group":{
-							"required":["0-0.99","1-4","65-130","5-64","0-130"],
-							"optional":["5-17","18-49","50-64"]
+							"required":["65-130", "0-130"],
+							"optional":["5-17"]
 						}
 					},
 					"output_type":{
@@ -204,7 +204,7 @@
 							"optional":null},
 						"location":{
 							"required":null,
-							"optional":["US","06","08","09","13","24","26","27","35","36","41","47","49"]
+							"optional":["US","06","08"]
 						},
 						"age_group":{
 							"required":["0-130"],
@@ -254,7 +254,7 @@
 							"optional":null},
 						"location":{
 							"required":null,
-							"optional":["US","06","08","09","13","24","26","27","35","36","41","47","49"]
+							"optional":["US","06","08"]
 						},
 						"age_group":{
 							"required":["0-130"],
@@ -305,7 +305,7 @@
 						},
 						"location":{
 							"required":null,
-							"optional":["US","06","08","09","13","24","26","27","35","36","41","47","49"]
+							"optional":["US","06","08"]
 						},
 						"age_group":{
 							"required":["0-130"],
@@ -315,7 +315,7 @@
 					"output_type":{
 						"cdf":{
 							"output_type_id":{
-								"required":["EW202346","EW202347","EW202348","EW202349","EW202350","EW202351","EW202352","EW202401","EW202402","EW202403","EW202404","EW202405","EW202406","EW202407","EW202408","EW202409","EW202410","EW202411","EW202412","EW202413","EW202414","EW202415","EW202416","EW202417","EW202418","EW202419","EW202420","EW202421","EW202422"]
+								"required":["EW202346","EW202347","EW202348","EW202349","EW202350","EW202351","EW202352","EW202401","EW202402","EW202403"]
 							},
 							"value":{
 								"type":"double",

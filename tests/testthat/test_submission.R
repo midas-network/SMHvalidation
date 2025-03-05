@@ -62,7 +62,6 @@ test_that("Test validation process", {
   expect_equal(length(check), 5)
   expect_contains(attr(check$colnames, "class"), c("error", "check_error"))
 
-
   ### File with badly named column
   df <- dplyr::rename(df0, age = age_group)
   arrow::write_parquet(df, path_f)
@@ -82,8 +81,9 @@ test_that("Test validation process", {
 
   ### Test origin_date and file-name date error -----
   df <- dplyr::mutate(df0,
-                      origin_date = rep(c(as.Date("2023-11-10"),
-                                          as.Date("2024-07-28")), nrow(df) / 2))
+                      origin_date = c(rep(c(as.Date("2023-11-10"),
+                                            as.Date("2024-07-28")),
+                                          (nrow(df) / 2)), "2023-11-10"))
   arrow::write_parquet(df, path_f)
   check <- validate_submission(path_f, js_def, hub_path,
                                merge_sample_col = merge_sample_col)
@@ -107,7 +107,6 @@ test_that("Test validation process", {
   expect_contains(attr(check$round_id, "class"), c("error", "check_error"))
   file.remove(gsub("2023-11-12", "2013-11-12", path_f))
 
-
   file.copy(path_f, gsub(".parquet$", ".arrow", path_f))
   check <- validate_submission(gsub(".parquet$", ".arrow", path_f),
                                js_def, hub_path,
@@ -124,17 +123,25 @@ test_that("Test validation process", {
   expect_contains(attr(check$date_format, "class"),
                   c("error", "check_error"))
 
+  ### File with wrong output
+  #### Error in quantiles
+  df <-
+    dplyr::mutate(df0,
+                  output_type_id = ifelse(.data[["output_type"]] == "quantile" &
+                                            .data[["output_type_id"]] == 0.5,
+                                          0.2, .data[["output_type_id"]]))
+  arrow::write_parquet(df, path_f)
+  check <- validate_submission(path_f, js_def, hub_path,
+                               merge_sample_col = merge_sample_col)
+  expect_contains(attr(check$rows_unique, "class"), c("error", "check_failure"))
+  expect_contains(attr(check$value_col_non_desc, "class"),
+                  c("error", "check_failure"))
+  expect_contains(attr(check$req_vals, "class"), c("error", "check_failure"))
 
-# expect_equal(err_cd(validate_submission("tst_dt/2024-03-26-format.parquet",
-#                                         js_def, NULL, pop_path,
-#                                         merge_sample_col = TRUE)),
-#              c("305", "702"))
+  #### Remove optional quantile (only 0)
 
 # # Test quantile error -----
-# # File with incorrect quantile: replace 0.01 by 0.02 (unexpected value)
-# expect_equal(err_cd(validate_submission("tst_dt/2022-01-09_badquant.csv",
-#                                         js_def, lst_gs,  pop_path)),
-#              c("5040", "402", "407", "406"))
+
 # # File with missing required quantile: remove all 0.5 quantile
 # expect_equal(err_cd(validate_submission("tst_dt/2022-01-09_missquant.csv",
 #                                         js_def, lst_gs,  pop_path)),
