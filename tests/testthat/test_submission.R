@@ -361,7 +361,7 @@ test_that("Test validation process", {
                                                 ~attr(.x, "class")), 1)),
                c("check_info", "check_success"))
 
-  ### Sample in unaccepted format
+  ### Sample in unaccepted format -------
   df <- dplyr::mutate(df0, stochastic_run = 1.25)
   arrow::write_parquet(df, path_f)
   rm(df)
@@ -376,7 +376,7 @@ test_that("Test validation process", {
                                                 ~attr(.x, "class")), 1)),
                c("check_success"))
 
-  ### Add an schema
+  ### Add an schema -------
   js_def0 <- hubUtils::read_config_file(js_def)
   js_def2 <- hubUtils::get_round_model_tasks(js_def0, "2023-11-12")
   schema <- SMHvalidation:::make_schema(js_def0, js_def2, "2023-11-12")
@@ -391,8 +391,8 @@ test_that("Test validation process", {
                          " or does not correspond to the expected column names",
                          " \n"))
 
-  ## Sample
-  ### All samples have the same group ID
+  ## Sample -------
+  ### All samples have the same group ID -------
   df <- dplyr::mutate(df0, run_grouping = 1)
   arrow::write_parquet(df, path_f)
   rm(df)
@@ -406,47 +406,44 @@ test_that("Test validation process", {
   expect_contains(attr(check$result$spl_n, "class"),
                   c("error", "check_failure"))
 
-  ### Pairing information incorrect
+  ### Pairing information incorrect - ID Set -------
+  df <- dplyr::mutate(df0, run_grouping = dplyr::cur_group_id(),
+                      .by = tidyr::all_of(c("scenario_id", "target", "location",
+                                            "age_group", "output_type")))
+  arrow::write_parquet(df, path_f)
+  rm(df)
+  check <- try(quiet_log(path_f, js_def, hub_path,
+                         merge_sample_col = merge_sample_col))
+  expect_contains(attr(check$result$spl_compound_taskid_set, "class"),
+                  c("error", "check_error"))
 
+  ### Pairing information incorrect - Specific Group -------
+  df <-
+    dplyr::mutate(df0, location = ifelse(.data[["run_grouping"]] == 1 &
+                                           .data[["output_type"]] == "sample",
+                                         "06", .data[["location"]]))
+  arrow::write_parquet(df, path_f)
+  rm(df)
+  check <- try(quiet_log(path_f, js_def, hub_path,
+                         merge_sample_col = merge_sample_col))
+  expect_contains(attr(check$result$spl_n, "class"),
+                  c("error", "check_failure"))
 
-
-# # Test sample ----
-# # Filter sample < 90 and remove inc death and peak_time target
-# # for sample >= 85, rename sample into 104.5
-# expect_equal(err_cd(validate_submission("tst_dt/2022-08-14_flu_badsample.csv",
-#                                         js_def_flu, lst_gs_flu,
-#                                         pop_path_flu)),
-#              c("006", "204", "510", "602", "901", "903", "401"))
-
-# # Missing all samples
-# expect_equal(err_cd(validate_submission("tst_dt/2024-03-26-quant.csv",
-#                                         js_def, NULL, pop_path)),
-#              c("602", "702", "904"))
-
-# # Missing samples for one subgroup of task id
-# expect_equal(err_cd(validate_submission("tst_dt/2024-03-26-misssample.csv",
-#                                         js_def, NULL, pop_path,
-#                                         merge_sample_col = TRUE)),
-#              c("702", "905"))
-
-# # Mistakes in pairing ID
-# expect_equal(err_cd(validate_submission("tst_dt/2024-03-26-pair.csv",
-#                                         js_def, NULL, pop_path,
-#                                         merge_sample_col = TRUE)),
-#              c("607", "702", "902"))
-
-# # Double sample ID
-# expect_equal(err_cd(validate_submission("tst_dt/2024-03-26-doublesample.csv",
-#                                         js_def, NULL, pop_path,
-#                                         merge_sample_col = TRUE)),
-#              c("510", "702"))
-
-# # Unique sample ID
-# test_val <-
-#   err_cd(validate_submission("tst_dt/2024-03-26-unilettersample.csv",
-#                              js_def, NULL, pop_path,
-#                              merge_sample_col = TRUE))
-# expect_equal(test_val, c("510", "702", "903", "902"))
-
-
+  ### Pairing information incorrect - Re-ID one sample -------
+  df <-
+    dplyr::mutate(df0, run_grouping =
+                    ifelse(.data[["scenario_id"]] == "A-2023-10-27" &
+                             .data[["age_group"]] == "0-130" &
+                             .data[["target"]] == "inc hosp" &
+                             .data[["location"]] == "US" &
+                             .data[["output_type"]] == "sample" &
+                             .data[["run_grouping"]] == 1 &
+                             .data[["horizon"]] == 1,
+                           2, .data[["run_grouping"]]))
+  arrow::write_parquet(df, path_f)
+  rm(df)
+  check <- try(quiet_log(path_f, js_def, hub_path,
+                         merge_sample_col = merge_sample_col))
+  expect_contains(attr(check$result$spl_non_compound_tid, "class"),
+                  c("error", "check_error"))
 })
