@@ -380,18 +380,24 @@ test_that("Test validation process", {
   js_def0 <- hubUtils::read_config_file(js_def)
   js_def2 <- hubUtils::get_round_model_tasks(js_def0, "2023-11-12")
   schema <- SMHvalidation:::make_schema(js_def0, js_def2, "2023-11-12")
-  check <- validate_submission(path_f, js_def, hub_path, verbose = FALSE,
-                               merge_sample_col = merge_sample_col,
-                               r_schema = r_schema)
-  expect_equal(test, c("check_info", "check_success"))
+  check <- try(quiet_log(paste0(hub_path, "model-output/t3-mc"), js_def,
+                         hub_path, verbose = FALSE, r_schema = schema,
+                         merge_sample_col = merge_sample_col,
+                         round_id = "2023-11-12",
+                         partition = c("origin_date", "target")))
+  expect_equal(class(check), "try-error")
+  expect_contains(attr(check, "condition")$message,
+                  paste0("❌ Error: At least one column name is misspelled",
+                         " or does not correspond to the expected column names",
+                         " \n"))
 
   ## Sample
   ### All samples have the same group ID
   df <- dplyr::mutate(df0, run_grouping = 1)
   arrow::write_parquet(df, path_f)
   rm(df)
-  check <- quiet_log(path_f, js_def, hub_path,
-                     merge_sample_col = merge_sample_col)
+  check <- try(quiet_log(path_f, js_def, hub_path,
+                         merge_sample_col = merge_sample_col))
   expect_contains(check$messages,
                   paste0("\n❌ Error: The submission should contains multiple",
                          " sample output type groups, please verify.\n\n"))

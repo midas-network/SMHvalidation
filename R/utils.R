@@ -103,9 +103,10 @@ make_schema <- function(js_def, js_def_round, round_id, path = NULL,
                                      format = filef)$schema$names
     col_names <- unique(c(col_names, partition))
     if (!(all(exp_col %in% col_names)) || !(all(col_names %in% exp_col))) {
+      # nocov start
       stop("\U000274c Error: At least one column name is misspelled",
            " or does not correspond to the expected column names \n")
-    }
+    } # nocov end
   }
   schema <- schema[schema$names %in% exp_col]
   return(schema)
