@@ -6,8 +6,8 @@
 \usage{
 validate_submission(
   path,
-  js_def,
   hub_path,
+  js_def = NULL,
   target_data = NULL,
   pop_path = NULL,
   merge_sample_col = NULL,
@@ -22,17 +22,19 @@ validate_submission(
 \item{path}{path to the submissions file (or folder for partitioned data)
 to test, or string of parquet files (in this case, the validation will be
 run on the aggregation of all the parquet files together, and each file
-individually should match the expected SMH standard).
+individually should match the expected SMH standard). The path should be
+relative to the \code{hub_path}
 If partition is not set to \code{NULL}, path to the folder containing ONLY the
 partitioned data.}
+
+\item{hub_path}{path to the repository contains the submissions files
+and \code{tasks.json} file}
 
 \item{js_def}{path to JSON file containing round definitions: names of
 columns, target names, ... following the \code{tasks.json}
 \href{https://hubdocs.readthedocs.io/en/latest/user-guide/hub-config.html}{Hubverse }
-format}
-
-\item{hub_path}{path to the repository contains the submissions files
-and js_def file}
+format. If \code{NULL} (default), will use the defaul path "hub-config/tasks.json"
+in the hub.}
 
 \item{target_data}{data frame containing the
 observed data. We highly recommend to use the output of the
@@ -111,6 +113,6 @@ warning message will be returned.
 }
 \examples{
 \dontrun{
-validate_submission("PATH/TO/SUBMISSION", "PATH/TO/ROUND/tasks.json")
+validate_submission("PATH/TO/SUBMISSION", "PATH/TO/HUB")
 }
 }
