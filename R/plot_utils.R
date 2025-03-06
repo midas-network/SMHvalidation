@@ -425,10 +425,15 @@ make_state_plot_pdf <- function(proj_data, target_data, team_model_name,
 
   # INCIDENT
   p_inc <- proj_plot_data |>
-    dplyr::filter(.data[["state"]] == states_[1], .data[["type"]] == "inc") |>
-    plot_projections(states_[1], projection_date, legend_rows = 1,
-                     y_sqrt = y_sqrt)
-  p_legend <- ggpubr::get_legend(p_inc)
+    dplyr::filter(.data[["state"]] == states_[1], .data[["type"]] == "inc")
+
+  if (nrow(p_inc) > 0) {
+    p_inc <- plot_projections(p_inc, states_[1], projection_date,
+                              legend_rows = 1,  y_sqrt = y_sqrt)
+    p_legend <- ggpubr::get_legend(p_inc)
+  } else {
+    p_legend <- NULL
+  }
 
   grDevices::pdf(save_path, width = 8.5, height = 11)
 
@@ -476,6 +481,10 @@ make_state_plot_pdf <- function(proj_data, target_data, team_model_name,
     if (is.null(p_cum)) {
       plot_grid <-
         cowplot::plot_grid(p_inc + ggplot2::theme(legend.position = "none"),
+                           nrow = 1)
+    } else if (is.null(p_inc)) {
+      plot_grid <-
+        cowplot::plot_grid(p_cum + ggplot2::theme(legend.position = "none"),
                            nrow = 1)
     } else {
       plot_grid <-

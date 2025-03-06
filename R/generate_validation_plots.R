@@ -75,9 +75,17 @@ generate_validation_plots <- function(path_proj, target_data = NULL,
                   origin_date = as.Date(.data[["origin_date"]]))
 
   # Create PDF of State Plots
-  make_state_plot_pdf(proj_data = proj_data, target_data = target_data,
-                      team_model_name = team_model_name,
-                      projection_date = unique(proj_data$origin_date),
-                      save_path = save_path, plot_quantiles = plot_quantiles,
-                      y_sqrt = y_sqrt)
+  if (nrow(proj_data) > 0) {
+    make_state_plot_pdf(proj_data = proj_data, target_data = target_data,
+                        team_model_name = team_model_name,
+                        projection_date = unique(proj_data$origin_date),
+                        save_path = save_path, plot_quantiles = plot_quantiles,
+                        y_sqrt = y_sqrt)
+  } else {
+    message("No output type quantiles for incident/cumulative case, death",
+            "hospitalization or infection found in the file - no plot",
+            "generated.")
+    return(NULL)
+  }
+
 }
