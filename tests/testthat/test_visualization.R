@@ -10,6 +10,17 @@ test_that("Test visualization", {
                                                    ext), obs,
                                             save_path = tmp_dir))
 
+  expect_no_error(generate_validation_plots(paste0(hub_model, "team2-modelb/",
+                                                   "2023-11-12-team2-modelb",
+                                                   ext),
+                                            save_path = tmp_dir,
+                                            y_sqrt = TRUE))
+
+  expect_no_error(generate_validation_plots(paste0(hub_model, "t3-mc/"),
+                                            obs, save_path = tmp_dir,
+                                            partition = c("origin_date",
+                                                          "target")))
+
   file.remove(dir(tmp_dir, full.names = TRUE)[grep("plots.pdf", dir(tmp_dir))])
   file.remove(dir(".", pattern = ".pdf$"))
 })

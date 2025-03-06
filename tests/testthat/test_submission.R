@@ -431,15 +431,16 @@ test_that("Test validation process", {
 
   ### Pairing information incorrect - Re-ID one sample -------
   df <-
-    dplyr::mutate(df0, run_grouping =
-                    ifelse(.data[["scenario_id"]] == "A-2023-10-27" &
-                             .data[["age_group"]] == "0-130" &
-                             .data[["target"]] == "inc hosp" &
-                             .data[["location"]] == "US" &
-                             .data[["output_type"]] == "sample" &
-                             .data[["run_grouping"]] == 1 &
-                             .data[["horizon"]] == 1,
-                           2, .data[["run_grouping"]]))
+    dplyr::mutate(df0, run_grouping = ifelse(.data[["scenario_id"]] ==
+                                               "A-2023-10-27" &
+                                               .data[["age_group"]] == "0-130" &
+                                               .data[["target"]] == "inc hosp" &
+                                               .data[["location"]] == "US" &
+                                               .data[["output_type"]] ==
+                                                 "sample" &
+                                               .data[["run_grouping"]] == 1 &
+                                               .data[["horizon"]] == 1,
+                                             2, .data[["run_grouping"]]))
   arrow::write_parquet(df, path_f)
   rm(df)
   check <- try(quiet_log(path_f, js_def, hub_path,
