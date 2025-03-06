@@ -248,13 +248,13 @@ validate_submission <- function(path, js_def, hub_path, target_data = NULL,
       unique()
     file_path_mess <- c(file_path[1:min(max(length(file_path) - 1, 1), 5)],
                         "etc.")
-    cat(paste0("Run validation on files: ",
-               paste(file_path_mess, collapse = ", "), "\n"))
+
   } else {
     file_path <- basename(path)
-    cat(paste0("Run validation on files: ", paste(unique(file_path),
-                                                  collapse = ", "), "\n"))
+    file_path_mess <- unique(file_path)
   }
+  if (verbose) cat(paste0("Run validation on files: ",
+                          paste(file_path_mess, collapse = ", "), "\n"))
 
   # Read hub config JSON file ------
   js_def0 <- hubUtils::read_config_file(js_def)
