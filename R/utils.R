@@ -21,6 +21,26 @@ location_fips_format <- function(df) {
   return(df)
 }
 
+# File path selection
+file_path_info <- function(path, hub_path, partition = NULL, round_id = NULL,
+                           verbose = TRUE) {
+  if (!is.null(partition)) {
+    file_path <- grep(round_id, dir(paste0(hub_path, path), recursive = TRUE),
+                      value = TRUE) |>
+      unique()
+    file_path_mess <- c(file_path[1:min(max(length(file_path) - 1, 1), 5)],
+                        "etc.")
+    file_path_mess <- basename(file_path_mess)
+
+  } else {
+    file_path <- basename(paste0(hub_path, path))
+    file_path_mess <- unique(file_path)
+  }
+  if (verbose) cat(paste0("Run validation on files: ",
+                          paste(file_path_mess, collapse = ", "), "\n"))
+  return(file_path)
+}
+
 # extract team round id information
 team_round_id <- function(path, partition = NULL) {
   # Select the associated round (add error message if no match)

@@ -150,16 +150,18 @@ run_all_validation <- function(df, path, js_def0, js_def, round_id, hub_path,
 #'@param path path to the submissions file (or folder for partitioned data)
 #' to test, or string of parquet files (in this case, the validation will be
 #' run on the aggregation of all the parquet files together, and each file
-#' individually should match the expected SMH standard).
+#' individually should match the expected SMH standard). The path should be
+#' relative to the `hub_path`
 #' If partition is not set to `NULL`, path to the folder containing ONLY the
 #' partitioned data.
-#'@param js_def path to JSON file containing round definitions: names of
+#' @param hub_path path to the repository contains the submissions files
+#' and `tasks.json` file
+#' @param js_def path to JSON file containing round definitions: names of
 #' columns, target names, ... following the `tasks.json`
 #' [Hubverse
 #' ](https://hubdocs.readthedocs.io/en/latest/user-guide/hub-config.html)
-#' format
-#' @param hub_path path to the repository contains the submissions files
-#' and js_def file
+#' format. If `NULL` (default), will use the defaul path "hub-config/tasks.json"
+#' in the hub.
 #'@param target_data data frame containing the
 #' observed data. We highly recommend to use the output of the
 #' `pull_gs_data()` function. The data frame should have the time
@@ -224,14 +226,14 @@ run_all_validation <- function(df, path, js_def0, js_def, round_id, hub_path,
 #'
 #'@examples
 #' \dontrun{
-#' validate_submission("PATH/TO/SUBMISSION", "PATH/TO/ROUND/tasks.json")
+#' validate_submission("PATH/TO/SUBMISSION", "PATH/TO/HUB")
 #' }
 #'@export
-validate_submission <- function(path, js_def, hub_path, target_data = NULL,
-                                pop_path = NULL, merge_sample_col = NULL,
-                                partition = NULL, n_decimal = NULL,
-                                round_id = NULL, verbose = TRUE,
-                                r_schema = NULL) {
+validate_submission <- function(path, hub_path, js_def = NULL,
+                                target_data = NULL, pop_path = NULL,
+                                merge_sample_col = NULL, partition = NULL,
+                                n_decimal = NULL, round_id = NULL,
+                                verbose = TRUE, r_schema = NULL) {
 
   # Prerequisite --------
   # Pull target data
@@ -239,24 +241,16 @@ validate_submission <- function(path, js_def, hub_path, target_data = NULL,
   # Pull population data
   if (!is.null(pop_path)) pop <- read_files(pop_path) else pop <- NULL
   # Select the associated round (add error message if no match)
-  if (is.null(round_id)) round_id <- team_round_id(path, partition = partition)
+  if (is.null(round_id)) round_id <- team_round_id(paste0(hub_path, path),
+                                                   partition = partition)
   check <- new_hub_validations()
 
   # Select validation file(s) and print message --------
-  if (!is.null(partition)) {
-    file_path <- grep(round_id, dir(path, recursive = TRUE), value = TRUE) |>
-      unique()
-    file_path_mess <- c(file_path[1:min(max(length(file_path) - 1, 1), 5)],
-                        "etc.")
-
-  } else {
-    file_path <- basename(path)
-    file_path_mess <- unique(file_path)
-  }
-  if (verbose) cat(paste0("Run validation on files: ",
-                          paste(file_path_mess, collapse = ", "), "\n"))
+  file_path <- file_path_info(path, hub_path, partition = partition,
+                              round_id = round_id, verbose = verbose)
 
   # Read hub config JSON file ------
+  if (is.null(js_def)) js_def <- paste0(hub_path, "/hub-config/tasks.json")
   js_def0 <- hubUtils::read_config_file(js_def)
   check_round_id <- round_id %in% hubUtils::get_round_ids(js_def0)
   details_mess <-
@@ -291,12 +285,14 @@ validate_submission <- function(path, js_def, hub_path, target_data = NULL,
   } else {
     # Read file
     if (length(file_path) == 1) {
-      df <- read_files(path)
+      df <- read_files(paste0(hub_path, path))
     } else if (!is.null(partition)) {
-      schema <- make_schema(js_def0, js_def, round_id, path = path,
+      schema <- make_schema(js_def0, js_def, round_id,
+                            path = paste0(hub_path, path),
                             merge_sample_col = merge_sample_col,
                             r_schema = r_schema, partition = partition)
-      df <- load_partition_arrow(path, partition = partition, schema = schema)
+      df <- load_partition_arrow(paste0(hub_path, path), partition = partition,
+                                 schema = schema)
     }
   }
 
@@ -329,8 +325,8 @@ validate_submission <- function(path, js_def, hub_path, target_data = NULL,
   }
 
   # Run tests --------
-  run_all_validation(df, path, js_def0, js_def, round_id, hub_path, pop = pop,
-                     obs = obs, merge_sample_col = merge_sample_col,
-                     n_decimal = n_decimal, verbose = verbose,
-                     partition = partition)
+  run_all_validation(df, paste0(hub_path, path), js_def0, js_def, round_id,
+                     hub_path, pop = pop, obs = obs,
+                     merge_sample_col = merge_sample_col, n_decimal = n_decimal,
+                     verbose = verbose, partition = partition)
 }

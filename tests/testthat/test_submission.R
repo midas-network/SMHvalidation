@@ -3,7 +3,6 @@ test_that("Test validation process", {
   obs <- "../exp/target-data/time-series.csv"
   hub_path <- "../exp/"
   pop_path <- "../exp/auxiliary-data/location_census/locations.csv"
-  js_def <- "../exp/hub-config/tasks.json"
   merge_sample_col <- c("run_grouping", "stochastic_run")
   partition <- round_id <- r_schema <- NULL
   n_decimal <- 1
@@ -18,9 +17,8 @@ test_that("Test validation process", {
   ## Partition -----
   path <- paste0(hub_path,
                  "model-output/t3-mc")
-  check <- validate_submission(path = path, js_def = js_def,
-                               hub_path = hub_path, target_data = NULL,
-                               pop_path = pop_path,
+  check <- validate_submission(path = path, hub_path = hub_path,
+                               target_data = NULL, pop_path = pop_path,
                                merge_sample_col = merge_sample_col,
                                partition = c("origin_date", "target"),
                                n_decimal = NULL,
@@ -36,9 +34,8 @@ test_that("Test validation process", {
   ## Unique file -------
   path <- paste0(hub_path,
                  "model-output/team2-modelb/2023-11-12-team2-modelb.parquet")
-  check <- validate_submission(path = path, js_def = js_def,
-                               hub_path = hub_path, target_data = obs,
-                               pop_path = pop_path,
+  check <- validate_submission(path = path, hub_path = hub_path,
+                               target_data = obs, pop_path = pop_path,
                                merge_sample_col = merge_sample_col,
                                partition = partition, n_decimal = n_decimal,
                                round_id = round_id, verbose = verbose,
@@ -58,9 +55,8 @@ test_that("Test validation process", {
   df <- dplyr::select(df, -tidyr::all_of(c("run_grouping", "stochastic_run")))
   arrow::write_parquet(df, path_f)
   rm(df)
-  check <- validate_submission(path = path_f, js_def = js_def,
-                               hub_path = hub_path, target_data = NULL,
-                               pop_path = pop_path,
+  check <- validate_submission(path = path_f, hub_path = hub_path,
+                               target_data = NULL, pop_path = pop_path,
                                merge_sample_col = NULL, partition = NULL,
                                n_decimal = NULL, round_id = round_id,
                                verbose = FALSE, r_schema = r_schema)
@@ -74,9 +70,8 @@ test_that("Test validation process", {
   df$stochastic_run <- df0$run_grouping
   arrow::write_parquet(df, path_f)
   rm(df)
-  check <- validate_submission(path = path_f, js_def = js_def,
-                               hub_path = hub_path, target_data = obs,
-                               pop_path = pop_path,
+  check <- validate_submission(path = path_f, hub_path = hub_path,
+                               target_data = obs, pop_path = pop_path,
                                merge_sample_col = merge_sample_col,
                                partition = partition, n_decimal = n_decimal,
                                round_id = round_id, verbose = verbose,
@@ -95,7 +90,7 @@ test_that("Test validation process", {
   df <- dplyr::mutate(df0, row = seq_along(nrow(df0)))
   arrow::write_parquet(df, path_f)
   rm(df)
-  check <- validate_submission(path_f, js_def, hub_path,
+  check <- validate_submission(path_f, hub_path,
                                merge_sample_col = merge_sample_col)
   expect_equal(length(check), 5)
   expect_contains(attr(check$colnames, "class"), c("error", "check_error"))
@@ -104,7 +99,7 @@ test_that("Test validation process", {
   df <- dplyr::rename(df0, round_id = origin_date)
   arrow::write_parquet(df, path_f)
   rm(df)
-  check <- validate_submission(path_f, js_def, hub_path,
+  check <- validate_submission(path_f, hub_path,
                                merge_sample_col = merge_sample_col)
 
   expect_equal(length(check), 1)
@@ -116,7 +111,7 @@ test_that("Test validation process", {
                                               .data[["scenario_id"]]))
   arrow::write_parquet(df, path_f)
   rm(df)
-  check <- validate_submission(path_f, js_def, hub_path,
+  check <- validate_submission(path_f, hub_path,
                                merge_sample_col = merge_sample_col)
   expect_contains(attr(check$valid_vals, "class"), c("error", "check_error"))
 
@@ -129,7 +124,7 @@ test_that("Test validation process", {
                   horizon = as.integer(.data[["horizon"]]))
   arrow::write_parquet(df, path_f)
   rm(df)
-  check <- validate_submission(path_f, js_def, hub_path,
+  check <- validate_submission(path_f, hub_path,
                                merge_sample_col = merge_sample_col)
   expect_contains(attr(check$valid_vals, "class"), c("error", "check_error"))
 
@@ -140,7 +135,7 @@ test_that("Test validation process", {
                                           (nrow(df0) / 2)), "2023-11-10"))
   arrow::write_parquet(df, path_f)
   rm(df)
-  check <- validate_submission(path_f, js_def, hub_path,
+  check <- validate_submission(path_f, hub_path,
                                merge_sample_col = merge_sample_col)
   expect_contains(attr(check$unique_round_id, "class"),
                   c("error", "check_error"))
@@ -149,23 +144,20 @@ test_that("Test validation process", {
   arrow::write_parquet(df0, path_f)
   file.copy(path_f, gsub("2023-11-12", "2024-07-28", path_f))
   check <- validate_submission(gsub("2023-11-12", "2024-07-28", path_f),
-                               js_def, hub_path,
-                               merge_sample_col = merge_sample_col)
+                               hub_path, merge_sample_col = merge_sample_col)
   expect_contains(attr(check$match_round_id, "class"),
                   c("error", "check_error"))
   file.remove(gsub("2023-11-12", "2024-07-28", path_f))
 
   file.copy(path_f, gsub("2023-11-12", "2013-11-12", path_f))
   check <- validate_submission(gsub("2023-11-12", "2013-11-12", path_f),
-                               js_def, hub_path,
-                               merge_sample_col = merge_sample_col)
+                               hub_path, merge_sample_col = merge_sample_col)
   expect_contains(attr(check$round_id, "class"), c("error", "check_error"))
   file.remove(gsub("2023-11-12", "2013-11-12", path_f))
 
   file.copy(path_f, gsub(".parquet$", ".arrow", path_f))
   check <- validate_submission(gsub(".parquet$", ".arrow", path_f),
-                               js_def, hub_path,
-                               merge_sample_col = merge_sample_col)
+                               hub_path, merge_sample_col = merge_sample_col)
   expect_contains(attr(check$file_extension, "class"),
                   c("error", "check_error"))
   file.remove(gsub(".parquet$", ".arrow", path_f))
@@ -174,7 +166,7 @@ test_that("Test validation process", {
   df <- dplyr::mutate(df0, origin_date = "11/12/2023")
   arrow::write_parquet(df, path_f)
   rm(df)
-  check <- validate_submission(path_f, js_def, hub_path,
+  check <- validate_submission(path_f, hub_path,
                                merge_sample_col = merge_sample_col)
   expect_contains(attr(check$date_format, "class"),
                   c("error", "check_error"))
@@ -188,7 +180,7 @@ test_that("Test validation process", {
                                           0.2, .data[["output_type_id"]]))
   arrow::write_parquet(df, path_f)
   rm(df)
-  check <- validate_submission(path_f, js_def, hub_path,
+  check <- validate_submission(path_f, hub_path,
                                merge_sample_col = merge_sample_col)
   expect_contains(attr(check$rows_unique, "class"), c("error", "check_failure"))
   expect_contains(attr(check$value_col_non_desc, "class"),
@@ -201,7 +193,7 @@ test_that("Test validation process", {
                 dplyr::mutate(output_type_id = 1))
   arrow::write_parquet(df, path_f)
   rm(df)
-  check <- validate_submission(path_f, js_def, hub_path,
+  check <- validate_submission(path_f, hub_path,
                                merge_sample_col = merge_sample_col)
   expect_contains(attr(check$req_vals, "class"), c("error", "check_failure"))
 
@@ -211,7 +203,7 @@ test_that("Test validation process", {
                 dplyr::mutate(horizon = 11))
   arrow::write_parquet(df, path_f)
   rm(df)
-  check <- validate_submission(path_f, js_def, hub_path,
+  check <- validate_submission(path_f, hub_path,
                                merge_sample_col = merge_sample_col)
   expect_contains(attr(check$valid_vals, "class"), c("error", "check_error"))
 
@@ -219,7 +211,7 @@ test_that("Test validation process", {
   df <- dplyr::mutate(df0, horizon = as.double(.data[["horizon"]]))
   arrow::write_parquet(df, path_f)
   rm(df)
-  check <- validate_submission(path_f, js_def, hub_path,
+  check <- validate_submission(path_f, hub_path,
                                merge_sample_col = merge_sample_col)
   expect_contains(attr(check$col_types, "class"), c("error", "check_failure"))
 
@@ -235,7 +227,7 @@ test_that("Test validation process", {
                                       0, .data[["value"]]))
   arrow::write_parquet(df, path_f)
   rm(df)
-  check <- validate_submission(path_f, js_def, hub_path,
+  check <- validate_submission(path_f, hub_path,
                                merge_sample_col = merge_sample_col)
   expect_contains(attr(check$flat_projection, "class"),
                   c("error", "check_failure"))
@@ -252,7 +244,7 @@ test_that("Test validation process", {
                                       NA, .data[["value"]]))
   arrow::write_parquet(df, path_f)
   rm(df)
-  check <- validate_submission(path_f, js_def, hub_path,
+  check <- validate_submission(path_f, hub_path,
                                merge_sample_col = merge_sample_col)
   expect_contains(attr(check$value_col_valid, "class"),
                   c("error", "check_failure"))
@@ -270,7 +262,7 @@ test_that("Test validation process", {
                                       -1, .data[["value"]]))
   arrow::write_parquet(df, path_f)
   rm(df)
-  check <- validate_submission(path_f, js_def, hub_path,
+  check <- validate_submission(path_f, hub_path,
                                merge_sample_col = merge_sample_col)
   expect_contains(attr(check$value_col_valid, "class"),
                   c("error", "check_failure"))
@@ -287,7 +279,7 @@ test_that("Test validation process", {
                                       7e9, .data[["value"]]))
   arrow::write_parquet(df, path_f)
   rm(df)
-  check <- validate_submission(path_f, js_def, hub_path, pop_path = pop_path,
+  check <- validate_submission(path_f, hub_path, pop_path = pop_path,
                                merge_sample_col = merge_sample_col)
   expect_contains(attr(check$population_size, "class"),
                   c("error", "check_failure"))
@@ -298,7 +290,7 @@ test_that("Test validation process", {
                         date = as.Date("2023-11-17"))
   write.csv(tmp_obs, "../exp/target-data/tmp_ts.csv", row.names = FALSE)
   rm(tmp_obs)
-  check <- validate_submission(path, js_def, hub_path, pop_path = pop_path,
+  check <- validate_submission(path, hub_path, pop_path = pop_path,
                                target_data =  "../exp/target-data/tmp_ts.csv",
                                merge_sample_col = merge_sample_col)
   expect_contains(attr(check$cumul_value, "class"), c("error", "check_failure"))
@@ -316,7 +308,7 @@ test_that("Test validation process", {
                                       1, .data[["value"]]))
   arrow::write_parquet(df, path_f)
   rm(df)
-  check <- validate_submission(path_f, js_def, hub_path, pop_path = pop_path,
+  check <- validate_submission(path_f, hub_path, pop_path = pop_path,
                                merge_sample_col = merge_sample_col)
   expect_contains(attr(check$value_col_non_desc, "class"),
                   c("error", "check_failure"))
@@ -327,7 +319,7 @@ test_that("Test validation process", {
   df <- dplyr::mutate(df0, value = round(.data[["value"]], 5))
   arrow::write_parquet(df, path_f)
   rm(df)
-  check <- validate_submission(path_f, js_def, hub_path, n_decimal = 0,
+  check <- validate_submission(path_f, hub_path, n_decimal = 0,
                                merge_sample_col = merge_sample_col)
   expect_contains(attr(check$n_decimal, "class"), c("error", "check_failure"))
 
@@ -337,8 +329,7 @@ test_that("Test validation process", {
   arrow::write_parquet(df, path_f)
   rm(df)
   quiet_log <- purrr:::quietly(validate_submission)
-  check <- quiet_log(path_f, js_def, hub_path,
-                     merge_sample_col = merge_sample_col)
+  check <- quiet_log(path_f, hub_path, merge_sample_col = merge_sample_col)
   expect_equal(check$warnings,
                paste0("Some location value are missing a trailing 0. ",
                       "For example, 6, 8 instead of 06, 08"))
@@ -351,8 +342,7 @@ test_that("Test validation process", {
   arrow::write_parquet(df, path_f)
   rm(df)
   quiet_log <- purrr:::quietly(validate_submission)
-  check <- quiet_log(path_f, js_def, hub_path,
-                     merge_sample_col = merge_sample_col)
+  check <- quiet_log(path_f, hub_path, merge_sample_col = merge_sample_col)
   expect_contains(check$warnings,
                   paste0("🟡 Warning: At least one column is in a format: ",
                          "'factor', please verify. \n The column(s) will be ",
@@ -366,7 +356,7 @@ test_that("Test validation process", {
   arrow::write_parquet(df, path_f)
   rm(df)
   quiet_log <- purrr:::quietly(validate_submission)
-  check <- quiet_log(path_f, js_def, hub_path, verbose = FALSE,
+  check <- quiet_log(path_f, hub_path, verbose = FALSE,
                      merge_sample_col = merge_sample_col)
   expect_contains(check$messages,
                   paste0("❌ Error: The columns run_grouping and ",
@@ -377,11 +367,11 @@ test_that("Test validation process", {
                c("check_success"))
 
   ### Add an schema -------
-  js_def0 <- hubUtils::read_config_file(js_def)
+  js_def0 <- hubUtils::read_config_file("../exp/hub-config/tasks.json")
   js_def2 <- hubUtils::get_round_model_tasks(js_def0, "2023-11-12")
   schema <- SMHvalidation:::make_schema(js_def0, js_def2, "2023-11-12")
-  check <- try(quiet_log(paste0(hub_path, "model-output/t3-mc"), js_def,
-                         hub_path, verbose = FALSE, r_schema = schema,
+  check <- try(quiet_log(paste0(hub_path, "model-output/t3-mc"), hub_path,
+                         verbose = FALSE, r_schema = schema,
                          merge_sample_col = merge_sample_col,
                          round_id = "2023-11-12",
                          partition = c("origin_date", "target")))
@@ -396,8 +386,7 @@ test_that("Test validation process", {
   df <- dplyr::mutate(df0, run_grouping = 1)
   arrow::write_parquet(df, path_f)
   rm(df)
-  check <- try(quiet_log(path_f, js_def, hub_path,
-                         merge_sample_col = merge_sample_col))
+  check <- try(quiet_log(path_f, hub_path, merge_sample_col = merge_sample_col))
   expect_contains(check$messages,
                   paste0("\n❌ Error: The submission should contains multiple",
                          " sample output type groups, please verify.\n\n"))
@@ -412,7 +401,7 @@ test_that("Test validation process", {
                                             "age_group", "output_type")))
   arrow::write_parquet(df, path_f)
   rm(df)
-  check <- try(quiet_log(path_f, js_def, hub_path,
+  check <- try(quiet_log(path_f, hub_path,
                          merge_sample_col = merge_sample_col))
   expect_contains(attr(check$result$spl_compound_taskid_set, "class"),
                   c("error", "check_error"))
@@ -424,7 +413,7 @@ test_that("Test validation process", {
                                          "06", .data[["location"]]))
   arrow::write_parquet(df, path_f)
   rm(df)
-  check <- try(quiet_log(path_f, js_def, hub_path,
+  check <- try(quiet_log(path_f, hub_path,
                          merge_sample_col = merge_sample_col))
   expect_contains(attr(check$result$spl_n, "class"),
                   c("error", "check_failure"))
@@ -443,7 +432,7 @@ test_that("Test validation process", {
                                              2, .data[["run_grouping"]]))
   arrow::write_parquet(df, path_f)
   rm(df)
-  check <- try(quiet_log(path_f, js_def, hub_path,
+  check <- try(quiet_log(path_f, hub_path,
                          merge_sample_col = merge_sample_col))
   expect_contains(attr(check$result$spl_non_compound_tid, "class"),
                   c("error", "check_error"))
