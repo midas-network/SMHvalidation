@@ -38,6 +38,7 @@ generate_validation_plots <- function(path_proj, target_data = NULL,
     file_ <- dir(path_proj, recursive = TRUE)
     team_model_name <- gsub(paste0("(.+?)?", date_pttrn, "(\\/.*|-)|",
                                    file_extension),  "", basename(file_))
+    team_model_name <- unique(team_model_name)
   }
 
   projection_date <- gsub(paste0("(?<=", date_pttrn, ").+"), "", file_,
@@ -72,11 +73,6 @@ generate_validation_plots <- function(path_proj, target_data = NULL,
     dplyr::mutate(date = as.Date(.data[["origin_date"]]) - 1 +
                     (.data[["horizon"]] * 7),
                   origin_date = as.Date(.data[["origin_date"]]))
-
-  #remove artifact column
-  if ("X" %in% colnames(proj_data)) {
-    proj_data <- dplyr::select(proj_data, -tidyr::matches("X"))
-  }
 
   # Create PDF of State Plots
   make_state_plot_pdf(proj_data = proj_data, target_data = target_data,

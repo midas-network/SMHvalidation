@@ -15,13 +15,7 @@ format_tables <- function(tab_data, metric, sel_group) {
                   `ground truth` = format(.data[["ground truth"]], digits = 1,
                                           big.mark = ",", trim = TRUE))
 
-  if (grepl("prct|percent", metric)) {
-    tab_data <- tab_data |>
-      dplyr::mutate(dplyr::across(tidyr::all_of(sel_group),
-                                  ~ paste0(format(.x * 100, digits = 1,
-                                                  trim = TRUE,
-                                                  scientific = FALSE), "%")))
-  } else if (grepl("ratio", metric)) {
+  if (grepl("ratio", metric)) {
     tab_data <- tab_data |>
       dplyr::mutate(dplyr::across(tidyr::all_of(sel_group), ~ round(.x, 2)))
   } else {
