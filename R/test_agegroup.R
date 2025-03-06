@@ -52,7 +52,7 @@ check_age_group <- function(mtask, df, checks, file_path) {
     if (isFALSE(req_check))
       msg_dt <- paste0("{.val ",
                        paste(age_vect[!(age_vect %in% all_agegroup)],
-                             collapse = ", "), "} is missing.")
+                             collapse = ", "), "} is nott required.")
     checks$require_agegroup_value <-
       capture_check_cnd(req_check, file_path,  error = TRUE,
                         msg_subject = "{.var age_group}",

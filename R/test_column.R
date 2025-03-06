@@ -30,8 +30,7 @@ test_column <- function(df, req_colnames, file_name = "") {
   if (isFALSE(format_checks))
     msg_dt <- paste0("{.val ",
                      paste(req_colnames[!req_colnames %in% names(df)],
-                           collapse = ", "),
-                     "} do(es) not correspond to the standard.")
+                           collapse = ", "), "} is expected.")
   checks$columns_variable <-
     capture_check_cnd(format_checks, file_name, error = TRUE,
                       msg_subject = "Columns",

@@ -165,7 +165,8 @@ test_sample <- function(df, model_task, pairing_col = "horizon",
         pairing_test(df_sample, x, or_pair, pairing_col)
         # Add pairing information
         if (verbose) {
-          pair_inf <- verbose_pairing(df_sample, x, NULL, n_sample,
+          pair_inf <- verbose_pairing(df_sample, x, NULL, NULL,
+                                      n_sample = n_sample,
                                       verbose_col = c(verbose_col)) |>
             purrr::map(unique)
           message(pair_inf)
