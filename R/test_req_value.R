@@ -30,6 +30,8 @@ test_req_value <- function(df, model_task) {
       expand.grid() |>
       dplyr::mutate_if(is.factor, as.character) |>
       dplyr::mutate(origin_date = as.Date(.data[["origin_date"]]))
+    if (!"horizon" %in% colnames(req_df)) req_df$horizon <- NA
+    req_df$horizon <- suppressWarnings(as.integer(req_df$horizon))
     return(req_df)
   }) |>
     dplyr::bind_rows() |>
