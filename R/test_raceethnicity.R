@@ -1,6 +1,7 @@
 # nocov start
 #' Runs Validation Checks on the `race_ethnicity` column
 #'
+#' **DEPRECATED** <br><br>
 #' Validate Scenario Modeling Hub submissions: test if the `race_ethnicity`
 #' column contains the expected  value.
 #'
@@ -8,7 +9,7 @@
 #'@param model_task list containing round information for each id columns
 #' and model output (type, format, etc.)
 #'
-#'@details  This function contains 2 tests:
+#'@details  This function tests:
 #' * Race ethnicity value: If the submission contains projection by
 #'  race/ethnicity, the `race_ethnicity` column contains the expected values as
 #'  specified.
@@ -17,8 +18,14 @@
 #'  `race_ethnicity` value(s), no additional value(s) is provided in the
 #'  submission file.
 #'
-#' Function called in the `validate_submission()` function, only if the
-#' submission contains `"race_ethnicity"` column.
+#' `model_task` should match a specific round model tasks from the
+#' `tasks.json` associated with the hub. The json is expected to follow
+#' the [hubverse](https://hubverse.io/en/latest/user-guide/hub-config.html)
+#' schema at least version 5.0
+#'
+#' As the function was deprecated, it will not be updated anymore. It was
+#' updated a last time to match the 5.0 hubverse schema version. However, it
+#' might returns duplicated message output.
 #'
 #'@export
 test_raceethnicity <- function(df, model_task) {

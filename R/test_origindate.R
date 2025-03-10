@@ -1,6 +1,7 @@
 # nocov start
 #' Runs Validation Checks on the Origin Date column
 #'
+#' **DEPRECATED** <br><br>
 #' Validate Scenario Modeling Hub submissions: test if the
 #' `origin` column contains one unique date value corresponding
 #' to the expected value, in the expected format.
@@ -9,14 +10,15 @@
 #'@param path character vector path of the file being tested
 #'@param id character date "id" of the corresponding round
 #'
-#'@details  This function contains 3 tests:
+#'@details  This function tests:
 #' * Unique value: The `origin_date` column contains an unique expected
 #'  value.
 #' * Format: The `origin_date` column contains a unique date value in either a
 #'  character ("YYYY-MM-DD") or a Date format. If the date is in a datetime
 #'  format, a warning will be returned
 #'
-#' Function called in the `validate_submission()` function.
+#' As the function was deprecated, it will not be updated anymore. It was
+#' updated a last time to match the 5.0 hubverse schema version.
 #'
 #'@export
 test_origindate <- function(df, path, id) {

@@ -12,10 +12,16 @@ test_req_value(df, model_task)
 \item{model_task}{list containing round information for each id columns
 and model output (type, format, etc.)
 
-Function called in the \code{validate_submission()} function, only if the
-submission contains \code{"sample"} output type.}
+\code{model_task} should match a specific round model tasks from the
+\code{tasks.json} associated with the hub. The json is expected to follow
+the \href{https://hubverse.io/en/latest/user-guide/hub-config.html}{hubverse}
+schema at least version 5.0
+
+As the function was deprecated, it will not be updated anymore. It was
+updated a last time to match the 5.0 hubverse schema version.}
 }
 \description{
+\strong{DEPRECATED} \if{html}{\out{<br>}}\if{html}{\out{<br>}}
 Validate Scenario Modeling Hub submissions: test if all the required value
 are present in the submission file
 }

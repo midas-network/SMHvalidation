@@ -1,20 +1,26 @@
 #' Generate Validation Plots
 #'
+#' Generate a PDF files containing quantiles information about the submission
+#' file: plot by states and possibility to add comparison to target data.
+#'
 #' @param path_proj path to submission file(s) in the expected Scenario
 #'. Modeling Hub standard format
 #' @param target_data data frame containing the
-#' observed data. We highly recommend to use the output of the
-#' `pull_gs_data()` function. The data frame should have the time
-#' series hubverse format.
-#' Set to `NULL` (default), to NOT include comparison with observed data.
+#' observed data in the Hubverse time series target data standard format.
+#' Please find additional information on the
+#' [hubverse](https://hubverse.io/en/latest/user-guide/target-data.html)
+#' website. Set to `NULL` (default), to NOT include comparison with observed
+#' data.
 #' @param save_path character vector, path to the saving folder for the PDF
-#'    output
+#' output. By default, the direction of `path_proj` will be used
 #' @param y_sqrt boolean, by default FALSE
 #' @param plot_quantiles numeric vector, quantiles to use for plotting (should
-#'    correspond to the quantiles from the `proj_data` parameter)
+#' correspond to the quantiles from the `proj_data` parameter). By default,
+#' `0.025` and `0.975`
 #' @param partition vector, for csv and parquet files, allow to validate files
 #' in a partition format, see `arrow` package for more information, and
-#' `arrow::write_dataset()`, `arrow::open_dataset()` functions.
+#' `arrow::write_dataset()`, `arrow::open_dataset()` functions. By default,
+#' `NULL`, imput submission file is not partitionned.
 #'
 #' @importFrom tidyr separate matches
 #' @importFrom dplyr mutate collect .data

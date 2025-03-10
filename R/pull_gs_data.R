@@ -39,9 +39,10 @@ std_covidcast_signal <- function(signal, limit_date, vect_week_date) {
 
 #' Pull Truth data from COVIDCast
 #'
+#' **DEPRECATED** <br><br>
 #' Download and returns data from COVIDcast package in a Scenario Modeling
 #' Hub format, with the incidence and cumulative data for each state and
-#' US national level by epiweek. **DEPRECATED**
+#' US national level by epiweek.
 #'
 #' @param signals list of signals to download (should be one or multiple in
 #' the default list)

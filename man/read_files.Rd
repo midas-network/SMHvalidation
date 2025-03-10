@@ -7,7 +7,7 @@
 read_files(path, na_string = c("", "NA", "NaN"), sep = ",")
 }
 \arguments{
-\item{path}{path of the file which the date are to be read from}
+\item{path}{path of the file}
 
 \item{na_string}{character vector to be interpreted as \code{NA} values}
 
@@ -15,7 +15,16 @@ read_files(path, na_string = c("", "NA", "NaN"), sep = ",")
 }
 \description{
 Reads a file and output a data frame. The function can read files in CSV,
-ZIP, GZ and PQT format
+ZIP, GZ and PQT/parquet format (not partitioned)
+}
+\details{
+Returns a Warning if the file contains a \code{location} column with the US FIPS
+code of the location missing the leading 0, for example \code{"6"} instead of
+\code{"06"} for California, US. By default, the missing leading \code{0} will be
+added.
+
+Returns a Warning if a column is in a factor format. By default, the column
+will be forced to a character format
 }
 \examples{
 \dontrun{

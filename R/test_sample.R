@@ -41,6 +41,7 @@ pairing_test <- function(df_sample, m_task, or_pair, pairing_col) {
 
 #' Runs Validation Checks on the sample column
 #'
+#' **DEPRECATED** <br><br>
 #' Validate Scenario Modeling Hub submissions: test if the  `sample` column
 #' contains the expected  value.
 #'
@@ -54,7 +55,7 @@ pairing_test <- function(df_sample, m_task, or_pair, pairing_col) {
 #'@param verbose_col character vector, name of columns to print value samples
 #' are paired on.
 #'
-#'@details  This function contains 3 tests:
+#'@details  This function tests:
 #' * sample number: The submission should contain the expected number of
 #'  trajectory for each model tasks group (unique combination of `task_ids`
 #'  columns as specified in the `model_task` parameter).
@@ -68,8 +69,14 @@ pairing_test <- function(df_sample, m_task, or_pair, pairing_col) {
 #' * required sample: If a target expected `"sample"` type output, the
 #'  submission should contain `"sample"` type output for this target.
 #'
-#' Function called in the `validate_submission()` function, only if the
-#' submission contains `"sample"` output type.
+#' `model_task` should match a specific round model tasks from the
+#' `tasks.json` associated with the hub. The json is expected to follow
+#' the [hubverse](https://hubverse.io/en/latest/user-guide/hub-config.html)
+#' schema at least version 5.0
+#'
+#' As the function was deprecated, it will not be updated anymore. It was
+#' updated a last time to match the 5.0 hubverse schema version. However, it
+#' might returns duplicated message output.
 #'
 #'@importFrom dplyr select contains all_of mutate mutate_if left_join filter
 #'@importFrom dplyr group_by across n

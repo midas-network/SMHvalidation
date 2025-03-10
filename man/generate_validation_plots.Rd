@@ -18,23 +18,27 @@ generate_validation_plots(
 . Modeling Hub standard format}
 
 \item{target_data}{data frame containing the
-observed data. We highly recommend to use the output of the
-\code{pull_gs_data()} function. The data frame should have the time
-series hubverse format.
-Set to \code{NULL} (default), to NOT include comparison with observed data.}
+observed data in the Hubverse time series target data standard format.
+Please find additional information on the
+\href{https://hubverse.io/en/latest/user-guide/target-data.html}{hubverse}
+website. Set to \code{NULL} (default), to NOT include comparison with observed
+data.}
 
 \item{save_path}{character vector, path to the saving folder for the PDF
-output}
+output. By default, the direction of \code{path_proj} will be used}
 
 \item{y_sqrt}{boolean, by default FALSE}
 
 \item{plot_quantiles}{numeric vector, quantiles to use for plotting (should
-correspond to the quantiles from the \code{proj_data} parameter)}
+correspond to the quantiles from the \code{proj_data} parameter). By default,
+\code{0.025} and \code{0.975}}
 
 \item{partition}{vector, for csv and parquet files, allow to validate files
 in a partition format, see \code{arrow} package for more information, and
-\code{arrow::write_dataset()}, \code{arrow::open_dataset()} functions.}
+\code{arrow::write_dataset()}, \code{arrow::open_dataset()} functions. By default,
+\code{NULL}, imput submission file is not partitionned.}
 }
 \description{
-Generate Validation Plots
+Generate a PDF files containing quantiles information about the submission
+file: plot by states and possibility to add comparison to target data.
 }

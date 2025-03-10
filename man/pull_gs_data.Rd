@@ -19,9 +19,10 @@ covidcast signal except "hospitalization" instead of
 "confirmed_admissions_covid_1d"
 }
 \description{
+\strong{DEPRECATED} \if{html}{\out{<br>}}\if{html}{\out{<br>}}
 Download and returns data from COVIDcast package in a Scenario Modeling
 Hub format, with the incidence and cumulative data for each state and
-US national level by epiweek. \strong{DEPRECATED}
+US national level by epiweek.
 }
 \details{
 The function output a list of 5 data frame (one by target) of observed

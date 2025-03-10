@@ -13,11 +13,12 @@ test_target(df, model_task)
 and model output (type, format, etc.)}
 }
 \description{
+\strong{DEPRECATED} \if{html}{\out{<br>}}\if{html}{\out{<br>}}
 Validate Scenario Modeling Hub submissions: test if the
 \code{target} column contain the expected information and value.
 }
 \details{
-This function contains 5 tests:
+This function tests:
 \itemize{
 \item Target name: The target should correspond to the target name as
 expressed in the \code{model_task} parameter.
@@ -40,6 +41,14 @@ output type combination.
 \item NA target: The projection contains \code{NA} value in the \code{horizon}
 column for the target(s) requiring no time series information (for example,
 \code{"peak size hosp"}).
-Function called in the \code{validate_submission()} function.
 }
+
+\code{model_task} should match a specific round model tasks from the
+\code{tasks.json} associated with the hub. The json is expected to follow
+the \href{https://hubverse.io/en/latest/user-guide/hub-config.html}{hubverse}
+schema at least version 5.0
+
+As the function was deprecated, it will not be updated anymore. It was
+updated a last time to match the 5.0 hubverse schema version. However, it
+might returns duplicated message output.
 }

@@ -1,6 +1,7 @@
 # nocov start
-#' **Deprecated** - Runs Validation Checks on the Location column
+#' Runs Validation Checks on the Location column
 #'
+#' **DEPRECATED** <br><br>
 #' Validate Scenario Modeling Hub submissions: test if the  `location` column
 #' contains the expected  value.
 #'
@@ -8,11 +9,18 @@
 #'@param model_task list containing round information for each id columns
 #' and model output (type, format, etc.)
 #'
-#'@details  This function contains a test:
+#'@details  This function tests:
 #' * Specific location: For the target(s) requiring only specific
 #'  location(s), no additional location is provided in the submission file
 #'
-#' Function called in the `validate_submission()` function.
+#' `model_task` should match a specific round model tasks from the
+#' `tasks.json` associated with the hub. The json is expected to follow
+#' the [hubverse](https://hubverse.io/en/latest/user-guide/hub-config.html)
+#' schema at least version 5.0
+#'
+#' As the function was deprecated, it will not be updated anymore. It was
+#' updated a last time to match the 5.0 hubverse schema version. However, it
+#' might returns duplicated message output.
 #'
 #'@importFrom purrr map
 #'@importFrom dplyr filter .data

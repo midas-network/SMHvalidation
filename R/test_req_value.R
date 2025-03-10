@@ -1,6 +1,7 @@
 # nocov start
 #' Runs Validation Checks on the required value
 #'
+#' **DEPRECATED** <br><br>
 #' Validate Scenario Modeling Hub submissions: test if all the required value
 #' are present in the submission file
 #'
@@ -8,8 +9,13 @@
 #'@param model_task list containing round information for each id columns
 #' and model output (type, format, etc.)
 #'
-#' Function called in the `validate_submission()` function, only if the
-#' submission contains `"sample"` output type.
+#' `model_task` should match a specific round model tasks from the
+#' `tasks.json` associated with the hub. The json is expected to follow
+#' the [hubverse](https://hubverse.io/en/latest/user-guide/hub-config.html)
+#' schema at least version 5.0
+#'
+#' As the function was deprecated, it will not be updated anymore. It was
+#' updated a last time to match the 5.0 hubverse schema version.
 #'
 #'@importFrom purrr compact map
 #'@importFrom dplyr mutate_if mutate bind_rows distinct select all_of setdiff

@@ -14,12 +14,13 @@ test_origindate(df, path, id)
 \item{id}{character date "id" of the corresponding round}
 }
 \description{
+\strong{DEPRECATED} \if{html}{\out{<br>}}\if{html}{\out{<br>}}
 Validate Scenario Modeling Hub submissions: test if the
 \code{origin} column contains one unique date value corresponding
 to the expected value, in the expected format.
 }
 \details{
-This function contains 3 tests:
+This function tests:
 \itemize{
 \item Unique value: The \code{origin_date} column contains an unique expected
 value.
@@ -28,5 +29,6 @@ character ("YYYY-MM-DD") or a Date format. If the date is in a datetime
 format, a warning will be returned
 }
 
-Function called in the \code{validate_submission()} function.
+As the function was deprecated, it will not be updated anymore. It was
+updated a last time to match the 5.0 hubverse schema version.
 }

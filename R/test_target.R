@@ -1,6 +1,7 @@
 # nocov start
 #' Runs Validation Checks on the Target column
 #'
+#' **DEPRECATED** <br><br>
 #' Validate Scenario Modeling Hub submissions: test if the
 #' `target` column contain the expected information and value.
 #'
@@ -8,7 +9,7 @@
 #'@param model_task list containing round information for each id columns
 #' and model output (type, format, etc.)
 #'
-#'@details  This function contains 5 tests:
+#'@details  This function tests:
 #'* Target name: The target should correspond to the target name as
 #'  expressed in the `model_task` parameter.
 #'* Target number: The submission file contains projection for all
@@ -30,7 +31,15 @@
 #'* NA target: The projection contains `NA` value in the `horizon`
 #'  column for the target(s) requiring no time series information (for example,
 #'  `"peak size hosp"`).
-#' Function called in the `validate_submission()` function.
+#'
+#' `model_task` should match a specific round model tasks from the
+#' `tasks.json` associated with the hub. The json is expected to follow
+#' the [hubverse](https://hubverse.io/en/latest/user-guide/hub-config.html)
+#' schema at least version 5.0
+#'
+#' As the function was deprecated, it will not be updated anymore. It was
+#' updated a last time to match the 5.0 hubverse schema version. However, it
+#' might returns duplicated message output.
 #'
 #'@importFrom stats na.omit
 #'@importFrom dplyr mutate filter select distinct everything

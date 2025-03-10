@@ -1,9 +1,9 @@
 #' Read CSV, ZIP, GZ pr PQT files
 #'
 #' Reads a file and output a data frame. The function can read files in CSV,
-#'  ZIP, GZ and PQT format
+#'  ZIP, GZ and PQT/parquet format (not partitioned)
 #'
-#' @param path path of the file which the date are to be read from
+#' @param path path of the file
 #' @param na_string character vector to be interpreted as `NA` values
 #' @param sep character, separator character between columns
 #'
@@ -14,6 +14,15 @@
 #' \dontrun{
 #'  df <- read_files("PATH/TO/FILE")
 #' }
+#'
+#' @details
+#' Returns a Warning if the file contains a `location` column with the US FIPS
+#' code of the location missing the leading 0, for example `"6"` instead of
+#' `"06"` for California, US. By default, the missing leading `0` will be
+#' added.
+#'
+#' Returns a Warning if a column is in a factor format. By default, the column
+#' will be forced to a character format
 #'
 #' @importFrom arrow read_parquet
 #'

@@ -67,6 +67,7 @@ check_age_group <- function(mtask, df, checks, file_path) {
 
 #' Runs Validation Checks on the `age_group` column
 #'
+#' **DEPRECATED** <br><br>
 #' Validate Scenario Modeling Hub submissions: test if the `age_group` column
 #' contains the expected  value.
 #'
@@ -75,7 +76,7 @@ check_age_group <- function(mtask, df, checks, file_path) {
 #' and model output (type, format, etc.) for a specific round
 #'@param file_name optional, name of the file tested
 #'
-#'@details  This function contains 3 tests:
+#'@details  This function  tests:
 #' * Age group: If the submission contains projection by age group,
 #'  the `age_group` column contains the age group written `<AGEMIN>-<AGEMAX>`.
 #' * Age group value: If the submission contains projection by
@@ -85,8 +86,16 @@ check_age_group <- function(mtask, df, checks, file_path) {
 #'  age group and if one or multiple targets required specific `age_group`
 #'  value(s), no additional value(s) is provided in the submission file.
 #'
-#' Function called in the `validate_submission()` function, only if the
-#' submission contains `"age_group"` column
+#' `model_task` should match a specific round model tasks from the
+#' `tasks.json` associated with the hub. The json is expected to follow
+#' the [hubverse](https://hubverse.io/en/latest/user-guide/hub-config.html)
+#' schema at least version 5.0
+#'
+#' As the function was deprecated, it will not be updated anymore. It was
+#' updated a last time to match the 5.0 hubverse schema version. However, it
+#' might returns duplicated message output.
+#'
+#' @return NULL
 #'
 #'@importFrom hubValidations new_hub_validations
 #'@importFrom purrr keep map

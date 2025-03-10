@@ -30,17 +30,17 @@ partitioned data.}
 \item{hub_path}{path to the repository contains the submissions files
 and \code{tasks.json} file}
 
-\item{js_def}{path to JSON file containing round definitions: names of
+\item{js_def}{path to a JSON file containing round definitions: names of
 columns, target names, ... following the \code{tasks.json}
-\href{https://hubdocs.readthedocs.io/en/latest/user-guide/hub-config.html}{Hubverse }
-format. If \code{NULL} (default), will use the defaul path "hub-config/tasks.json"
-in the hub.}
+\href{https://hubverse.io/en/latest/user-guide/hub-config.html}{Hubverse}
+format. If \code{NULL} (default), will use the default path
+"hub-config/tasks.json" in the hub using \code{hub_path} parameter.}
 
-\item{target_data}{data frame containing the
-observed data. We highly recommend to use the output of the
-\code{pull_gs_data()} function. The data frame should have the time
-series hubverse format.
-Set to \code{NULL} (default), to NOT run comparison with observed data.}
+\item{target_data}{path to the target data in the Hubverse time series target
+data standard format. Please find additional information on the
+\href{https://hubverse.io/en/latest/user-guide/target-data.html}{hubverse}
+website. Set to \code{NULL} (default), to NOT include comparison with observed
+data.}
 
 \item{pop_path}{path to a table containing the population size of each
 geographical entities by FIPS (in a column \code{"location"}).
@@ -58,7 +58,7 @@ in a partition format, see \code{arrow} package for more information, and
 \code{arrow::write_dataset()}, \code{arrow::open_dataset()} functions.  By default
 \code{NULL}, no partition}
 
-\item{n_decimal}{integer,  number of decimal point accepted in the column
+\item{n_decimal}{integer, number of decimal point accepted in the column
 value (only for \code{"sample"} output type), if \code{NULL} (default) no limit
 expected.}
 
@@ -74,18 +74,17 @@ schema. If none provided (default, \code{NULL}), the schema will be created from
 the \code{js_def} JSON file. (only for partition files)}
 }
 \description{
-Runs all the different validation checks functions (\code{test_column()},
-\code{test_scenario()}, \code{test_origindate()}, \code{test_type()}, \code{test_val()},
-\code{test_target()}, \code{test_location()}, \code{test_other_col()}) on SMH submission
+Runs multiple validation checks functions on SMH submission
 file(s) and prints information about the results of each tests on the
-submission file(s): warning(s), error(s) or message if all the tests were
-successful.
+submission file(s): warning(s), error(s) and/or message in the hubverse
+format.
 }
 \details{
 For more information on all tests run on the submission, please refer
-to the documentation of each \verb{"test_*}" function. A vignette with all the
-information is available in the package and is called:
-vignette("validation-checks").
+to the documentation of the
+\href{https://hubverse-org.github.io/hubValidations/index.html}{hubValidations}
+package. A vignette with all the information is available in the package and
+is called: vignette("validation-checks").
 
 The function accepts submission in PARQUET, CSV, ZIP or GZ file formats. If
 the submission files is in a "partitioned" format, the \code{path} parameter
@@ -93,8 +92,7 @@ should be to a directory to a folder containing ONLY the "partitioned"
 files. If any other file is present in the directory, it will be included
 in the validation.
 
-The function runs some preliminary tests before calling the "test_*"
-functions:
+The function runs some preliminary tests before running all the checks:
 \itemize{
 \item Input submission file format: The file format of the submission
 file(s) correspond to the expected format (for example: \code{parquet}, or \code{csv},
@@ -109,6 +107,9 @@ location, the \code{location} column contains the location FIPS number as
 available in the location table in the SMH GitHub Repository. If the FIPS
 number are missing a trailing zero, the submission will be accepted but a
 warning message will be returned.
+\item Column format: If the submission file(s) contain column in a factor column,
+the column will be forced to character and a warning message will be
+returned
 }
 }
 \examples{

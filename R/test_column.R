@@ -1,13 +1,14 @@
 # nocov start
 #' Runs Validation Checks on Columns names and number
 #'
+#' **DEPRECATED** <br><br>
 #' Validate Scenario Modeling Hub submissions: names and number of columns.
 #'
 #'@param df data frame to test
 #'@param req_colnames vector of required column names
 #'@param file_name optional, name of the file tested
 #'
-#'@details  This function contains 2 tests:
+#'@details  This function tests:
 #' *Name: The names of the columns are corresponding to the expected
 #'  column names. If one column is misspelled or is missing, the validation
 #'  will stop here with an error message and no other tests will be perform on
@@ -15,7 +16,8 @@
 #' *Number: The submission should contains the expected number of
 #'  columns.
 #'
-#' Function called in the `validate_submission()` function.
+#' The function was deprecated, it will not be updated anymore. It was
+#' updated a last time to match the 5.0 hubverse schema version.
 #'
 #'@importFrom hubValidations new_hub_validations capture_check_cnd
 #'@export

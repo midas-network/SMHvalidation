@@ -15,11 +15,12 @@ and model output (type, format, etc.) for a specific round}
 \item{file_name}{optional, name of the file tested}
 }
 \description{
+\strong{DEPRECATED} \if{html}{\out{<br>}}\if{html}{\out{<br>}}
 Validate Scenario Modeling Hub submissions: test if the \code{age_group} column
 contains the expected  value.
 }
 \details{
-This function contains 3 tests:
+This function  tests:
 \itemize{
 \item Age group: If the submission contains projection by age group,
 the \code{age_group} column contains the age group written \verb{<AGEMIN>-<AGEMAX>}.
@@ -31,6 +32,12 @@ age group and if one or multiple targets required specific \code{age_group}
 value(s), no additional value(s) is provided in the submission file.
 }
 
-Function called in the \code{validate_submission()} function, only if the
-submission contains \code{"age_group"} column
+\code{model_task} should match a specific round model tasks from the
+\code{tasks.json} associated with the hub. The json is expected to follow
+the \href{https://hubverse.io/en/latest/user-guide/hub-config.html}{hubverse}
+schema at least version 5.0
+
+As the function was deprecated, it will not be updated anymore. It was
+updated a last time to match the 5.0 hubverse schema version. However, it
+might returns duplicated message output.
 }

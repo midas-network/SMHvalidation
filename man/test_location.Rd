@@ -2,7 +2,7 @@
 % Please edit documentation in R/test_location.R
 \name{test_location}
 \alias{test_location}
-\title{\strong{Deprecated} - Runs Validation Checks on the Location column}
+\title{Runs Validation Checks on the Location column}
 \usage{
 test_location(df, model_task)
 }
@@ -13,15 +13,23 @@ test_location(df, model_task)
 and model output (type, format, etc.)}
 }
 \description{
+\strong{DEPRECATED} \if{html}{\out{<br>}}\if{html}{\out{<br>}}
 Validate Scenario Modeling Hub submissions: test if the  \code{location} column
 contains the expected  value.
 }
 \details{
-This function contains a test:
+This function tests:
 \itemize{
 \item Specific location: For the target(s) requiring only specific
 location(s), no additional location is provided in the submission file
 }
 
-Function called in the \code{validate_submission()} function.
+\code{model_task} should match a specific round model tasks from the
+\code{tasks.json} associated with the hub. The json is expected to follow
+the \href{https://hubverse.io/en/latest/user-guide/hub-config.html}{hubverse}
+schema at least version 5.0
+
+As the function was deprecated, it will not be updated anymore. It was
+updated a last time to match the 5.0 hubverse schema version. However, it
+might returns duplicated message output.
 }

@@ -1,6 +1,7 @@
 # nocov start
 #' Runs Validation Checks on the Quantiles type and value columns
 #'
+#' **DEPRECATED** <br><br>
 #' Validate Scenario Modeling Hub submissions: test if the
 #' `quantile` and `type` columns contain the expected information and value
 #' and the projection value increases with the quantiles.
@@ -9,7 +10,7 @@
 #'@param model_task list containing round information for each id columns
 #' and model output (type, format, etc.)
 #'
-#'@details  This function contains 5 tests:
+#'@details  This function tests:
 #' * Type: The submission contains quantiles value when expected.
 #' * Quantiles: The `quantile` column matches the expected quantiles.
 #' * Required quantiles: The projection should contain all required
@@ -22,8 +23,17 @@
 #' * Target: All targets required to have quantiles information have all
 #'  required quantiles for each group id (scenario/location/horizon/etc.).
 #'
-#' Function called in the `validate_submission()` function, only if the
-#' submission contains `"quantile"` output type.
+#' `model_task` should match a specific round model tasks from the
+#' `tasks.json` associated with the hub. The json is expected to follow
+#' the [hubverse](https://hubverse.io/en/latest/user-guide/hub-config.html)
+#' schema at least version 5.0
+#'
+#' As the function was *deprecated*, it will not be updated anymore. It was
+#' updated a last time to match the 5.0 hubverse schema version. However, it
+#' might returns duplicated message output or false error as for example
+#' the 5.0 version of the `tasks.json` does not accept both required and
+#' optional quantile for the same task ids and past SMH rounds might contains
+#' required and optional quantiles for optional and/or required target.
 #'
 #'@importFrom tidyr all_of unite
 #'@importFrom dplyr filter mutate distinct everything arrange lag

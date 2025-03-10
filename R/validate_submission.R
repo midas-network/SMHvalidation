@@ -5,30 +5,7 @@
 #' test_location, etc.) on a data frame and print information about the results
 #' of each tests on the submission: warning(s), error(s) or if all the tests
 #' were successful.
-#'
-#'@param df data frame to test
-#'@param path character vector path of the file being tested
-#'@param js_def list containing round definitions: names of columns,
-#' target names, ...
-#'@param pop data frame containing the population size of each geographical
-#'  entities by fips (in a column "location"), can be `NULL` (not comparison to
-#'  population size, default)
-#'@param obs data frame, containing the last available week of observed data
-#'  before start of the projection, can be `NULL` (not comparison to observed
-#'  data, default) in the time series hubverse format.
-#'@param merge_sample_col vector to indicate if the for the output type
-#' "sample", the output_type_id column is set to NA and the information is
-#' contained into other columns. If so the parameter should be set to the sample
-#' ID columns names, for example: `c("run_grouping" and "stochastic_run")`.
-#' By default, `NULL` (sample ID information in the output type id column)
-#'@param pairing_col column names indicating the sample pairing information. By
-#' default: "horizon".
-#'@param n_decimal integer,  number of decimal point accepted in the column
-#'  value (only for "sample" output type), if NULL (default) no limit expected.
-#'@param verbose Boolean, if TRUE add information about the sample pairing
-#'  information in output message
-#'
-#'@details Internal function called in the `validation_submission()` function.
+#' Internal function called in the `validation_submission()` function.
 #' For more information on all tests run on the submission, please refer to the
 #' documentation of each "test_*" function. A vignette with all the information
 #' might be created later on too.
@@ -140,12 +117,10 @@ run_all_validation <- function(df, path, js_def0, js_def, round_id, hub_path,
 
 #' Validate SMH (Scenario Modeling Hub) Submissions
 #'
-#' Runs all the different validation checks functions (`test_column()`,
-#' `test_scenario()`, `test_origindate()`, `test_type()`, `test_val()`,
-#' `test_target()`, `test_location()`, `test_other_col()`) on SMH submission
+#' Runs multiple validation checks functions on SMH submission
 #' file(s) and prints information about the results of each tests on the
-#' submission file(s): warning(s), error(s) or message if all the tests were
-#' successful.
+#' submission file(s): warning(s), error(s) and/or message in the hubverse
+#' format.
 #'
 #'@param path path to the submissions file (or folder for partitioned data)
 #' to test, or string of parquet files (in this case, the validation will be
@@ -156,17 +131,16 @@ run_all_validation <- function(df, path, js_def0, js_def, round_id, hub_path,
 #' partitioned data.
 #' @param hub_path path to the repository contains the submissions files
 #' and `tasks.json` file
-#' @param js_def path to JSON file containing round definitions: names of
+#' @param js_def path to a JSON file containing round definitions: names of
 #' columns, target names, ... following the `tasks.json`
-#' [Hubverse
-#' ](https://hubdocs.readthedocs.io/en/latest/user-guide/hub-config.html)
-#' format. If `NULL` (default), will use the defaul path "hub-config/tasks.json"
-#' in the hub.
-#'@param target_data data frame containing the
-#' observed data. We highly recommend to use the output of the
-#' `pull_gs_data()` function. The data frame should have the time
-#' series hubverse format.
-#' Set to `NULL` (default), to NOT run comparison with observed data.
+#' [Hubverse](https://hubverse.io/en/latest/user-guide/hub-config.html)
+#' format. If `NULL` (default), will use the default path
+#' "hub-config/tasks.json" in the hub using `hub_path` parameter.
+#'@param target_data path to the target data in the Hubverse time series target
+#' data standard format. Please find additional information on the
+#' [hubverse](https://hubverse.io/en/latest/user-guide/target-data.html)
+#' website. Set to `NULL` (default), to NOT include comparison with observed
+#' data.
 #'@param pop_path path to a table containing the population size of each
 #' geographical entities by FIPS (in a column `"location"`).
 #' Use to compare that value is not higher than expected population size.
@@ -180,7 +154,7 @@ run_all_validation <- function(df, path, js_def0, js_def, round_id, hub_path,
 #' in a partition format, see `arrow` package for more information, and
 #' `arrow::write_dataset()`, `arrow::open_dataset()` functions.  By default
 #' `NULL`, no partition
-#'@param n_decimal integer,  number of decimal point accepted in the column
+#'@param n_decimal integer, number of decimal point accepted in the column
 #' value (only for `"sample"` output type), if `NULL` (default) no limit
 #' expected.
 #'@param round_id character string, round identifier. If `NULL` (default),
@@ -193,9 +167,10 @@ run_all_validation <- function(df, path, js_def0, js_def, round_id, hub_path,
 #' the `js_def` JSON file. (only for partition files)
 #'
 #'@details For more information on all tests run on the submission, please refer
-#' to the documentation of each `"test_*`" function. A vignette with all the
-#' information is available in the package and is called:
-#' vignette("validation-checks").
+#' to the documentation of the
+#' [hubValidations](https://hubverse-org.github.io/hubValidations/index.html)
+#' package. A vignette with all the information is available in the package and
+#' is called: vignette("validation-checks").
 #'
 #' The function accepts submission in PARQUET, CSV, ZIP or GZ file formats. If
 #' the submission files is in a "partitioned" format, the `path` parameter
@@ -203,8 +178,7 @@ run_all_validation <- function(df, path, js_def0, js_def, round_id, hub_path,
 #' files. If any other file is present in the directory, it will be included
 #' in the validation.
 #'
-#' The function runs some preliminary tests before calling the "test_*"
-#' functions:
+#' The function runs some preliminary tests before running all the checks:
 #' * Input submission file format: The file format of the submission
 #'  file(s) correspond to the expected format (for example: `parquet`, or `csv`,
 #'   etc.). If multiple files inputted, only `parquet` is accepted.
@@ -218,6 +192,9 @@ run_all_validation <- function(df, path, js_def0, js_def, round_id, hub_path,
 #'  available in the location table in the SMH GitHub Repository. If the FIPS
 #'  number are missing a trailing zero, the submission will be accepted but a
 #'  warning message will be returned.
+#' * Column format: If the submission file(s) contain column in a factor column,
+#' the column will be forced to character and a warning message will be
+#' returned
 #'
 #' @importFrom hubUtils get_round_ids read_config_file get_round_model_tasks
 #' @importFrom arrow open_dataset

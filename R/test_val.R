@@ -86,6 +86,7 @@ value_format_test <- function(df_test, model_tasks, outputtype,
 
 #' Runs Validation Checks on the Projection value and type point columns
 #'
+#' **DEPRECATED** <br><br>
 #' Validate Scenario Modeling Hub submissions: test if the
 #' `value` and `type` columns contain the expected information and value.
 #'
@@ -101,7 +102,7 @@ value_format_test <- function(df_test, model_tasks, outputtype,
 #'@param n_decimal integer,  number of decimal point accepted in the column
 #'  value (only for "sample" output type), if NULL (default) no limit expected.
 #'
-#'@details  This function contains 10 tests:
+#'@details  This function tests:
 #' * Required type: All the required type output are present in the
 #'  submission file.
 #' * Value: All `value` have the expected format (for example, double
@@ -135,7 +136,14 @@ value_format_test <- function(df_test, model_tasks, outputtype,
 #'  tasks group associated with a cumulative target has projected values that
 #'  increase or stay constant with time.
 #'
-#' Function called in the `validate_submission()` function.
+#' `model_task` should match a specific round model tasks from the
+#' `tasks.json` associated with the hub. The json is expected to follow
+#' the [hubverse](https://hubverse.io/en/latest/user-guide/hub-config.html)
+#' schema at least version 5.0
+#'
+#' As the function was deprecated, it will not be updated anymore. It was
+#' updated a last time to match the 5.0 hubverse schema version. However, it
+#' might returns duplicated message output.
 #'
 #'@importFrom dplyr filter summarise n everything distinct select
 #'@importFrom tidyr unite all_of
