@@ -10,14 +10,16 @@ get_tasksids_colnames <- function(js_def) {
 
 # Check location format - FIPS code of 2 character (not numeric)
 location_fips_format <- function(df) {
-  if (any(nchar(df$location) == 1)) {
-    vect <- unique(df$location[which(nchar(df$location) == 1)])
-    warning("Some location value are missing a trailing 0. For example, ",
-            paste(vect, collapse = ", "), " instead of ",
-            paste(paste0(0, vect), collapse = ", "))
+  if (any("location" %in% names(df))) {
+    if (any(nchar(df$location) == 1)) {
+      vect <- unique(df$location[which(nchar(df$location) == 1)])
+      warning("Some location value are missing a trailing 0. For example, ",
+              paste(vect, collapse = ", "), " instead of ",
+              paste(paste0(0, vect), collapse = ", "))
+    }
+    df$location <- as.character(df$location)
+    df <- loc_zero(df)
   }
-  if (any("location" %in% names(df))) df$location <- as.character(df$location)
-  df <- loc_zero(df)
   return(df)
 }
 
