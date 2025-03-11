@@ -1,10 +1,8 @@
 #' Run all validation checks and output a report
 #'
-#' Runs all the different validation checks functions (test_column,
-#' test_scenario, test_modelprojdate, test_quantiles, test_val, test_target,
-#' test_location, etc.) on a data frame and print information about the results
-#' of each tests on the submission: warning(s), error(s) or if all the tests
-#' were successful.
+#' Runs all the different validation checks functions on a data frame and print
+#' information about the results of each tests on the submission: warning(s),
+#' error(s) or if all the tests were successful.
 #' Internal function called in the `validation_submission()` function.
 #' For more information on all tests run on the submission, please refer to the
 #' documentation of each "test_*" function. A vignette with all the information
