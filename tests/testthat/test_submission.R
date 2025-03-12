@@ -39,12 +39,12 @@ test_that("Test validation process", {
                                merge_sample_col = merge_sample_col,
                                partition = partition, n_decimal = n_decimal,
                                round_id = round_id, verbose = verbose,
-                               r_schema = r_schema)
+                               r_schema = r_schema, verbose_col = "age_group")
   test <- unique(purrr::map_vec(purrr::map(check, ~attr(.x, "class")), 1))
   expect_equal(test, c("check_info", "check_success"))
   expect_equal(check$pairing_info$message,
-               paste0("Run grouping pairing: \"horizon\", \"age_group\"; ",
-                      "stochastic run pairing: No stochasticity. ",
+               paste0("Run grouping pairing: \"horizon\", \"age_group (0-130, ",
+                      "65-130)\"; stochastic run pairing: No stochasticity. ",
                       "Number of Samples: 100"))
 
   ## only required value ---
@@ -84,6 +84,13 @@ test_that("Test validation process", {
                       "Samples: 100"))
 
   # Test errors --------
+
+  ## Missing required value ------
+  df <- dplyr::filter(df0, .data[["target"]] == "cum hosp") |>
+    dplyr::select(-tidyr::all_of(c("run_grouping", "stochastic_run")))
+  arrow::write_parquet(df, path_f)
+  rm(df)
+  check <- validate_submission(path_f, hub_path)
 
   ## Test columns error -----
   ### File with additional column ----
