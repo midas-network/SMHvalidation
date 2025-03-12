@@ -187,7 +187,8 @@ loc_zero <- function(df) {
 #'
 #' @noRd
 merge_sample_id <- function(df, req_colnames, merge_sample_col, js_def0, js_def,
-                            checks, partition = NULL, verbose = TRUE) {
+                            checks, partition = NULL, verbose = TRUE,
+                            verbose_col = NULL) {
 
   sample_val <- na.omit(unlist(dplyr::distinct(df[, merge_sample_col])))
   if (isFALSE(all(is_wholenumber(sample_val))) ||
@@ -206,7 +207,8 @@ merge_sample_id <- function(df, req_colnames, merge_sample_col, js_def0, js_def,
     test_sample <- dplyr::summarise(test_sample, n = dplyr::n())
     n_sample <- unique(test_sample$n)
     pair_info <- verbose_pairing(df_sample, js_def, checks, or_pair = NULL,
-                                 n_sample = n_sample) |>
+                                 n_sample = n_sample,
+                                 verbose_col = verbose_col) |>
       purrr::map(unique)
   } else {
     pair_info <- NULL
@@ -239,12 +241,16 @@ merge_sample_id <- function(df, req_colnames, merge_sample_col, js_def0, js_def,
 #' @importFrom dplyr group_split
 verbose_pairing <- function(df_sample, m_task, checks, or_pair, n_sample,
                             verbose_col = NULL) {
+  tasks_list <- m_task[purrr::map_vec(purrr::map(purrr::map(m_task,
+                                                            "output_type"),
+                                                 "sample"), ~ !is.null(.x))]
+  tasks_list <- tasks_list[[1]]$task_ids
   if (length(unique(df_sample$run_grouping)) > 1) {
     run_group <-
       purrr::map(dplyr::group_split(df_sample, .data[["run_grouping"]]),
                  paired_info, rm_col = c("stochastic_run", "output_type_id",
                                          "output_type",  "value"),
-                 tasks_list = m_task$task_ids, verbose_col = verbose_col) |>
+                 tasks_list = tasks_list, verbose_col = verbose_col) |>
       unique() |>
       purrr::map(c, or_pair)
   } else {
@@ -255,7 +261,7 @@ verbose_pairing <- function(df_sample, m_task, checks, or_pair, n_sample,
       purrr::map(dplyr::group_split(df_sample, .data[["stochastic_run"]]),
                  paired_info, c("run_grouping", "output_type_id",
                                 "output_type", "value"),
-                 tasks_list = m_task$task_ids, verbose_col = verbose_col) |>
+                 tasks_list = tasks_list, verbose_col = verbose_col) |>
       unique() |>
       purrr::map(c, or_pair)
   } else {
@@ -263,7 +269,7 @@ verbose_pairing <- function(df_sample, m_task, checks, or_pair, n_sample,
   }
 
   p_rg <- paste0("Run grouping pairing: ",
-                 paste(gsub("^c\\(|\\)", "", run_group), collapse = ","))
+                 paste(gsub("^c\\(|\\)$", "", run_group), collapse = ","))
   p_info <- paste0(p_rg, ";",
                    paste0(" stochastic run pairing: ",
                           paste(gsub("^c\\(|\\)", "", sto_group),
@@ -287,7 +293,7 @@ paired_info <- function(df, rm_col = NULL, tasks_list = NULL,
   if (is.null(tasks_list)) {
     paired_info <- purrr::keep(test_pair_list, function(x) length(x) > 1) |>
       names()
-  } else {  # nocov start
+  } else {
     paired_info <- lapply(seq_along(test_pair_list), function(x) {
       if (is.null(verbose_col)) {
         if (length(test_pair_list[[x]]) > 1) {
@@ -327,7 +333,7 @@ paired_info <- function(df, rm_col = NULL, tasks_list = NULL,
       purrr::compact() |>
       unlist() |>
       unique()
-  } # nocov end
+  }
   return(paired_info)
 }
 

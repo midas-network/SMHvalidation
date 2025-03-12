@@ -17,7 +17,7 @@
 run_all_validation <- function(df, path, js_def0, js_def, round_id, hub_path,
                                pop = NULL, obs = NULL, merge_sample_col = NULL,
                                partition = NULL, n_decimal = NULL,
-                               verbose = TRUE) {
+                               verbose = TRUE, verbose_col =  NULL) {
   ### Prerequisite
   req_colnames <-  c(get_tasksids_colnames(js_def), "output_type",
                      "output_type_id", "value")
@@ -45,7 +45,8 @@ run_all_validation <- function(df, path, js_def0, js_def, round_id, hub_path,
       return(checks)
     }
     all <- merge_sample_id(df, req_colnames, merge_sample_col,  js_def0, js_def,
-                           checks, partition = partition, verbose = verbose)
+                           checks, partition = partition, verbose = verbose,
+                           verbose_col = verbose_col)
     df <- all$df
     msg <- all$msg
     if (!is.null(msg))
@@ -128,7 +129,7 @@ run_all_validation <- function(df, path, js_def0, js_def, round_id, hub_path,
 #' If partition is not set to `NULL`, path to the folder containing ONLY the
 #' partitioned data.
 #' @param hub_path path to the repository contains the submissions files
-#' and `tasks.json` file
+#' and `tasks.json` file.
 #' @param js_def path to a JSON file containing round definitions: names of
 #' columns, target names, ... following the `tasks.json`
 #' [Hubverse](https://hubverse.io/en/latest/user-guide/hub-config.html)
@@ -147,11 +148,11 @@ run_all_validation <- function(df, path, js_def0, js_def, round_id, hub_path,
 #' "sample", the output_type_id column is set to NA and the information is
 #' contained into other columns. If so the parameter should be set to the sample
 #' ID columns names, for example: `c("run_grouping" and "stochastic_run")`.
-#' By default, `NULL` (sample ID information in the output type id column)
+#' By default, `NULL` (sample ID information in the output type id column).
 #'@param partition vector, for csv and parquet files, allow to validate files
 #' in a partition format, see `arrow` package for more information, and
 #' `arrow::write_dataset()`, `arrow::open_dataset()` functions.  By default
-#' `NULL`, no partition
+#' `NULL`, no partition.
 #'@param n_decimal integer, number of decimal point accepted in the column
 #' value (only for `"sample"` output type), if `NULL` (default) no limit
 #' expected.
@@ -160,9 +161,13 @@ run_all_validation <- function(df, path, js_def0, js_def, round_id, hub_path,
 #'@param verbose Boolean, if TRUE add information about the sample pairing
 #'  information in output message. By default, `TRUE` (slows the validation
 #'  validation for sample output type)
+#'@param verbose_col character vector, details of values included in the pairing
+#' of each group for specific mentioned columns. If `NULL` (default), no
+#' additional information in the pairing information. (require `verbose` set
+#' to `TRUE`).
 #'@param r_schema Schema arrow objects, to read partition files with a specific
 #' schema. If none provided (default, `NULL`), the schema will be created from
-#' the `js_def` JSON file. (only for partition files)
+#' the `js_def` JSON file. (only for partition files).
 #'
 #'@details For more information on all tests run on the submission, please refer
 #' to the documentation of the
@@ -208,7 +213,8 @@ validate_submission <- function(path, hub_path, js_def = NULL,
                                 target_data = NULL, pop_path = NULL,
                                 merge_sample_col = NULL, partition = NULL,
                                 n_decimal = NULL, round_id = NULL,
-                                verbose = TRUE, r_schema = NULL) {
+                                verbose = TRUE, verbose_col = NULL,
+                                r_schema = NULL) {
 
   # Prerequisite --------
   # Pull target data
@@ -301,7 +307,7 @@ validate_submission <- function(path, hub_path, js_def = NULL,
 
   # Run tests --------
   run_all_validation(df, paste0(hub_path, path), js_def0, js_def, round_id,
-                     hub_path, pop = pop, obs = obs,
+                     hub_path, pop = pop, obs = obs, verbose = verbose,
                      merge_sample_col = merge_sample_col, n_decimal = n_decimal,
-                     verbose = verbose, partition = partition)
+                     partition = partition, verbose_col = verbose_col)
 }

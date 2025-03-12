@@ -15,6 +15,7 @@ validate_submission(
   n_decimal = NULL,
   round_id = NULL,
   verbose = TRUE,
+  verbose_col = NULL,
   r_schema = NULL
 )
 }
@@ -28,7 +29,7 @@ If partition is not set to \code{NULL}, path to the folder containing ONLY the
 partitioned data.}
 
 \item{hub_path}{path to the repository contains the submissions files
-and \code{tasks.json} file}
+and \code{tasks.json} file.}
 
 \item{js_def}{path to a JSON file containing round definitions: names of
 columns, target names, ... following the \code{tasks.json}
@@ -51,12 +52,12 @@ Set to \code{NULL} (default), to NOT run comparison with population data.}
 "sample", the output_type_id column is set to NA and the information is
 contained into other columns. If so the parameter should be set to the sample
 ID columns names, for example: \verb{c("run_grouping" and "stochastic_run")}.
-By default, \code{NULL} (sample ID information in the output type id column)}
+By default, \code{NULL} (sample ID information in the output type id column).}
 
 \item{partition}{vector, for csv and parquet files, allow to validate files
 in a partition format, see \code{arrow} package for more information, and
 \code{arrow::write_dataset()}, \code{arrow::open_dataset()} functions.  By default
-\code{NULL}, no partition}
+\code{NULL}, no partition.}
 
 \item{n_decimal}{integer, number of decimal point accepted in the column
 value (only for \code{"sample"} output type), if \code{NULL} (default) no limit
@@ -69,9 +70,14 @@ extracted from \code{path}.}
 information in output message. By default, \code{TRUE} (slows the validation
 validation for sample output type)}
 
+\item{verbose_col}{character vector, details of values included in the pairing
+of each group for specific mentioned columns. If \code{NULL} (default), no
+additional information in the pairing information. (require \code{verbose} set
+to \code{TRUE}).}
+
 \item{r_schema}{Schema arrow objects, to read partition files with a specific
 schema. If none provided (default, \code{NULL}), the schema will be created from
-the \code{js_def} JSON file. (only for partition files)}
+the \code{js_def} JSON file. (only for partition files).}
 }
 \description{
 Runs multiple validation checks functions on SMH submission
