@@ -18,22 +18,12 @@ knitr::opts_chunk$set(
 ```
 
 The `SMHvalidation` R package contains functions to validate and visualize
-Scenario Modeling Hub submissions, and to pull data from the R
-package `covidcast` (output in the Scenario Modeling Hub (SMH) standard
-format).
+Scenario Modeling Hub submissions.
 
 In this vignette, we demonstrate the use of the validation function:
-`validate_submission()`. The function can generate 3 different outputs:
-
--   message when the submission does not contain any issues
--   warning + report message when the submission contains one or
-    multiple minor issues that do not prevent the submission from being
-    included.
--   error + report message when the submission contains one or
-    multiple minor and/or major issues that prevent the submission from being
-    included. In this case the submission file will have to be updated
-    to be included in the
-    corresponding SMH round.
+`validate_submission()`. The function generates a list representing the
+output of the series of checked performed on a specific submission. Each named 
+element of the list represents the result of an individual check.
 
 We will start by loading `SMHvalidation`:
 
@@ -51,6 +41,10 @@ documentation.
 ?validate_submission()
 ```
 
+The function internally runs different validation checks
+functions from 
+[hubValidations package](https://hubverse-org.github.io/hubValidations/) on
+SMH submissions.
 For more information on all the tests the function perform, please
 consult the vignette [Validation Checks](validation-checks.html).
 
@@ -58,146 +52,128 @@ consult the vignette [Validation Checks](validation-checks.html).
 
 The function requires multiple parameters:
 
--   `path`: path to the submissions file (or folder, for partitioned data) to
-    test. A vector of parquet files can also be inputted, in this case, the
-    validation will be run on the aggregation of all the parquet files
-    together, and each file individually should match the expected SMH
-    standard. If partition is not set to `NULL`, the path
-    to the folder containing the partitioned data should be input.
-    The package contains two example files that can be used to test the
-    function. There paths can be accessed by using:
-    `system.file("extdata", "FILENAME", package = "SMHvalidation")`, the
-    two filenames (+ quick descriptions) are:
-    -   `"2022-01-09_team-model.csv"` : should return no issues
-    -   `"2021-11-14_team-model.parquet"` : should return multiple warnings
-        and errors
+-   `path`: path to the submissions file (or folder for partitioned data) 
+    to test. PQT, PARQUET, CSV, ZIP (not partitioned), or GZ (not partitioned) 
+    file format are accepted. The path should be relative to the path of the hub
+    containing the file to check.
+-    `hub_path`:  path to the hub containing the submission file.
+
+The package contains an example hub with two example sumbission that can be 
+used to test the function. There paths can be accessed by using the 
+`system.file()` function. 
+
+```{r setup_path}
+hub_path <- system.file("extdata/exp/", package = "SMHvalidation")
+```
+
+The example hub follows the hubverse standard and organization. For more 
+information on hubverse, please consult the 
+[associated website](https://hubverse.io/en/latest/user-guide/hub-structure.html).
+
+It contains example submission for two teams, one partitioned. 
+```{r setup_path_f}
+path_1 <- "model-output/team2-modelb/2023-11-12-team2-modelb.parquet"
+path_2 <- "model-output/t3-mc"
+```
+
+###### Optional Parameters
+  
+The function allows some optional parameters:
+
 -   `js_def`: path to JSON file containing round definitions: names of columns,
     target names, ... following the `tasks.json`
-    [Hubverse format](https://hubdocs.readthedocs.io/en/latest/user-guide/hub-config.html#hub-model-task-configuration-tasks-json-file)
-    -   the information in the JSON file can be separated in multiple groups for
-        each round:
-        -   The "task_ids" object defines both labels and contents for each
-            column in submission files. Any unique combination of the values
-            define a single modeling task. For example, for SMH it can be the
-            columns: `"scenario_id"`, `"location"`, `"origin_date"`,
-            `"horizon"`, `"target"`, `"age_group"`, `"race_ethnicity"`.
-        -   The "output_type" object defines accepted representations for
-            each task. For example, for SMH it concerns the columns:
-            `"output_type"`, `"output_type_id"`, `"run_grouping"`,
-            `"stochastic_run"` and `"value"`.
-    
-And has some optional parameters:
-
--   `lst_gs`: named list of the data frame containing the observed data. We
-    highly recommend using the output of the `pull_gs_data()` function
-    as input. This function will generate the output in the expected
-    format with the expected data. For more information, please see
-    `?pull_gs_data()`. This parameter can be set to `NULL` (default) to 
-     not compare between the value and the observed data.
--   `pop_path`: path to a table containing the population size of each
-    geographical entity by FIPS (in a column "location") and by
-    location name. For example, path to the locations file in the
-    [COVID19 Scenario Modeling Hub GitHub
-    repository](https://github.com/midas-network/covid19-scenario-modeling-hub/blob/master/data-locations/locations.csv).
-     This parameter can be set to `NULL` (default) to not run a comparison
-     between the value and the population size data.
--   `merge_sample_col`: Boolean to indicate if in the submission file(s), the
-     output type `"sample"` has the `"output_type_id"` column set to `NA` and
-     the information is instead contained in 2 columns: `"run_grouping"` and
-     `⁠"stochastic_run`⁠". By default, `FALSE`
+    [Hubverse format](https://hubdocs.readthedocs.io/en/latest/user-guide/hub-config.html#hub-model-task-configuration-tasks-json-file). The version 5.0 minimal is expected. If 
+    `NULL` (default), will use the default path `"hub-config/tasks.json"` in 
+    the hub using hub_path parameter.
+-   `target_data`: path to the target data in the Hubverse time series target 
+    data 
+    [hubverse standard format](https://hubverse.io/en/latest/user-guide/target-data.html). 
+    Set to `NULL `(default), to NOT include comparison with observed data.
+-   `pop_path`: path to a table containing the population size (in a column 
+    `"population"`) of each  geographical entities by FIPS (in a column 
+    `"location"`). Use to compare that value is not higher than expected 
+    population size. Set to `NULL` (default), to NOT run comparison with 
+    population data.
+-   `merge_sample_col`: vector to indicate if the for the output type 
+    `"sample"`, the output_type_id column is set to `NA` and the information is 
+    contained into other columns. If so the parameter should be set to the 
+    sample ID columns names, for example: 
+    `⁠c("run_grouping" and "stochastic_run")`⁠.
+    By default, `NULL` (sample ID information in the output type id column)
 -   `partition`: character vector indicating if the submission file is
-     partitioned and if so, which field (or column) names correspond to the path
-     segments. By default, `NULL` (no partition). See
-     [arrow R package](https://arrow.apache.org/docs/r/) for more information,
-     and especially `arrow::write_dataset()`, `arrow::open_dataset()` functions.
-     **Warning**: If the submission files is in a "partitioned" format, 
-     the `path` parameter should be to a directory to a folder containing 
-     **ONLY** the "partitioned" files. If any other file is present in the 
-     directory, it will be included in the validation.
--    `n_decimal`: integer, number of decimal points accepted in the column
-      `"value"` (only for `"sample"` output type), if `NULL` (default) no limit
-      expected.
--    `round_id`: character string, round identifier. This identifier is used to
-      extract the associated round information from the `js_def` parameter.
-      If `NULL` (default), extracted from path.
--     `verbose`: Boolean, if `TRUE` (default) the report will contain additional
-       information about the sample pairing information in output report. 
-       **only available for submission with samples output type** (slows the               validation process)
+    partitioned and if so, which field (or column) names correspond to the path
+    segments. By default, `NULL` (no partition). See
+    [arrow R package](https://arrow.apache.org/docs/r/) for more information,
+    and especially `arrow::write_dataset()`, `arrow::open_dataset()` functions.
+    **Warning**: If the submission files is in a "partitioned" format, 
+    the `path` parameter should be to a directory to a folder containing 
+    **ONLY** the "partitioned" files. If any other file is present in the 
+    directory, it will be included in the validation.
+-   `n_decimal`: integer, number of decimal points accepted in the column
+    `"value"` (only for `"sample"` output type), if `NULL` (default) no limit
+    expected.
+-   `round_id`: character string, round identifier. If `NULL` (default), 
+    extracted from path.
+-   `verbose`: Boolean, if TRUE add information about the sample pairing 
+    information in output message. By default, TRUE (slows the validation 
+    validation for sample output type)
+-   `verbose_col`: character vector, details of values included in the pairing
+    of each group for specific mentioned columns. If `NULL` (default), no
+    additional information in the pairing information. (required `verbose` to be
+    set to `TRUE`).
+-   `r_schema`: Schema arrow objects, to read partition files with a specific 
+    schema. If none provided (default, `NULL`), the schema will be created 
+    from the information in the `tasks.json` file in the hub. 
 
 #### Output
 
-The function returns multiple messages and either a warning message or
-an error message if the submission contains minor issues and/or major
-issues respectively. If the submission contains minor and/or major
-issue(s), it will also returns a "report" message containing a detailed
-message about the issue and if the issue is:
+The function returns multiple messages and if any issue a failure or 
+an error message.
 
--   "minor": warning message asking to verify if it's correct but will
-    not block the inclusion of the submission to the SMH round.
--   "major": error message asking to fix the issue before including the
-    submission in the corresponding SMH round.
+-   if the check succeeds: a message is returned
+-   if the check fails: an error or a failure message is returned. A failure 
+    represents a check that fails but does not block the proceeding of the 
+    validation to other checks. Whereas an error, will stop the validation 
+    process. 
 
-#### Prerequisites
-
-Before running the function, we will prepare the required and optional
-parameter as explained above:
-
-```{r prerequisite, message=FALSE, warning=FALSE, eval=FALSE}
-js_def <- system.file("extdata", "covid_tasks.json", package = "SMHvalidation")
-```
-
-## Example 1: No issues
+## Example 1
 
 We can now run the `validate_submission()` function on a first example
-file.
+file in the hubverse format.
 
-```{r test1, eval=FALSE}
-path_test <- system.file("extdata", "2022-01-09_team-model.csv",
-                         package = "SMHvalidation")
-validate_submission(path_test, js_def)
+```{r test1}
+validate_submission(path_1, hub_path)
 ```
 
-The function returns a simple message stating that no issues have been
-found.
+## Example 2: Partitioned files
 
+We can now run the `validate_submission()` function on a first example
+file in the SMH format, with the sample ID information split into two columns:
+`"run_grouping"`, `"stochastic_run"`. For more information on this format,
+please consult the 
+[Sample file format](https://scenariomodelinghub.org/documentation/sample_format.html)
+webpage documentation.
 
-## Example 2: Warnings & Error
-
-```{r test3, error=TRUE, eval=FALSE}
-path_test <- system.file("extdata", "2021-11-14_team-model.parquet",
-                         package = "SMHvalidation")
-validate_submission(path_test, js_def)
+```{r test2}
+validate_submission(path_2, hub_path, 
+                    partition = c("origin_date", "target"),
+                    merge_sample_col = c("run_grouping", "stochastic_run"))
 ```
-
-The function returns an error message stating that one or multiple
-issues have been found.
-
-The submission will NOT be accepted and needs correction before being
-accepted.
 
 ## Sample pairing information
 
 The `validate_submission()` function can returns additional information about
 the pairing information of the `sample` output type by using the 
-`verbose = TRUE` parameter. 
-
-It is also possible to print pairing information of one or multiple specific 
-column information by adding a `verbose` parameter in the `js_def` JSON file:
-
-For example by adding that parameter at the round level:
-```json
-"verbose": {
-        "sample": ["scenario_id"]
-      }
-```
+`verbose = TRUE` and `verbose_col` parameters. 
 The detailed grouping of the value in the `scenario_id` column will be printed 
 in the output report:
 
 For example:
-```
- Run grouping pairing: 
-c("scenario_id (A-2024-08-01, C-2024-08-01, E-2024-08-01)", "horizon"), 
-c("scenario_id (B-2024-08-01, D-2024-08-01, F-2024-08-01)", "horizon")
+```{r test2_age}
+validate_submission(path_2, hub_path, 
+                    partition = c("origin_date", "target"),
+                    merge_sample_col = c("run_grouping", "stochastic_run"),
+                    verbose_col = "age_group")
 ```
 
 
@@ -208,16 +184,7 @@ output a plot of each location and target, with all scenarios and (optional)
 observed data (only for quantile type output).
 
 ```{r proj_plots, eval=FALSE}
-path_test <- system.file("extdata", "2022-01-09_team-model.csv",
-                         package = "SMHvalidation")
-save_path <- getwd()
-pdf_path <- file.path(save_path, paste0("2022-01-09", "_", "team-model",
-                                        "_plots.pdf"))
-print(paste0("Saving pdf plots to ", pdf_path, "."))
-generate_validation_plots(path_proj = path_test, lst_gs = NULL,
-                          save_path = save_path, y_sqrt = FALSE,
-                          plot_quantiles = c(0.025, 0.975))
-system(paste0('open "', pdf_path, '"'))
+generate_validation_plots(paste0(hub_path, path_1))
 ```
 
 The function accepts multiple file types (CSV, PARQUET (partition and not
