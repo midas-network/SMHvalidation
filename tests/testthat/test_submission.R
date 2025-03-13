@@ -92,6 +92,17 @@ test_that("Test validation process", {
   rm(df)
   check <- validate_submission(path_f, hub_path)
 
+  ## Additional data
+  df <- rbind(df0,
+              dplyr::filter(df0, .data[["horizon"]] == 10) |>
+                dplyr::mutate(value = .data[["value"]] + 1,
+                              horizon = 11))
+  arrow::write_parquet(df, path_f)
+  rm(df)
+  check <- validate_submission(path_f, hub_path,
+                               merge_sample_col = merge_sample_col)
+  expect_contains(attr(check$valid_vals, "class"), c("error", "check_error"))
+
   ## Test columns error -----
   ### File with additional column ----
   df <- dplyr::mutate(df0, row = seq_along(nrow(df0)))
