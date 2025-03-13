@@ -134,8 +134,7 @@ value_test <- function(df, checks, file_path, n_decimal = NULL, pop = NULL,
                                       "Some {.var value} are greater"),
                         details = msg_dt, msg_subject = "",
                         msg_attribute = "than the population size.")
-
-    checks <- cumul_value_test(df, checks, obs, file_path)
   }
+  checks <- cumul_value_test(df, checks, obs, file_path)
   return(checks)
 }
