@@ -119,7 +119,8 @@ returned
 }
 }
 \examples{
-\dontrun{
-validate_submission("PATH/TO/SUBMISSION", "PATH/TO/HUB")
-}
+hub_path <- system.file("extdata/exp/", package = "SMHvalidation")
+sub_path <- "model-output/team2-modelb/2023-11-12-team2-modelb.parquet"
+validate_submission(sub_path, hub_path)
+
 }
