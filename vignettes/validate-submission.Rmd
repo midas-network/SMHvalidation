@@ -72,8 +72,8 @@ information on hubverse, please consult the
 
 It contains example submission for two teams, one partitioned. 
 ```{r setup_path_f}
-path_1 <- "model-output/team2-modelb/2023-11-12-team2-modelb.parquet"
-path_2 <- "model-output/t3-mc"
+path_1 <- "team2-modelb/2023-11-12-team2-modelb.parquet"
+path_2 <- "t3-mc"
 ```
 
 ###### Optional Parameters
@@ -155,7 +155,7 @@ please consult the
 webpage documentation.
 
 ```{r test2}
-validate_submission(path_2, hub_path, 
+validate_submission(path_2, hub_path,
                     partition = c("origin_date", "target"),
                     merge_sample_col = c("run_grouping", "stochastic_run"))
 ```
@@ -170,7 +170,7 @@ in the output report:
 
 For example:
 ```{r test2_age}
-validate_submission(path_2, hub_path, 
+validate_submission(path_2, hub_path,
                     partition = c("origin_date", "target"),
                     merge_sample_col = c("run_grouping", "stochastic_run"),
                     verbose_col = "age_group")

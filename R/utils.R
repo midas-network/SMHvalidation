@@ -27,15 +27,15 @@ location_fips_format <- function(df) {
 file_path_info <- function(path, hub_path, partition = NULL, round_id = NULL,
                            verbose = TRUE) {
   if (!is.null(partition)) {
-    file_path <- grep(round_id, dir(paste0(hub_path, path), recursive = TRUE),
-                      value = TRUE) |>
+    file_path <- grep(round_id, dir(paste0(hub_path, "/", path),
+                                    recursive = TRUE), value = TRUE) |>
       unique()
     file_path_mess <- c(file_path[1:min(max(length(file_path) - 1, 1), 5)],
                         "etc.")
     file_path_mess <- basename(file_path_mess)
 
   } else {
-    file_path <- basename(paste0(hub_path, path))
+    file_path <- basename(paste0(hub_path, "/", path))
     file_path_mess <- unique(file_path)
   }
   if (verbose) cat(paste0("Run validation on files: ",
@@ -190,9 +190,9 @@ merge_sample_id <- function(df, req_colnames, merge_sample_col, js_def0, js_def,
                             checks, partition = NULL, verbose = TRUE,
                             verbose_col = NULL) {
 
-  sample_val <- na.omit(unlist(dplyr::distinct(df[, merge_sample_col])))
+  sample_val <- unique(na.omit(unlist(dplyr::distinct(df[, merge_sample_col]))))
   if (isFALSE(all(is_wholenumber(sample_val))) ||
-        any(startsWith(as.character(sample_val), "0"))) {
+        any(grepl("^0.", unique(sample_val)))) {
     message("\U000274c Error: The columns ", paste(merge_sample_col,
                                                    collapse = " and "),
             " should contain integer values only for type 'sample'.")

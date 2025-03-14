@@ -24,7 +24,7 @@ validate_submission(
 to test, or string of parquet files (in this case, the validation will be
 run on the aggregation of all the parquet files together, and each file
 individually should match the expected SMH standard). The path should be
-relative to the \code{hub_path}
+relative to the \code{hub_path}, model output folder.
 If partition is not set to \code{NULL}, path to the folder containing ONLY the
 partitioned data.}
 
@@ -120,7 +120,7 @@ returned
 }
 \examples{
 hub_path <- system.file("extdata/exp/", package = "SMHvalidation")
-sub_path <- "model-output/team2-modelb/2023-11-12-team2-modelb.parquet"
+sub_path <- "team2-modelb/2023-11-12-team2-modelb.parquet"
 validate_submission(sub_path, hub_path)
 
 }

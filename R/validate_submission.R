@@ -125,7 +125,7 @@ run_all_validation <- function(df, path, js_def0, js_def, round_id, hub_path,
 #' to test, or string of parquet files (in this case, the validation will be
 #' run on the aggregation of all the parquet files together, and each file
 #' individually should match the expected SMH standard). The path should be
-#' relative to the `hub_path`
+#' relative to the `hub_path`, model output folder.
 #' If partition is not set to `NULL`, path to the folder containing ONLY the
 #' partitioned data.
 #' @param hub_path path to the repository contains the submissions files
@@ -206,7 +206,7 @@ run_all_validation <- function(df, path, js_def0, js_def, round_id, hub_path,
 #'
 #'@examples
 #' hub_path <- system.file("extdata/exp/", package = "SMHvalidation")
-#' sub_path <- "model-output/team2-modelb/2023-11-12-team2-modelb.parquet"
+#' sub_path <- "team2-modelb/2023-11-12-team2-modelb.parquet"
 #' validate_submission(sub_path, hub_path)
 #'
 #'@export
@@ -218,13 +218,16 @@ validate_submission <- function(path, hub_path, js_def = NULL,
                                 r_schema = NULL) {
 
   # Prerequisite --------
+  m_fold <- hubUtils::read_config(hub_path, "admin")$model_output_dir
+  path <- paste0(m_fold, "/", path)
   # Pull target data
   if (!is.null(target_data)) obs <- read_files(target_data) else obs <- NULL
   # Pull population data
   if (!is.null(pop_path)) pop <- read_files(pop_path) else pop <- NULL
   # Select the associated round (add error message if no match)
-  if (is.null(round_id)) round_id <- team_round_id(paste0(hub_path, path),
-                                                   partition = partition)
+  if (is.null(round_id))
+    round_id <- team_round_id(paste0(hub_path, path), partition = partition)
+
   check <- new_hub_validations()
 
   # Select validation file(s) and print message --------
@@ -267,13 +270,14 @@ validate_submission <- function(path, hub_path, js_def = NULL,
   } else {
     # Read file
     if (length(file_path) == 1) {
-      df <- read_files(paste0(hub_path, path))
+      df <- read_files(paste0(hub_path, "/", path))
     } else if (!is.null(partition)) {
       schema <- make_schema(js_def0, js_def, round_id,
-                            path = paste0(hub_path, path),
+                            path = paste0(hub_path, "/", path),
                             merge_sample_col = merge_sample_col,
                             r_schema = r_schema, partition = partition)
-      df <- load_partition_arrow(paste0(hub_path, path), partition = partition,
+      df <- load_partition_arrow(paste0(hub_path, "/", path),
+                                 partition = partition,
                                  schema = schema)
     }
   }
@@ -307,7 +311,7 @@ validate_submission <- function(path, hub_path, js_def = NULL,
   }
 
   # Run tests --------
-  run_all_validation(df, paste0(hub_path, path), js_def0, js_def, round_id,
+  run_all_validation(df, paste0(hub_path, "/", path), js_def0, js_def, round_id,
                      hub_path, pop = pop, obs = obs, verbose = verbose,
                      merge_sample_col = merge_sample_col, n_decimal = n_decimal,
                      partition = partition, verbose_col = verbose_col)
