@@ -37,6 +37,10 @@ past version of the package.
 
 ### `Validate_submission()` function
 
+```{r setup}
+library(SMHvalidation)
+```
+
 #### Input
 
 The `validate_submission()` function requires two parameters:
@@ -49,9 +53,26 @@ The `validate_submission()` function requires two parameters:
     follow the hubverse standard and organization. For more information on 
     hubverse, please consult the 
     [associated website](https://hubverse.io/en/latest/user-guide/hub-structure.html).
-
+    
 For more information on this function, please consult the associated
 documentation at `?validate_submission()`
+
+The package contains an example hub with two example sumbission that can be 
+used to test the function. There paths can be accessed by using the 
+`system.file()` function.     
+```{r setup_path}
+hub_path <- system.file("extdata/exp/", package = "SMHvalidation")
+```
+
+The example hub follows the hubverse standard and organization. For more 
+information on hubverse, please consult the 
+[associated website](https://hubverse.io/en/latest/user-guide/hub-structure.html).
+
+It contains example submission for two teams, one partitioned. 
+```{r setup_path_f}
+path_1 <- "team2-modelb/2023-11-12-team2-modelb.parquet"
+path_2 <- "t3-mc"
+```
 
 ##### Sample - Output type format
 
@@ -80,6 +101,14 @@ should be to a directory to a folder containing **ONLY** the "partitioned"
 files. If any other file is present in the  directory, it will be included in 
 the validation.
 
+Example:
+```{r test2}
+validate_submission(path_2, hub_path,
+                    partition = c("origin_date", "target"),
+                    merge_sample_col = c("run_grouping", "stochastic_run"))
+```
+
+
 #### Output
 
 The function returns multiple messages and if any issue a failure or 
@@ -91,7 +120,13 @@ an error message.
     validation to other checks. Whereas an error, will stop the validation 
     process. 
     
-### Submission file format
+Example:
+```{r test1}
+validate_submission(path_1, hub_path)
+```
+
+    
+#### Submission File Tests
 
 -   The `round_id` information, either the date extracted in the file name(s) 
     (`path`) or via the `round_id` parameter, should match one of the
@@ -108,7 +143,7 @@ an error message.
    
 -  No column should be in a "factor" format.
 
-### Columns format
+##### Columns format
 
 The name and number of the columns are corresponding to the expected
 format, for example:
@@ -137,7 +172,7 @@ origin_date, scenario_id, target, horizon, location.
 directly stop and return an error message without running all the others
 tests.
 
-### Round ID and `"origin_date"` 
+##### Round ID and `"origin_date"` 
 
 -   The `origin_date` column contains:
     -   one unique date value in the `YYYY-MM-DD` format
@@ -149,7 +184,7 @@ in the file path should correspond.
 *Remarks:* Implemented since January 2022, all submissions previous to
 this date can have a slightly more flexible date information.
 
-### Required values/variables
+##### Required values/variables
 
 -   Each task id columns values are corresponding to the expected ID of the
     expected round without any spelling errors.
@@ -170,7 +205,7 @@ this date can have a slightly more flexible date information.
 -   For some targets, for example `peak size hosp`, no `"horizon"` information
     is expected. In this case, the column `"horizon"` should be set to `NA`
     
-#### Output type / output type ID
+##### Output type / output type ID
 
 -   The column `output_type_id` (or `run_grouping` and `stochastic_run`) for 
     the output type `"sample"` should only contain integer values.
@@ -196,7 +231,7 @@ this date can have a slightly more flexible date information.
     the scenario A, if quantile `0.01`= `5` than quantile `0.5` should be equal
     or greater than `5`
     
-### Additional tests
+##### Additional tests
 
 -   The location are corresponding to the location name as expressed in the
     associated metadata JSON file (`js_def` parameter). If FIPS codes are
@@ -243,7 +278,31 @@ please feel free to ignore it.
     lower or equivalent to the parameter `n_decimal` (only run if `n_decimal`
     is not set to `NULL`)
 
+### Submission file path
+
+If the file is not partitioned, the hubValidations `validate_model_file()` will
+be used to check:
+
+-  the file is in the expected folder with the expected file name
+-  only one file per round is submitted
+-  associated metadata file is present in the hub
+
+```{r}
+hubValidations::validate_model_file(hub_path, path_1)
+```
+
+If the file is partitioned, the package contains a wrapper function based on
+hubValidations
+
+
 ## Validation on Metadata and Abstract
 
 The validation for the "metadata" and the "abstract" files associated
 with the submission is currently manual.
+
+
+```{r}
+hubValidations::validate_model_metadata(hub_path, "team2-modelb.yaml")
+```
+
+
