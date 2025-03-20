@@ -294,15 +294,19 @@ hubValidations::validate_model_file(hub_path, path_1)
 If the file is partitioned, the package contains a wrapper function based on
 hubValidations
 
+```{r}
+SMHvalidation::validate_part_file(hub_path, path_2, c("origin_date", "target"))
+```
+
 
 ## Validation on Metadata and Abstract
 
-The validation for the "metadata" and the "abstract" files associated
-with the submission is currently manual.
-
+For the metadata file, the hubValidations `validate_model_metadata` will
+be used to validate it:
 
 ```{r}
 hubValidations::validate_model_metadata(hub_path, "team2-modelb.yaml")
 ```
 
-
+The validation for the "abstract" files associated with the submission is 
+currently manual.
