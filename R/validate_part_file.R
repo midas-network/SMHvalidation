@@ -37,12 +37,13 @@ validate_part_file <- function(hub_path, folder_path, partition) {
   full_path <- paste0(hub_path, "/model-output/", folder_path)
 
   # file exists
-  test <- all(file.exists(dir(full_path, recursive = TRUE, full.names = TRUE)))
+  test <- file.exists(dir(full_path, recursive = TRUE, full.names = TRUE))
+  if (length(test) == 0) test <- FALSE
   checks$file_exists <-
-    capture_check_cnd(check = test, file_path = folder_path,
+    capture_check_cnd(check = all(test), file_path = folder_path,
                       msg_subject = "Files", error = TRUE,
                       msg_attribute = paste0("at path `", full_path, "`"),
-                      msg_verbs = c("exists", "does not exist"))
+                      msg_verbs = c("exist", "do not exist"))
   if (is_any_error(checks$file_exists)) {
     return(checks)
   }
