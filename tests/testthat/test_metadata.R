@@ -12,10 +12,13 @@ test_that("Test validation metadata process", {
 
   check <- SMHvalidation::validate_part_file(hub_path, "team2-modelb",
                                              "origin_date")
-  expect_contains( attr(check$partition_structure, "class"), "check_error")
+  expect_contains(attr(check$partition_structure, "class"), "check_error")
 
   check <- SMHvalidation::validate_part_file(hub_path, "t2-modelb",
                                             "origin_date")
-  expect_contains( attr(check$file_exists, "class"), "check_error")
+  expect_contains(attr(check$file_exists, "class"), "check_error")
 
+  check <- SMHvalidation::validate_part_file(hub_path, "team2-modelb",
+                                             "origin_data")
+  expect_contains(attr(check$partition_name, "class"), "check_error")
 })
