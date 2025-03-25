@@ -4,11 +4,16 @@
     `generate_validation_plots()` behavior, output and parameters to
     adapt to hubverse v.5 schema update (see
     [hubverse schema releases](https://github.com/hubverse-org/schemas/releases)
-    for information)
+    for information) (#37)
+-   *BREAKING CHANGE*: update visualization function to adapt to the new format,
+    and update the output to fix minor issues (#15)
 -   *BREAKING CHANGE*: Integrate
     [hubValidations](https://hubverse-org.github.io/hubValidations/)
-    function in `validate_submission()` and follow the same output style
+    function in `validate_submission()` and follow the same output style 
+    (#30, #24)
 -   *BREAKING CHANGE*: deprecate `pull_gs_data()` and `test_` functions.
+-   add function to test file path associated with a partitioned submission
+    (use hubverse functions for not partitioned files) (#5)
 
 # SMHvalidation 0.1.2
 
