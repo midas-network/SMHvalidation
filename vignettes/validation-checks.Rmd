@@ -45,9 +45,9 @@ library(SMHvalidation)
 
 The `validate_submission()` function requires two parameters:
 
--   `path`: path to the submissions file (or folder for partitioned data) 
+-   `path`: path to the submission file (or folder for partitioned data) 
     to test. PQT, PARQUET, CSV, ZIP (not partitioned), or GZ (not partitioned) 
-    file format are accepted. The path should be relative to the path of the hub
+    file formats are accepted. The path should be relative to the path of the hub
     containing the file to check.
 -   `hub_path`:  path to the hub containing the submission file. The hub should
     follow the hubverse standard and organization. For more information on 
@@ -90,7 +90,7 @@ output type and the "pairing" information is collected into two columns:
 please consult the 
 [SMH Sample format documentation](https://scenariomodelinghub.org/documentation/sample_format.html) 
 
-For the option (2), the optional parameter `merge_sample_col` cam be used to
+For option (2), the optional parameter `merge_sample_col` cam be used to
 indicate the additional columns used to set the the sample ID information, for 
 example: `⁠c("run_grouping" and "stochastic_run")⁠`
         
@@ -186,7 +186,7 @@ this date can have a slightly more flexible date information.
 
 ##### Required values/variables
 
--   Each task id columns values are corresponding to the expected ID of the
+-   Each of the task id columns values correspond to the expected ID of the
     expected round without any spelling errors.
     
 -   Each task_id/output_type/output type ID group combination has one unique 
@@ -225,24 +225,22 @@ this date can have a slightly more flexible date information.
     consult the [Sample output type and Compound modeling tasks](https://hubverse.io/en/latest/user-guide/sample-output-type.html) 
     information.
 
--   If the submission file contains quantiles. For each task_id group, the 
-    value increases with the quantiles.
+-   If the submission file contains quantilesm, the value for each group should ncrease with the quantiles.
     For example, for the 1st week ahead of target X for the location Y and for
     the scenario A, if quantile `0.01`= `5` than quantile `0.5` should be equal
     or greater than `5`
     
 ##### Additional tests
 
--   The location are corresponding to the location name as expressed in the
+-   The locations  correspond to the location name as expressed in the
     associated metadata JSON file (`js_def` parameter). If FIPS codes are
     expected and if the FIPS numbers are missing a trailing zero,
-    the submission will be accepted but a warning message will be returned
+    the submission will be accepted but a warning message will be returned.
     
 *Remarks:* If a submission file contains only state level projection
 (one or multiple), the `location` column might be automatically identified
 as numeric even if it was submitted in a character format. In this case,
-a warning message will be automatically print on the validation but,
-please feel free to ignore it.
+a warning message will be automatically printed on the validation but that warning can be safely ignored. 
 
 -   For each unique task_id group, excluding horizon information and except
     locations: `66` (Guam), `69` (Northern Mariana Island), `60`
@@ -250,20 +248,20 @@ please feel free to ignore it.
     projection does not contain only 1 unique value. For example, the
     projection for the incidence cases for one location and for one
     scenario does not contain only one unique value for the whole time
-    series. **As there is a possibility that 0 death or case might be
+    series. **As there is a possibility that 0 deaths or cases might be
     projected, the submission will still be accepted if the test failed
     but it will return a failure message asking to verify the
     projection**
     
--   Only for the cumulative targets, for example `cum hosp`, for each task_id 
+-   For the cumulative targets, for example `cum hosp`, for each task_id 
     and output_type group (excluding `"horizon"`), the value is not decreasing
     with time. 
 
 -   [optional] Each projected value cannot by greater than the population size
-    of the corresponding geographical entity. Only run if the `pop_path`
+    of the corresponding geographical entity. This test is run only if the `pop_path`
     parameter is not set to `NULL`. **As an individual can be reinfected, the
     submission will still be accepted if the test failed but it will return a
-    warning message asking to verify the projection** 
+    warning message asking to verify the projection**.
 
 -   [optional] For the cumulative cases and deaths projection, the projected
     value should not be less than the week 0 (or week -1, depending on the
@@ -272,11 +270,11 @@ please feel free to ignore it.
     take into account the difference between time of pulling the
     observed data, sources, ... (only tested if the `target-data` parameter
     is not `NULL` and contains observed cumulative cases and deaths
-    value)
+    value).
     
 -   [optional] The number of decimal points accepted in the column `"value"` is
     lower or equivalent to the parameter `n_decimal` (only run if `n_decimal`
-    is not set to `NULL`)
+    is not set to `NULL`).
 
 ### Submission file path
 
@@ -299,7 +297,7 @@ function based on hubValidations `validate_model_file()`.
 
 The function `validate_part_file()` required three parameters:
 
--   `hub_path`: path to the repository containing the submissions files and
+-   `hub_path`: path to the repository containing the submission files and
     the `tasks.json` file, in the hubverse format.
 -   `folder_path`: path to the folder containing the partitioned submission
     files. The folder is expected to be situated in the `model-output` folder 
