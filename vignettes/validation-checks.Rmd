@@ -1,5 +1,5 @@
 ---
-title: "Validation Checks"
+title: "Validation Checks for US SMH files"
 output: 
   rmarkdown::html_vignette
 vignette: >
@@ -18,8 +18,8 @@ knitr::opts_chunk$set(
 )
 ```
 
-The main functions in the `SMHvalidation` R package aim to validate and visualize
-Scenario Modeling Hub submissions.
+The main functions in the `SMHvalidation` R package aim to validate and 
+visualize Scenario Modeling Hub submissions.
 
 For more information on the Scenario Modeling Hub and on how to
 participate, please feel free to consult the 
@@ -291,17 +291,38 @@ be used to check:
 hubValidations::validate_model_file(hub_path, path_1)
 ```
 
-If the file is partitioned, the package contains a wrapper function based on
-hubValidations
+For more information on `validate_model_file()`, please consult the associated
+help page: `?validate_model_file`
+
+If the file is partitioned, the SMHvalidation package contains a wrapper 
+function based on hubValidations `validate_model_file()`. 
+
+The function `validate_part_file()` required three parameters:
+
+-   `hub_path`: path to the repository containing the submissions files and
+    the `tasks.json` file, in the hubverse format.
+-   `folder_path`: path to the folder containing the partitioned submission
+    files. The folder is expected to be situated in the `model-output` folder 
+    and the path here should be relative to the `hub_path`, model output folder.
+-   `partition`: character vector corresponding to the column names of each
+    path segments.
+
+For example:
 
 ```{r}
 SMHvalidation::validate_part_file(hub_path, path_2, c("origin_date", "target"))
 ```
 
+The wrapper can also be used on non partitioned files, the `partition` partition
+just need to be set to `NULL`
+
+```{r}
+SMHvalidation::validate_part_file(hub_path, "team2-modelb/", NULL)
+```
 
 ## Validation on Metadata and Abstract
 
-For the metadata file, the hubValidations `validate_model_metadata` will
+For the metadata file, the hubValidations `validate_model_metadata()` will
 be used to validate it:
 
 ```{r}
