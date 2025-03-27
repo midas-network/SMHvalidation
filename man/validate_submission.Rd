@@ -59,7 +59,7 @@ in a partition format, see \code{arrow} package for more information, and
 \code{arrow::write_dataset()}, \code{arrow::open_dataset()} functions.  By default
 \code{NULL}, no partition.}
 
-\item{n_decimal}{integer, number of decimal point accepted in the column
+\item{n_decimal}{integer, number of decimal points accepted in the column
 value (only for \code{"sample"} output type), if \code{NULL} (default) no limit
 expected.}
 
@@ -81,7 +81,7 @@ the \code{js_def} JSON file. (only for partition files).}
 }
 \description{
 Runs multiple validation checks functions on SMH submission
-file(s) and prints information about the results of each tests on the
+file(s) and prints information about the results of each test on the
 submission file(s): warning(s), error(s) and/or message in the hubverse
 format.
 }
@@ -101,20 +101,20 @@ in the validation.
 The function runs some preliminary tests before running all the checks:
 \itemize{
 \item Input submission file format: The file format of the submission
-file(s) correspond to the expected format (for example: \code{parquet}, or \code{csv},
+file(s) corresponds to the expected format (for example: \code{parquet}, or \code{csv},
 etc.). If multiple files inputted, only \code{parquet} is accepted.
 \item Date information: The column \code{origin_date} in the submission file
 corresponds to a \code{model_tasks} round information in the JSON file
 (\code{js_def} parameter).
 \item Date format: All columns containing dates information should be in
 "YYY-MM-DD" format.
-\item Location name: The submission should contains projection by
+\item Location name: The submission should contain projection by
 location, the \code{location} column contains the location FIPS number as
 available in the location table in the SMH GitHub Repository. If the FIPS
 number are missing a trailing zero, the submission will be accepted but a
 warning message will be returned.
 \item Column format: If the submission file(s) contain column in a factor column,
-the column will be forced to character and a warning message will be
+the column will be forced to character, and a warning message will be
 returned
 }
 }

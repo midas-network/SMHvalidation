@@ -12,7 +12,7 @@
 #'
 #' @details
 #' See `hubValidations::validate_model_file()` on the tests performed in the
-#' function. Addtional tests includes checking the partition names and value
+#' function. Additional tests includes checking the partition names and value
 #' are matching the expected values.
 #'
 #' @importFrom hubValidations new_hub_validations capture_check_cnd is_any_error

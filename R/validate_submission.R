@@ -117,7 +117,7 @@ run_all_validation <- function(df, path, js_def0, js_def, round_id, hub_path,
 #' Validate SMH (Scenario Modeling Hub) Submissions
 #'
 #' Runs multiple validation checks functions on SMH submission
-#' file(s) and prints information about the results of each tests on the
+#' file(s) and prints information about the results of each test on the
 #' submission file(s): warning(s), error(s) and/or message in the hubverse
 #' format.
 #'
@@ -153,7 +153,7 @@ run_all_validation <- function(df, path, js_def0, js_def, round_id, hub_path,
 #' in a partition format, see `arrow` package for more information, and
 #' `arrow::write_dataset()`, `arrow::open_dataset()` functions.  By default
 #' `NULL`, no partition.
-#'@param n_decimal integer, number of decimal point accepted in the column
+#'@param n_decimal integer, number of decimal points accepted in the column
 #' value (only for `"sample"` output type), if `NULL` (default) no limit
 #' expected.
 #'@param round_id character string, round identifier. If `NULL` (default),
@@ -183,20 +183,20 @@ run_all_validation <- function(df, path, js_def0, js_def, round_id, hub_path,
 #'
 #' The function runs some preliminary tests before running all the checks:
 #' * Input submission file format: The file format of the submission
-#'  file(s) correspond to the expected format (for example: `parquet`, or `csv`,
+#'  file(s) corresponds to the expected format (for example: `parquet`, or `csv`,
 #'   etc.). If multiple files inputted, only `parquet` is accepted.
 #'  * Date information: The column `origin_date` in the submission file
 #'   corresponds to a `model_tasks` round information in the JSON file
 #'   (`js_def` parameter).
 #'  * Date format: All columns containing dates information should be in
 #'   "YYY-MM-DD" format.
-#' * Location name: The submission should contains projection by
+#' * Location name: The submission should contain projection by
 #'  location, the `location` column contains the location FIPS number as
 #'  available in the location table in the SMH GitHub Repository. If the FIPS
 #'  number are missing a trailing zero, the submission will be accepted but a
 #'  warning message will be returned.
 #' * Column format: If the submission file(s) contain column in a factor column,
-#' the column will be forced to character and a warning message will be
+#' the column will be forced to character, and a warning message will be
 #' returned
 #'
 #' @importFrom hubUtils get_round_ids read_config_file get_round_model_tasks
