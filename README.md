@@ -13,7 +13,7 @@ submissions.
 For more information on the Scenario Modeling Hub and/or on how to participate,
 please consult the Scenario Modeling Hub 
 [GitHub repository](https://github.com/midas-network/covid19-scenario-modeling-hub)
-or [website](https://scenariomodelinghub.org/)
+or [website](https://scenariomodelinghub.org/).
 
 ## Installation
 
