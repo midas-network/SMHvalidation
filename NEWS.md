@@ -1,6 +1,6 @@
 # SMHvalidation 1.0.0
 
--   *BREAKING CHANGE*: change functions `validate_submission()` and
+-   *BREAKING CHANGE*: changes functions `validate_submission()` and
     `generate_validation_plots()` behavior, output and parameters to
     adapt to hubverse v.5 schema update (see
     [hubverse schema releases](https://github.com/hubverse-org/schemas/releases)
