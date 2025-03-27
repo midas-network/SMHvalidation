@@ -126,8 +126,9 @@ run_all_validation <- function(df, path, js_def0, js_def, round_id, hub_path,
 #' run on the aggregation of all the parquet files together, and each file
 #' individually should match the expected SMH standard). The path should be
 #' relative to the `hub_path`, model output folder.
-#' If partition is not set to `NULL`, path to the folder containing ONLY the
-#' partitioned data.
+#' If partition is not set to `NULL`, path to the folder containing the
+#' partitioned data.If the path contains multiple rounds information, please
+#' use the `round_id` parameter to indicate which round to test.
 #' @param hub_path path to the repository contains the submissions files
 #' and `tasks.json` file.
 #' @param js_def path to a JSON file containing round definitions: names of
@@ -181,6 +182,9 @@ run_all_validation <- function(df, path, js_def0, js_def, round_id, hub_path,
 #' files. If any other file is present in the directory, it will be included
 #' in the validation.
 #'
+#' For partitioned files, if the `path` contains multiple rounds, please use
+#' the `round_id` parameter to signal which round to test.
+#'
 #' The function runs some preliminary tests before running all the checks:
 #' * Input submission file format: The file format of the submission
 #'  file(s) corresponds to the expected format (for example: `parquet`, or `csv`,
@@ -209,6 +213,12 @@ run_all_validation <- function(df, path, js_def0, js_def, round_id, hub_path,
 #' sub_path <- "team2-modelb/2023-11-12-team2-modelb.parquet"
 #' validate_submission(sub_path, hub_path)
 #'
+#' # Partitioned Files
+#' path_2 <- "t3-mc/"
+#' validate_submission(path_2, hub_path, partition = c("origin_date", "target"),
+#'                     merge_sample_col = c("run_grouping", "stochastic_run"),
+#'                     round_id = "2023-11-12")
+#'
 #'@export
 validate_submission <- function(path, hub_path, js_def = NULL,
                                 target_data = NULL, pop_path = NULL,
@@ -226,7 +236,8 @@ validate_submission <- function(path, hub_path, js_def = NULL,
   if (!is.null(pop_path)) pop <- read_files(pop_path) else pop <- NULL
   # Select the associated round (add error message if no match)
   if (is.null(round_id))
-    round_id <- team_round_id(paste0(hub_path, path), partition = partition)
+    round_id <- team_round_id(paste0(hub_path, "/" , path),
+                              partition = partition)
 
   check <- new_hub_validations()
 

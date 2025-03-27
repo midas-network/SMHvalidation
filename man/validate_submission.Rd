@@ -25,8 +25,9 @@ to test, or string of parquet files (in this case, the validation will be
 run on the aggregation of all the parquet files together, and each file
 individually should match the expected SMH standard). The path should be
 relative to the \code{hub_path}, model output folder.
-If partition is not set to \code{NULL}, path to the folder containing ONLY the
-partitioned data.}
+If partition is not set to \code{NULL}, path to the folder containing the
+partitioned data.If the path contains multiple rounds information, please
+use the \code{round_id} parameter to indicate which round to test.}
 
 \item{hub_path}{path to the repository contains the submissions files
 and \code{tasks.json} file.}
@@ -98,6 +99,9 @@ should be to a directory to a folder containing ONLY the "partitioned"
 files. If any other file is present in the directory, it will be included
 in the validation.
 
+For partitioned files, if the \code{path} contains multiple rounds, please use
+the \code{round_id} parameter to signal which round to test.
+
 The function runs some preliminary tests before running all the checks:
 \itemize{
 \item Input submission file format: The file format of the submission
@@ -122,5 +126,11 @@ returned
 hub_path <- system.file("extdata/exp/", package = "SMHvalidation")
 sub_path <- "team2-modelb/2023-11-12-team2-modelb.parquet"
 validate_submission(sub_path, hub_path)
+
+# Partitioned Files
+path_2 <- "t3-mc/"
+validate_submission(path_2, hub_path, partition = c("origin_date", "target"),
+                    merge_sample_col = c("run_grouping", "stochastic_run"),
+                    round_id = "2023-11-12")
 
 }

@@ -108,6 +108,15 @@ validate_submission(path_2, hub_path,
                     merge_sample_col = c("run_grouping", "stochastic_run"))
 ```
 
+If the `path` folder contains multiple rounds, please use the `round_id` 
+parameter to signal which round to test.
+
+```{r test2b}
+validate_submission(path_2, hub_path,
+                    partition = c("origin_date", "target"),
+                    merge_sample_col = c("run_grouping", "stochastic_run"),
+                    round_id = "2023-11-12")
+```
 
 #### Output
 
