@@ -42,7 +42,9 @@ validate_part_file <- function(hub_path, folder_path, partition) {
   checks$file_exists <-
     capture_check_cnd(check = all(test), file_path = folder_path,
                       msg_subject = "Files", error = TRUE,
-                      msg_attribute = paste0("at path `", full_path, "`"),
+                      msg_attribute = paste0("at path `",
+                                             paste0("/model-output/",
+                                                    folder_path), "`"),
                       msg_verbs = c("exist", "do not exist"))
   if (is_any_error(checks$file_exists)) {
     return(checks)
@@ -66,7 +68,6 @@ validate_part_file <- function(hub_path, folder_path, partition) {
   # Prerequisite
   file_meta <- parse_file_name(file_name)
   round_id <- file_meta$round_id
-
   # Round id is correct
   checks$round_id_valid <- try_check(check_valid_round_id(round_id = round_id,
                                                           file_path = file_name,
@@ -78,9 +79,9 @@ validate_part_file <- function(hub_path, folder_path, partition) {
 
   # Prerequisite
   tasks <- hubUtils::read_config(hub_path, "tasks")
-  round_tasks <-
+  r_tasks <-
     tasks$rounds[unique(hubUtils::get_round_ids(tasks)) == round_id]
-  tasks_ids <- purrr::map(purrr::map(round_tasks, "model_tasks")[[1]],
+  tasks_ids <- purrr::map(purrr::map(r_tasks, "model_tasks")[[1]],
                           "task_ids")
   t_nam <- unique(unlist(purrr::map(tasks_ids, names)))
 
@@ -93,9 +94,6 @@ validate_part_file <- function(hub_path, folder_path, partition) {
                                              paste(t_nam, collapse = ", "),
                                              "`."),
                       msg_verbs = c("exists", "does not exist"))
-  if (is_any_error(checks$partition_name)) {
-    return(checks)
-  }
 
   # Prerequisite
   files_str <- strsplit(all_files, "/")
@@ -108,17 +106,16 @@ validate_part_file <- function(hub_path, folder_path, partition) {
                       msg_attribute = " number of columns.",
                       msg_verbs = c("in the expected",
                                     "in an unexpected"))
-  if (is_any_error(checks$partition_structure)) {
+  if (is_any_error(checks$partition_structure) ||
+        is_any_error(checks$partition_name)) {
     return(checks)
   }
-  part_cont <- purrr::list_transpose(files_str)
-  test <- list()
-  for (i in seq_along(partition)) {
-    test[[i]] <-
-      utils::URLdecode(part_cont[[i]]) %in%
-      unique(unlist(purrr::map(purrr::map(round_tasks[[1]]$model_tasks,
-                                          "task_ids"), partition[i])))
-  }
+  test <-
+    purrr::map(seq_along(partition),
+               ~ utils::URLdecode(purrr::list_transpose(files_str)[[.x]]) %in%
+                 unique(unlist(purrr::map(purrr::map(r_tasks[[1]]$model_tasks,
+                                                     "task_ids"),
+                                          partition[.x]))))
 
   test <- all(unlist(test))
   checks$partition_value <-
