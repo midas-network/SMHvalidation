@@ -50,11 +50,11 @@ consult the vignette [Validation Checks](validation-checks.html).
 
 #### Parameters
 
-The function requires multiple parameters:
+The function requires two parameters:
 
--   `path`: path to the submissions file (or folder for partitioned data) 
+-   `path`: path to the submission file (or folder for partitioned data) 
     to test. PQT, PARQUET, CSV, ZIP (not partitioned), or GZ (not partitioned) 
-    file format are accepted. The path should be relative to the path of the hub
+    file formats are accepted. The path should be relative to the path of the hub
     containing the file to check.
 -    `hub_path`:  path to the hub containing the submission file.
 
@@ -82,7 +82,7 @@ The function allows some optional parameters:
 
 -   `js_def`: path to JSON file containing round definitions: names of columns,
     target names, ... following the `tasks.json`
-    [Hubverse format](https://hubdocs.readthedocs.io/en/latest/user-guide/hub-config.html#hub-model-task-configuration-tasks-json-file). The version 5.0 minimal is expected. If 
+    [Hubverse format](https://hubdocs.readthedocs.io/en/latest/user-guide/hub-config.html#hub-model-task-configuration-tasks-json-file). Tasks.json must conform to Hubverse version 5.0 or higher. If 
     `NULL` (default), will use the default path `"hub-config/tasks.json"` in 
     the hub using hub_path parameter.
 -   `target_data`: path to the target data in the Hubverse time series target 
@@ -91,10 +91,10 @@ The function allows some optional parameters:
     Set to `NULL `(default), to NOT include comparison with observed data.
 -   `pop_path`: path to a table containing the population size (in a column 
     `"population"`) of each  geographical entities by FIPS (in a column 
-    `"location"`). Use to compare that value is not higher than expected 
-    population size. Set to `NULL` (default), to NOT run comparison with 
+    `"location"`). Use to compare that projection values are not higher than expected 
+    population sizes. Set to `NULL` (default), to NOT run comparison with 
     population data.
--   `merge_sample_col`: vector to indicate if the for the output type 
+-   `merge_sample_col`: vector to indicate if for the output type 
     `"sample"`, the output_type_id column is set to `NA` and the information is 
     contained into other columns. If so the parameter should be set to the 
     sample ID columns names, for example: 
@@ -127,13 +127,12 @@ The function allows some optional parameters:
 
 #### Output
 
-The function returns multiple messages and if any issue a failure or 
-an error message.
+The function returns multiple messageso include failures or error messages.
 
 -   if the check succeeds: a message is returned
 -   if the check fails: an error or a failure message is returned. A failure 
     represents a check that fails but does not block the proceeding of the 
-    validation to other checks. Whereas an error, will stop the validation 
+    validation to other checks, whereas an error will stop the validation 
     process. 
 
 ## Example 1
