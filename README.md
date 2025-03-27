@@ -44,7 +44,7 @@ containing detailed information.
 The function internally runs different validation checks
 functions from 
 [hubValidations package](https://hubverse-org.github.io/hubValidations/) on
-SMH submissions and prints detail information about the results of each tests
+SMH submissions and prints detailed information about the results of each tests
 on the submission.
 
 For more information, please consult the documentation associated with the
@@ -54,23 +54,23 @@ function: `?validate_submission()` for example.
 
 To test a submission file, it's necessary to provide 2 arguments:
 
--   `path`: the path to the submissions file (or folder for partitioned data) 
+-   `path`: the path to the submission file (or folder for partitioned data) 
     to test. PQT, PARQUET, CSV, ZIP (not partitioned), or GZ (not partitioned) 
-    file format are accepted. The path should be relative to the path of the hub
+    file formats are accepted. The path should be relative to the path of the hub
     containing the file to check
 
--   `hub_path`: path to the repository contains the submissions files and hub
+-   `hub_path`: path to the repository contains the submission files and hub
     config files including the `tasks.json` file in the hubverse format (version
-    5.0 accepted), please find information on the `tasks.json` format and 
+    5.0 accepted). Please find information on the `tasks.json` format and 
     definition on the [hubverse website](https://hubdocs.readthedocs.io/en/latest/user-guide/hub-config.html#hub-model-task-configuration-tasks-json-file)
 
 ```{r}
 validate_submission(path, hub_path)
 ```
 
-As a warning, the vast majority of submissions done before 2025 might returns 
-false error with the new format of the `validate_submission()` function (v1.0). 
-We advice to use previous version for validation. 
+As a warning, the vast majority of submissions done before 2025 might return
+false errors with the new format of the `validate_submission()` function (v1.0). 
+We advice to use previous version for validating those earlier submissions. 
 
 ## Code license
 
@@ -80,7 +80,7 @@ The overall project is available under an open-source MIT license.
 
 Please feel free to open an issue if you identify any issue with the
 package or would like to suggest an idea/improvement. We also welcome
-any pull-request.
+any pull-requests.
 
 ## Funding
 
