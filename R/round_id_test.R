@@ -18,5 +18,5 @@ round_id_test <- function(checks, df, file_path, hub_path, path) {
   if (is_any_error(checks$match_round_id)) {
     return(checks)
   }
-  return(checks)
+  checks
 }

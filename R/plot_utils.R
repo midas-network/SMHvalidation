@@ -31,7 +31,7 @@ format_tables <- function(tab_data, metric, sel_group) {
                                 " for this submission. Well done!",
                                 "                               "))
   }
-  return(tab_data)
+  tab_data
 }
 
 # Additional columns filtering (keep only overall population)
@@ -42,7 +42,7 @@ add_filter_col <- function(df) {
     df <- dplyr::filter(df, grepl("0-130", .data[["age_group"]]))
   if (any("race_ethnicity" %in% colnames(df)))
     df <- dplyr::filter(df, grepl("overall", .data[["race_ethnicity"]]))
-  return(df)
+  df
 }
 
 
@@ -65,7 +65,7 @@ na_cells <- function(tab_data, sel_group) {
     nas[[1]] <- nas[[1]] + 1
 
   }
-  return(nas)
+  nas
 }
 
 #' Print outlier tables for validation report

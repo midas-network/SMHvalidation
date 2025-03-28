@@ -45,7 +45,7 @@ cumul_value_test <- function(df, checks, obs, file_path) {
                       msg_verbs = c("are not", "are"), details = msg_dt,
                       msg_subject = "The cumulative values",
                       msg_attribute = "decreasing.")
-  return(checks)
+  checks
 }
 
 #'@importFrom hubValidations capture_check_cnd

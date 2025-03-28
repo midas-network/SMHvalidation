@@ -33,5 +33,5 @@ sample_test <- function(checks, tbl_chr, round_id, file_path, hub_path,
                               file_path = file_path, hub_path = hub_path,
                               compound_taskid_set = cmd_tkid_set,
                               derived_task_ids = NULL), path)
-  return(checks)
+  checks
 }

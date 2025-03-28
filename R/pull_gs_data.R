@@ -33,7 +33,7 @@ std_covidcast_signal <- function(signal, limit_date, vect_week_date) {
                             .by = c("time_value")) |>
     dplyr::mutate(geo_value = "us")
   df_tot <- dplyr::bind_rows(df_state, df_us)
-  return(df_tot)
+  df_tot
 }
 
 

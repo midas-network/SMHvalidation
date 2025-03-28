@@ -142,5 +142,5 @@ validate_part_file <- function(hub_path, folder_path, partition) {
                                                     file_path = file_name),
               folder_path)
 
-  return(checks)
+  checks
 }

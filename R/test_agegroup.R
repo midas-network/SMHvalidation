@@ -61,7 +61,7 @@ check_age_group <- function(mtask, df, checks, file_path) {
   } else {
     checks <- NULL
   }
-  return(checks)
+  checks
 }
 
 
