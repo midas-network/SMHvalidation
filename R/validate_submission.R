@@ -9,8 +9,8 @@
 #' might be created later on too.
 #'
 #' @importFrom hubValidations new_hub_validations parse_file_name try_check
-#' check_tbl_colnames check_tbl_col_types check_tbl_values check_tbl_rows_unique
-#' check_tbl_values_required check_tbl_value_col check_tbl_value_col_ascending
+#' check_tbl_colnames check_tbl_col_types check_tbl_values_required
+#' check_tbl_value_col check_tbl_value_col_ascending
 #' @importFrom hubData coerce_to_character
 #'
 #' @noRd
@@ -77,8 +77,7 @@ run_all_validation <- function(df, path, js_def0, js_def, round_id, hub_path,
 
   checks$valid_vals <-
     try_check(check_tbl_values(tbl_chr, round_id = round_id,
-                               file_path = file_path, hub_path = hub_path,
-                               derived_task_ids = NULL),
+                               file_path = file_path, hub_path = hub_path),
               path)
   if (is_any_error(checks$valid_vals)) {
     return(checks)
@@ -87,6 +86,7 @@ run_all_validation <- function(df, path, js_def0, js_def, round_id, hub_path,
   checks$rows_unique <-
     try_check(check_tbl_rows_unique(tbl_chr, file_path = file_path,
                                     hub_path = hub_path), path)
+  # -- slow
   checks$req_vals <-
     try_check(check_tbl_values_required(tbl_chr, round_id = round_id,
                                         file_path = file_path,
@@ -104,7 +104,7 @@ run_all_validation <- function(df, path, js_def0, js_def, round_id, hub_path,
                                             hub_path = hub_path,
                                             round_id = round_id,
                                             derived_task_ids = NULL), path)
-
+  # -- slow
   checks <- sample_test(checks, tbl_chr, round_id, file_path, hub_path,
                         path)
   checks <- value_test(df, checks, file_path, n_decimal = n_decimal, pop = pop,
@@ -187,8 +187,8 @@ run_all_validation <- function(df, path, js_def0, js_def, round_id, hub_path,
 #'
 #' The function runs some preliminary tests before running all the checks:
 #' * Input submission file format: The file format of the submission
-#'  file(s) corresponds to the expected format (for example: `parquet`, or `csv`,
-#'   etc.). If multiple files inputted, only `parquet` is accepted.
+#'  file(s) corresponds to the expected format (for example: `parquet`, or
+#'  `csv`, etc.). If multiple files inputted, only `parquet` is accepted.
 #'  * Date information: The column `origin_date` in the submission file
 #'   corresponds to a `model_tasks` round information in the JSON file
 #'   (`js_def` parameter).
@@ -236,7 +236,7 @@ validate_submission <- function(path, hub_path, js_def = NULL,
   if (!is.null(pop_path)) pop <- read_files(pop_path) else pop <- NULL
   # Select the associated round (add error message if no match)
   if (is.null(round_id))
-    round_id <- team_round_id(paste0(hub_path, "/" , path),
+    round_id <- team_round_id(paste0(hub_path, "/", path),
                               partition = partition)
 
   check <- new_hub_validations()

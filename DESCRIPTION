@@ -24,8 +24,10 @@ Depends: R (>= 4.0.0)
 RoxygenNote: 7.3.2
 Roxygen: list(markdown = TRUE)
 Imports: arrow, 
+         cli,
          covidcast, 
          cowplot,
+         data.table,
          dplyr, 
          ggplot2,
          ggpubr,
@@ -39,6 +41,7 @@ Imports: arrow,
          hubValidations,
          MMWRweek,
          purrr,
+         tibble,
          tidyr
 Remotes:
     hubverse-org/hubUtils,

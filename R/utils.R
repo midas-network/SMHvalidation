@@ -5,7 +5,7 @@ get_tasksids_colnames <- function(js_def) {
     purrr::flatten() |>
     names() |>
     unique()
-  return(taskids_col)
+  taskids_col
 }
 
 # Check location format - FIPS code of 2 character (not numeric)
@@ -20,7 +20,7 @@ location_fips_format <- function(df) {
     df$location <- as.character(df$location)
     df <- loc_zero(df)
   }
-  return(df)
+  df
 }
 
 # File path selection
@@ -40,7 +40,7 @@ file_path_info <- function(path, hub_path, partition = NULL, round_id = NULL,
   }
   if (verbose) cat(paste0("Run validation on files: ",
                           paste(file_path_mess, collapse = ", "), "\n"))
-  return(file_path)
+  file_path
 }
 
 # extract team round id information
@@ -57,7 +57,7 @@ team_round_id <- function(path, partition = NULL) {
                        perl = TRUE)
   }
   round_id <- unique(team_round)
-  return(round_id)
+  round_id
 }
 
 # Test of any factor columns
@@ -69,7 +69,6 @@ factor_columns <- function(df) {
             " 'character'.")
   }
   df <- dplyr::mutate_if(df, is.factor, as.character)
-  return(df)
 }
 
 # Identify file format extension - Partitioned format
@@ -88,7 +87,7 @@ id_file_format <- function(path) {
   if (grepl("\U000274c", filef)) {
     stop(err005)
   }
-  return(filef)
+  filef
 }
 
 # Create schema for loading files using arrow
@@ -167,7 +166,7 @@ loc_zero <- function(df) {
     df$location[which(nchar(df$location) == 1)] <-
       paste0(0, df$location[which(nchar(df$location) == 1)])
   }
-  return(df)
+  df
 }
 
 #' Merge and simple tests of Sample ID columns
@@ -189,8 +188,11 @@ loc_zero <- function(df) {
 merge_sample_id <- function(df, req_colnames, merge_sample_col, js_def0, js_def,
                             checks, partition = NULL, verbose = TRUE,
                             verbose_col = NULL) {
-
-  sample_val <- unique(na.omit(unlist(dplyr::distinct(df[, merge_sample_col]))))
+  df_no_sample <- dplyr::filter(df, .data[["output_type"]] != "sample")
+  df_sample <- dplyr::filter(df, .data[["output_type"]] == "sample")
+  rm(df)
+  sample_val <-
+    unique(na.omit(unlist(dplyr::distinct(df_sample[, merge_sample_col]))))
   if (isFALSE(all(is_wholenumber(sample_val))) ||
         any(grepl("^0.", unique(sample_val)))) {
     message("\U000274c Error: The columns ", paste(merge_sample_col,
@@ -199,13 +201,11 @@ merge_sample_id <- function(df, req_colnames, merge_sample_col, js_def0, js_def,
   }
   # Verbose
   if (verbose) {
-    df_sample <- dplyr::filter(df, .data[["output_type"]] == "sample")
     task_ids <- unique(unlist(purrr::map(purrr::map(js_def, "task_ids"),
                                          names)))
-    test_sample <- dplyr::group_by(df_sample,
-                                   dplyr::across(dplyr::all_of(task_ids)))
-    test_sample <- dplyr::summarise(test_sample, n = dplyr::n())
-    n_sample <- unique(test_sample$n)
+    n_sample <- dplyr::summarise(df_sample, n = dplyr::n(),
+                                 .by = tidyr::all_of(task_ids))
+    n_sample <- unique(n_sample$n)
     pair_info <- verbose_pairing(df_sample, js_def, checks, or_pair = NULL,
                                  n_sample = n_sample,
                                  verbose_col = verbose_col) |>
@@ -215,8 +215,8 @@ merge_sample_id <- function(df, req_colnames, merge_sample_col, js_def0, js_def,
   }
 
   # Merge sample ID column
-  df <- tidyr::unite(df, col = "type_id_sample",
-                     tidyr::all_of(merge_sample_col)) |>
+  df_sample <- tidyr::unite(df_sample, col = "type_id_sample",
+                            tidyr::all_of(merge_sample_col)) |>
     dplyr::mutate(output_type_id =
                     ifelse(.data[["output_type"]] == "sample",
                            as.numeric(as.factor(.data[["type_id_sample"]])),
@@ -226,13 +226,15 @@ merge_sample_id <- function(df, req_colnames, merge_sample_col, js_def0, js_def,
     hubValidations::create_hub_schema(js_def0, partitions = NULL,
                                       r_schema = TRUE,
                                       output_type_id_datatype = "from_config")
-  df$output_type_id <- eval(str2lang(paste0("as.", col_format["output_type_id"],
-                                            "(df$output_type_id)")))
-  if (length(unique(df[which(df$output_type == "sample"),
-                       "output_type_id", TRUE])) <= 1) {
+  df_sample$output_type_id <-
+    eval(str2lang(paste0("as.", col_format["output_type_id"],
+                         "(df_sample$output_type_id)")))
+  if (length(unique(df_sample[, "output_type_id", TRUE])) <= 1) {
     message("\n\U000274c Error: The submission should ",
             "contains multiple sample output type groups, please verify.\n")
   }
+  df <- rbind(df_sample, dplyr::select(df_no_sample,
+                                       -tidyr::all_of(merge_sample_col)))
   return(list(df = df, msg = pair_info))
 }
 
@@ -328,7 +330,7 @@ paired_info <- function(df, rm_col = NULL, tasks_list = NULL,
           p_col <- NULL
         }
       }
-      return(p_col)
+      p_col
     }) |>
       purrr::compact() |>
       unlist() |>

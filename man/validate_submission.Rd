@@ -105,8 +105,8 @@ the \code{round_id} parameter to signal which round to test.
 The function runs some preliminary tests before running all the checks:
 \itemize{
 \item Input submission file format: The file format of the submission
-file(s) corresponds to the expected format (for example: \code{parquet}, or \code{csv},
-etc.). If multiple files inputted, only \code{parquet} is accepted.
+file(s) corresponds to the expected format (for example: \code{parquet}, or
+\code{csv}, etc.). If multiple files inputted, only \code{parquet} is accepted.
 \item Date information: The column \code{origin_date} in the submission file
 corresponds to a \code{model_tasks} round information in the JSON file
 (\code{js_def} parameter).
