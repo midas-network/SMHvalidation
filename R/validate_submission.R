@@ -11,7 +11,7 @@
 #' @importFrom hubValidations new_hub_validations parse_file_name try_check
 #' check_tbl_colnames check_tbl_col_types check_tbl_values_required
 #' check_tbl_value_col check_tbl_value_col_ascending
-#' @importFrom hubData coerce_to_character
+#' @importFrom dplyr mutate_all
 #'
 #' @noRd
 run_all_validation <- function(df, path, js_def0, js_def, round_id, hub_path,
@@ -73,7 +73,7 @@ run_all_validation <- function(df, path, js_def0, js_def, round_id, hub_path,
                                   hub_path = hub_path,
                                   output_type_id_datatype = "from_config"),
               path)
-  tbl_chr <- hubData::coerce_to_character(df)
+  tbl_chr <- dplyr::mutate_all(df, as.character)
 
   checks$valid_vals <-
     try_check(check_tbl_values(tbl_chr, round_id = round_id,
