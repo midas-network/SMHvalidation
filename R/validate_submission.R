@@ -9,7 +9,7 @@
 #' might be created later on too.
 #'
 #' @importFrom hubValidations new_hub_validations parse_file_name try_check
-#' check_tbl_colnames check_tbl_col_types check_tbl_values_required
+#' check_tbl_colnames check_tbl_col_types
 #' check_tbl_value_col check_tbl_value_col_ascending
 #' @importFrom dplyr mutate_all
 #'
@@ -86,12 +86,9 @@ run_all_validation <- function(df, path, js_def0, js_def, round_id, hub_path,
   checks$rows_unique <-
     try_check(check_tbl_rows_unique(tbl_chr, file_path = file_path,
                                     hub_path = hub_path), path)
-  # -- slow
+
   checks$req_vals <-
-    try_check(check_tbl_values_required(tbl_chr, round_id = round_id,
-                                        file_path = file_path,
-                                        hub_path = hub_path,
-                                        derived_task_ids = NULL), path)
+    try_check(check_df_values_required(df, js_def, file_path = file_path), path)
   # -- slow
   checks$value_col_valid <-
     try_check(check_tbl_value_col(df, round_id = round_id,

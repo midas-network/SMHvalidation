@@ -88,6 +88,7 @@ test_that("Test validation process", {
   arrow::write_parquet(df, path_f_write)
   rm(df)
   check <- validate_submission(path_f, hub_path)
+  expect_contains(attr(check$req_vals, "class"), c("error", "check_error"))
 
   ## Additional data
   df <- rbind(df0,
@@ -198,9 +199,9 @@ test_that("Test validation process", {
   check <- validate_submission(path_f, hub_path,
                                merge_sample_col = merge_sample_col)
   expect_contains(attr(check$rows_unique, "class"), c("error", "check_failure"))
+  expect_contains(attr(check$req_vals, "class"), c("error", "check_failure"))
   expect_contains(attr(check$value_col_non_desc, "class"),
                   c("error", "check_failure"))
-  expect_contains(attr(check$req_vals, "class"), c("error", "check_failure"))
 
   ### Remove optional quantile (only 0) --------
   df <- rbind(df0,

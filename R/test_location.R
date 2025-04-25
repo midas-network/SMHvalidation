@@ -42,7 +42,7 @@ test_location <- function(df, model_task) {
                                       FALSE)))
     df_test <- dplyr::filter(df, .data[["target"]] %in% x &
                                .data[["output_type"]] %in% outpt_type)
-    df_test <- loc_zero(df_test)
+    df_test <- location_fips_format(df_test)
 
     if (dim(df_test)[1] > 0) {
       # If at least one location expected

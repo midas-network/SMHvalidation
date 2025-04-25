@@ -16,9 +16,10 @@ location_fips_format <- function(df) {
       warning("Some location value are missing a trailing 0. For example, ",
               paste(vect, collapse = ", "), " instead of ",
               paste(paste0(0, vect), collapse = ", "))
+      df$location[which(nchar(df$location) == 1)] <-
+        paste0(0, df$location[which(nchar(df$location) == 1)])
     }
     df$location <- as.character(df$location)
-    df <- loc_zero(df)
   }
   df
 }
@@ -39,7 +40,7 @@ file_path_info <- function(path, hub_path, partition = NULL, round_id = NULL,
     file_path_mess <- unique(file_path)
   }
   if (verbose) cat(paste0("Run validation on files: ",
-                          paste(file_path_mess, collapse = ", "), "\n"))
+                          paste(unique(file_path_mess), collapse = ", "), "\n"))
   file_path
 }
 
@@ -160,15 +161,6 @@ is_wholenumber <- function(x, tol = .Machine$double.eps^0.5) {
   }
 }
 
-# Function to fix location column (add trailing zero)
-loc_zero <- function(df) {
-  if (any(nchar(df$location) == 1)) {
-    df$location[which(nchar(df$location) == 1)] <-
-      paste0(0, df$location[which(nchar(df$location) == 1)])
-  }
-  df
-}
-
 #' Merge and simple tests of Sample ID columns
 #'
 #' If the submission files contains the multiple columns for sample ID, the
@@ -233,8 +225,11 @@ merge_sample_id <- function(df, req_colnames, merge_sample_col, js_def0, js_def,
     message("\n\U000274c Error: The submission should ",
             "contains multiple sample output type groups, please verify.\n")
   }
-  df <- rbind(df_sample, dplyr::select(df_no_sample,
-                                       -tidyr::all_of(merge_sample_col)))
+  if (nrow(df_no_sample) > 0) {
+    df <- rbind(df_sample, dplyr::select(df_no_sample,
+                                         -tidyr::all_of(merge_sample_col)))
+  } else {
+  }
   return(list(df = df, msg = pair_info))
 }
 
@@ -283,13 +278,14 @@ verbose_pairing <- function(df_sample, m_task, checks, or_pair, n_sample,
 # extract pairing information
 #' @importFrom dplyr select contains pick all_of arrange distinct
 #' @importFrom purrr map keep compact
+#' @importFrom data.table setDT
 paired_info <- function(df, rm_col = NULL, tasks_list = NULL,
                         verbose_col = NULL) {
   if (!is.null(rm_col)) df <- dplyr::select(df, -dplyr::contains(rm_col))
   sel_col <- grep("output|run_grou|stochas|value", names(df), value = TRUE,
                   invert = TRUE)
   df <- dplyr::arrange(df, dplyr::pick(dplyr::all_of(sel_col)))
-  test_pair_list <- dplyr::distinct(df) |>
+  test_pair_list <- unique(data.table::setDT(df)) |>
     as.list() |>
     purrr::map(unique)
   if (is.null(tasks_list)) {
@@ -351,7 +347,7 @@ filter_df <- function(df, task_id, exclusion = NULL, required = FALSE,
   df_test <- as.data.frame(df)
   # fix location if wanted
   if (location_fix) {
-    df_test <- loc_zero(df_test)
+    df_test <- location_fips_format(df_test)
   }
   # filter
   if (is.null(exclusion)) {

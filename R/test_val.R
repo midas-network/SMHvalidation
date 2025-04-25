@@ -165,7 +165,7 @@ test_val <- function(df, pop, last_lst_gs, model_task, n_decimal = NULL) {
                                .data[["output_type"]] %in% outputtype)
     if (dim(df_test)[1] > 0) {
       # If necessary fix location column to avoid issue
-      df_test <- loc_zero(df_test)
+      df_test <- location_fips_format(df_test)
       # - all value are in the expected format and the column value does not
       # contain any NA
       value_format_test(df_test, x, outputtype, n_decimal = n_decimal)

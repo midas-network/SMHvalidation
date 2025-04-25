@@ -101,8 +101,7 @@ test_sample <- function(df, model_task, pairing_col = "horizon",
     if ("sample" %in% names(x$output_type)) {
       # prerequisite
       df_sample <-
-        dplyr::mutate(df, origin_date = as.Date(.data[["origin_date"]])) |>
-        loc_zero()
+        dplyr::mutate(df, origin_date = as.Date(.data[["origin_date"]]))
       tasks_list <- setNames(lapply(names(x$task_ids),
                                     function(z) unique(unlist(x$task_id[[z]]))),
                              names(x$task_ids))

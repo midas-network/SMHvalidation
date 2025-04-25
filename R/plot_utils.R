@@ -276,7 +276,7 @@ make_state_plot_pdf <- function(proj_data, target_data, team_model_name,
                                 plot_quantiles = c(0.025, 0.975),
                                 y_sqrt = FALSE) {
   # Projections - Clean up and merge
-  proj_data <- loc_zero(proj_data) |>
+  proj_data <- location_fips_format(proj_data) |>
     dplyr::filter(.data[["output_type_id"]] %in%
                     c(plot_quantiles[1], 0.5, plot_quantiles[2]),
                   !is.na(.data[["output_type_id"]])) |>

@@ -67,7 +67,7 @@ test_target <- function(df, model_task) {
       dplyr::filter(df,
                     .data[["target"]] %in% unique(unlist(x$task_ids$target)) &
                       .data[["output_type"]] %in% names(x$output_type))
-    df_target <- loc_zero(df_target)
+    df_target <- location_fips_format(df_target)
     if (dim(df_target)[1] > 0) {
       # - the submission contains all the targets. It is also accepted
       # to submit projections for only certain target (example: only cases,

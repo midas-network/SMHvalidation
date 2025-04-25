@@ -48,7 +48,7 @@ test_req_value <- function(df, model_task) {
   test_df <- dplyr::select(df, dplyr::all_of(col_sel)) |>
     dplyr::distinct() |>
     dplyr::mutate(origin_date = as.Date(.data[["origin_date"]])) |>
-    loc_zero()
+    location_fips_format()
 
   res <- dplyr::setdiff(req_df, test_df)
   if (nrow(res) > 0) {
@@ -61,3 +61,125 @@ test_req_value <- function(df, model_task) {
   invisible(NULL)
 }
 # nocov end
+
+extract_output_type <- function(x) {
+  outtype_df <- list()
+  for (i in names(x$output_type)) {
+    if (i == "sample") {
+      output_type_id <- "..."
+    } else {
+      output_type_id <-
+        x$output_type[[i]]$output_type_id$required
+    }
+    outtype_df[[i]] <- output_type_id
+  }
+  outtype_df
+}
+
+
+create_table <- function(list_targ, outtype_df) {
+  req_df <- purrr::compact(list_targ) |>
+    expand.grid() |>
+    tidyr::pivot_longer(tidyr::all_of(names(outtype_df)),
+                        names_to = "output_type",
+                        values_to = "output_type_id")
+  if (!"horizon" %in% colnames(req_df)) req_df$horizon <- NA
+  if (!"target" %in% colnames(req_df)) req_df$target <- NA
+  req_df <- dplyr::mutate_all(req_df, as.character)
+  req_df
+}
+
+#' @importFrom hubValidations capture_check_cnd
+#' @importFrom tidyr all_of pivot_longer drop_na
+#' @importFrom dplyr mutate_all mutate bind_rows distinct setdiff inner_join
+#' @importFrom purrr compact map
+check_df_values_required <- function(test_df, model_task, file_path) {
+
+  test_df <- dplyr::select(test_df, -tidyr::all_of(c("value"))) |>
+    dplyr::distinct() |>
+    dplyr::mutate(output_type_id = ifelse(.data[["output_type"]] == "sample",
+                                          "...", .data[["output_type_id"]])) |>
+    dplyr::distinct() |>
+    dplyr::mutate_all(as.character) |>
+    location_fips_format()
+
+  err <- purrr::map(model_task, function(x) {
+    opt_err <- err <- NULL
+    if (is.null(x$task_ids$target$required)) {
+      opt_targ <- purrr::map(x$task_ids, unlist)
+      req_targ <- NULL
+      mask_targ <- purrr::map(x$task_ids, "required")
+    } else {
+      req_targ <- mask_targ <- purrr::map(x$task_ids, "required")
+      opt_targ <- purrr::map(x$task_ids, "optional")
+    }
+    outtype_df <- extract_output_type(x)
+
+    if (!is.null(req_targ)) {
+      req_df <- create_table(c(req_targ, outtype_df), outtype_df)
+      test <- dplyr::select(test_df, tidyr::all_of(colnames(req_df))) |>
+        dplyr::distinct()
+      df_res <- dplyr::setdiff(req_df, test)
+      if (nrow(df_res) > 0) {
+        err <- purrr::map(as.list(df_res), unique)
+        err <- paste(names(err), purrr::map(err, as.character), sep = ": ",
+                     collapse = "\n")
+      }
+    }
+
+    opt_df <- create_table(c(opt_targ, outtype_df), outtype_df)
+    test <- dplyr::select(test_df, tidyr::all_of(colnames(opt_df))) |>
+      dplyr::filter(.data[["target"]] %in% c(opt_targ$target, req_targ$target),
+                    .data[["output_type"]] %in% names(outtype_df),
+                    .data[["output_type_id"]] %in% unlist(outtype_df)) |>
+      distinct()
+    df_res_opt <- dplyr::setdiff(opt_df, test)
+    if (nrow(df_res_opt) != nrow(opt_df) & nrow(df_res_opt) > 0) {
+      mask <- expand.grid(purrr::compact(mask_targ)) |>
+        dplyr::mutate_all(as.character)
+      df_res_opt <- dplyr::inner_join(mask, df_res_opt, keep = FALSE,
+                                      by = dplyr::intersect(names(mask),
+                                                            names(df_res_opt)))
+
+      if (any(grepl("cdf|quantile|pmf", df_res_opt$output_type))) {
+        opt_err <- purrr::map(as.list(df_res_opt), unique)
+        opt_err <- paste(names(opt_err), purrr::map(opt_err, as.character),
+                         sep = ": ", collapse = ";\n")
+      }
+    }
+
+    if (is.null(err) & is.null(opt_err)) {
+      NULL
+    } else {
+      list("req" = err, "opt" = opt_err)
+    }
+  })
+
+  req_err <- paste(unlist(purrr::map(purrr::map(err, "req"), unique)),
+                   collapse = "\n\n")
+  opt_err <- paste(unlist(purrr::map(purrr::map(err, "opt"), unique)),
+                   collapse = "\n\n")
+  err <- paste(trimws(unique(c(req_err, opt_err))), collapse = "\n ")
+  if (nchar(req_err) > 0) {
+    capture_check_cnd(
+      check =  nchar(err) == 0,
+      file_path = file_path,
+      error = TRUE,
+      msg_subject = "Required task ID/output type/output_type_id combinations",
+      msg_attribute = NULL,
+      msg_verbs = c("all present.", "missing."),
+      details = paste("Please verify: \n\n", err, collapse = "\n  ")
+    )
+  } else {
+    capture_check_cnd(
+      check =  nchar(err) == 0,
+      file_path = file_path,
+      error = FALSE,
+      msg_subject = "Task ID/output type/output_type_id combinations",
+      msg_attribute = NULL,
+      msg_verbs = c("all present.", "missing."),
+      details = err
+    )
+  }
+
+}
