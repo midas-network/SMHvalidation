@@ -229,6 +229,7 @@ merge_sample_id <- function(df, req_colnames, merge_sample_col, js_def0, js_def,
     df <- rbind(df_sample, dplyr::select(df_no_sample,
                                          -tidyr::all_of(merge_sample_col)))
   } else {
+    df <- df_sample
   }
   return(list(df = df, msg = pair_info))
 }
