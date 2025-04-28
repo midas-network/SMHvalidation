@@ -286,7 +286,7 @@ paired_info <- function(df, rm_col = NULL, tasks_list = NULL,
   sel_col <- grep("output|run_grou|stochas|value", names(df), value = TRUE,
                   invert = TRUE)
   df <- dplyr::arrange(df, dplyr::pick(dplyr::all_of(sel_col)))
-  test_pair_list <- unique(data.table::setDT(df)) |>
+  test_pair_list <- data.table::setDT(df) |>
     as.list() |>
     purrr::map(unique)
   if (is.null(tasks_list)) {

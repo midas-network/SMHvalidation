@@ -9,8 +9,7 @@
 #' might be created later on too.
 #'
 #' @importFrom hubValidations new_hub_validations parse_file_name try_check
-#' check_tbl_colnames check_tbl_col_types
-#' check_tbl_value_col check_tbl_value_col_ascending
+#' check_tbl_colnames check_tbl_col_types check_tbl_value_col_ascending
 #' @importFrom dplyr mutate_all
 #'
 #' @noRd
@@ -92,8 +91,7 @@ run_all_validation <- function(df, path, js_def0, js_def, round_id, hub_path,
   # -- slow
   checks$value_col_valid <-
     try_check(check_tbl_value_col(df, round_id = round_id,
-                                  file_path = file_path,
-                                  hub_path = hub_path, derived_task_ids = NULL),
+                                  file_path = file_path, hub_path = hub_path),
               path)
 
   checks$value_col_non_desc <-

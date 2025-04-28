@@ -49,8 +49,7 @@ summarise_invalid_values <- function(valid_tbl, config_tasks, round_id) {
 #' @importFrom hubValidations capture_check_cnd
 check_tbl_values <- function(tbl, round_id, file_path, hub_path) {
   config_tasks <- hubUtils::read_config(hub_path, "tasks")
-  valid_tbl <- tibble::rowid_to_column(tbl) |>
-    split(f = tbl$output_type) |>
+  valid_tbl <- split(tbl, f = tbl$output_type) |>
     purrr::imap(~hubValidations:::check_values_by_output_type(tbl = .x,
                                                               output_type = .y,
                                                               config_tasks =
@@ -64,6 +63,7 @@ check_tbl_values <- function(tbl, round_id, file_path, hub_path) {
   if (check) {
     details <- error_tbl <- NULL
   } else {
+    valid_tbl <- tibble::rowid_to_column(valid_tbl)
     error_summary <- summarise_invalid_values(valid_tbl, config_tasks, round_id)
     details <- error_summary$msg
     if (length(error_summary$invalid_combs_idx) == 0L) {
@@ -85,8 +85,7 @@ check_tbl_values <- function(tbl, round_id, file_path, hub_path) {
 #' @importFrom data.table `.N` data.table
 check_tbl_rows_unique <- function(tbl, file_path, hub_path) {
   tbl[["values"]] <- NULL
-  tbl <- data.table::data.table(tbl)
-  tbl <- tbl[, .N, by = names(tbl)]
+  tbl <- data.table::setDT(tbl)[, .N, by = names(tbl)]
   tbl <- dplyr::filter(tbl, .data[["N"]] > 1)
   check <- nrow(tbl) == 0
   if (check) {
@@ -101,4 +100,36 @@ check_tbl_rows_unique <- function(tbl, file_path, hub_path) {
                                          "{.var output_type_id} values"),
                     msg_attribute = "unique.", msg_verbs = c("are", "must be"),
                     details = details)
+}
+
+#' @importFrom hubValidations capture_check_cnd
+#' @importFrom dplyr across
+#' @importFrom purrr imap
+check_tbl_value_col <- function(tbl, round_id, file_path, hub_path) {
+  config_tasks <- read_config(hub_path, "tasks")
+  tbl <- dplyr::mutate(tbl, dplyr::across(-dplyr::contains("value"),
+                                          as.character))
+  details <- split(tbl, f = tbl$output_type) |>
+    purrr::imap(
+      \(.x, .y) {
+        hubValidations:::check_value_col_by_output_type(
+          tbl = .x, output_type = .y,
+          config_tasks = config_tasks,
+          round_id = round_id,
+          derived_task_ids = NULL
+        )
+      }
+    ) |>
+    unlist(use.names = TRUE)
+
+  check <- is.null(details)
+
+  capture_check_cnd(
+    check = check,
+    file_path = file_path,
+    msg_subject = "Values in column {.var value}",
+    msg_verbs = c("all", "are not all"),
+    msg_attribute = "valid with respect to modeling task config.",
+    details = details
+  )
 }
