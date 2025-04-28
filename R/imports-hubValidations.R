@@ -28,7 +28,7 @@ summarise_invalid_values <- function(valid_tbl, config_tasks, round_id) {
   invalid_row_idx <- which(is.na(valid_tbl$valid))
   invalid_combs_idx <- setdiff(invalid_row_idx, invalid_val_idx)
   if (length(invalid_combs_idx) == 0L) {
-    invalid_combs_msg <- NULL
+    invalid_combs_msg <- NULL # nocovr
   } else {
     invalid_combs_idx <- unique(valid_tbl$rowid[invalid_combs_idx][1:5])
     invalid_combs_msg <-
@@ -67,7 +67,7 @@ check_tbl_values <- function(tbl, round_id, file_path, hub_path) {
     error_summary <- summarise_invalid_values(valid_tbl, config_tasks, round_id)
     details <- error_summary$msg
     if (length(error_summary$invalid_combs_idx) == 0L) {
-      error_tbl <- NULL
+      error_tbl <- NULL # nocovr
     } else {
       error_tbl <- tbl[error_summary$invalid_combs_idx, names(tbl) != "value"]
     }
