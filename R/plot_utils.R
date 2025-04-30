@@ -15,7 +15,7 @@ format_tables <- function(tab_data, metric, sel_group) {
                   `ground truth` = format(.data[["ground truth"]], digits = 1,
                                           big.mark = ",", trim = TRUE))
 
-  if (grepl("ratio", metric)) {
+  if (grepl("ratio", metric, fixed = TRUE)) {
     tab_data <- tab_data |>
       dplyr::mutate(dplyr::across(tidyr::all_of(sel_group), ~ round(.x, 2)))
   } else {
@@ -39,9 +39,10 @@ format_tables <- function(tab_data, metric, sel_group) {
 #' @noRd
 add_filter_col <- function(df) {
   if (any("age_group" %in% colnames(df)))
-    df <- dplyr::filter(df, grepl("0-130", .data[["age_group"]]))
+    df <- dplyr::filter(df, grepl("0-130", .data[["age_group"]], fixed = TRUE))
   if (any("race_ethnicity" %in% colnames(df)))
-    df <- dplyr::filter(df, grepl("overall", .data[["race_ethnicity"]]))
+    df <- dplyr::filter(df, grepl("overall", .data[["race_ethnicity"]],
+                                  fixed = TRUE))
   df
 }
 
@@ -202,14 +203,14 @@ plot_projections <- function(data, st, projection_date, legend_rows = 1,
     ggplot2::geom_vline(ggplot2::aes(xintercept = projection_date),
                         color = "grey", linetype = 2, linewidth = 1.5)
 
-  if (any(grepl("point", colnames(data)))) {
+  if (any(grepl("point", colnames(data), fixed = TRUE))) {
     plot <- plot +
       ggplot2::geom_line(ggplot2::aes(y = .data[["point"]],
                                       color = .data[["scenario_id"]]),
                          linetype = 2)
   }
 
-  if (any(grepl("observation", colnames(data)))) {
+  if (any(grepl("observation", colnames(data), fixed = TRUE))) {
     plot <- plot +
       ggplot2::geom_point(data =
                             dplyr::filter(data, .data[["pre_gs_end"]] == TRUE),

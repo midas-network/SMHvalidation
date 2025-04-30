@@ -3,9 +3,10 @@
 cumul_value_test <- function(df, checks, obs, file_path) {
   # - Cumulative value should not be lower than GS cumulative data
   # (deaths; cases only)
-  if (any(grepl("cum", df$target)) && !is.null(obs)) {
-    cum_obs <- dplyr::filter(obs, grepl("cum ", .data[["target"]]))
-    df_h1 <- dplyr::filter(df, grepl("cum ", .data[["target"]]),
+  if (any(grepl("cum", df$target, fixed = TRUE)) && !is.null(obs)) {
+    cum_obs <- dplyr::filter(obs,
+                             grepl("cum ", .data[["target"]], fixed = TRUE))
+    df_h1 <- dplyr::filter(df, grepl("cum ", .data[["target"]], fixed = TRUE),
                            .data[["horizon"]] == 1)
     test <- dplyr::left_join(df_h1, cum_obs, by = "location") |>
       dplyr::mutate(dff = ifelse(.data[["observation"]] - .data[["value"]] >
@@ -18,7 +19,7 @@ cumul_value_test <- function(df, checks, obs, file_path) {
                         msg_attribute = paste0("equal or greater than the last",
                                                " observed cumulative count"))
   }
-  df_cum <- dplyr::filter(df, grepl("cum ", .data[["target"]]))
+  df_cum <- dplyr::filter(df, grepl("cum ", .data[["target"]], fixed = TRUE))
   df_cum <-
     dplyr::arrange(df_cum,
                    dplyr::across(tidyr::all_of(c("target", "horizon"))))
@@ -58,7 +59,8 @@ value_test <- function(df, checks, file_path, n_decimal = NULL, pop = NULL,
   unique_val <- unique(df$value)
 
   # Test for number of decimal
-  if (any(grepl("sample", df$output_type)) && !is.null(n_decimal)) {
+  if (any(grepl("sample", df$output_type, fixed = TRUE)) &&
+        !is.null(n_decimal)) {
     unique_val_digit <- abs(unique_val) - floor(abs(unique_val))
     unique_val_digit <- gsub("0\\.|0+$", "", unique_val_digit, perl = TRUE)
     sel_digit_rep <- grepl("9{6,}|0{6,}", unique_val_digit)

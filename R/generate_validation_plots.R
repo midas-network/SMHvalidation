@@ -75,7 +75,7 @@ generate_validation_plots <- function(path_proj, target_data = NULL,
     dplyr::filter(grepl(paste0("inc case|inc death|inc hosp|inc inf",
                                "cum case|cum death|cum hosp|inc inf"),
                         .data[["target"]]) &
-                    grepl("quantile", .data[["output_type"]])) |>
+                    grepl("quantile", .data[["output_type"]], fixed = TRUE)) |>
     dplyr::mutate(date = as.Date(.data[["origin_date"]]) - 1 +
                     (.data[["horizon"]] * 7),
                   origin_date = as.Date(.data[["origin_date"]]))

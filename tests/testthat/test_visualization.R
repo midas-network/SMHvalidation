@@ -33,7 +33,7 @@ test_that("Test visualization", {
 
 
   df <- dplyr::filter(df0, .data[["output_type"]] == "quantile" &
-                        grepl("cum ", .data[["target"]]))
+                        grepl("cum ", .data[["target"]], fixed = TRUE))
   arrow::write_parquet(df, path_f)
   rm(df)
 
@@ -41,7 +41,7 @@ test_that("Test visualization", {
                                             save_path = tmp_dir))
 
   df <- dplyr::filter(df0, .data[["output_type"]] == "quantile" &
-                        grepl("inc ", .data[["target"]]))
+                        grepl("inc ", .data[["target"]], fixed = TRUE))
   arrow::write_parquet(df, path_f)
   rm(df)
 

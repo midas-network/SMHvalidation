@@ -291,7 +291,7 @@ validate_submission <- function(path, hub_path, js_def = NULL,
   }
 
   # test date format
-  test_date <- df[, grepl("date", names(df)), FALSE]
+  test_date <- df[, grepl("date", names(df), fixed = TRUE), FALSE]
   test_date <- unlist(dplyr::mutate_all(dplyr::distinct(test_date),
                                         as.character))
   check_test_format <- !any(is.na(as.Date(na.omit(test_date), "%Y-%m-%d")))
@@ -305,7 +305,7 @@ validate_submission <- function(path, hub_path, js_def = NULL,
   if (is_any_error(check$date_format)) {
     return(check)
   } else {
-    col_date <- grep("date", names(df), value = TRUE)
+    col_date <- grep("date", names(df), value = TRUE, fixed = TRUE)
     df <- dplyr::mutate(df, dplyr::across(tidyr::all_of(col_date), as.Date))
   }
 

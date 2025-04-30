@@ -16,7 +16,7 @@ std_covidcast_signal <- function(signal, limit_date, vect_week_date) {
                                     as_of = Sys.Date())
   df$week <- MMWRweek::MMWRweek(df$time_value)$MMWRweek
   df$year <- MMWRweek::MMWRweek(df$time_value)$MMWRyear
-  if (!(grepl("cumulative", signal))) {
+  if (!(grepl("cumulative", signal, fixed = TRUE))) {
     ## See fast version of gs_week_process
     df_state <- dplyr::summarise(df,
                                  value = sum(.data[["value"]], na.rm = TRUE),
