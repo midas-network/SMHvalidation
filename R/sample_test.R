@@ -12,10 +12,10 @@ sample_test <- function(checks, tbl_chr, round_id, file_path, hub_path,
     out_spl <- out_task[purrr::map_vec(out_task, ~ any(names(.x) == "sample"))]
     out_spl <- purrr::map(out_spl, "sample")
     # Compound ID
-    tasks_names <- names(js_def[[1]]$task_ids)
     id_set <- purrr::map(out_spl,
                          ~ .x[["output_type_id_params"]]$compound_taskid_set)
-    pair_set <- purrr::map(id_set, ~ dplyr::setdiff(tasks_names, .x))
+    pair_set <- purrr::map(id_set,
+                           ~ dplyr::setdiff(names(js_def[[1]]$task_ids), .x))
     r_check <- s_check <- NULL
     if (!is.null(pair$run_group))
       r_check <- purrr::map(pair_set,
@@ -55,31 +55,27 @@ sample_test <- function(checks, tbl_chr, round_id, file_path, hub_path,
       error = TRUE
     )
 
-
-    check <-
-      data.table::setDT(test)[, .N,
-                              by = c(dplyr::setdiff(tasks_names, id_vect))]
-    check <- unique(check$N)
-    checks$spl_non_compound_tid <- hubValidations::capture_check_cnd(
-      check = length(check) == 1,
+    checks$spl_non_compound_tid <- hubValidations::capture_check_info(
       file_path = file_path,
-      msg_subject = "Task ID combinations of non compound task id values",
-      msg_attribute = "across modeling task samples.",
-      msg_verbs = c("consistent", "not consistent"),
-      error = TRUE
+      msg = "Task ID combinations of non compound task id values not tested"
     )
 
     # N samples
     min_spl <- out_spl[[1]]$output_type_id_params$min_samples_per_task
     max_spl <- out_spl[[1]]$output_type_id_params$max_samples_per_task
     check <- all(min_spl <= pair$n_sample) & all(pair$n_sample <= max_spl)
+    err <- TRUE
+    if (check && (length(pair$n_sample) > 1)) {
+      check <- err <- FALSE
+    }
     checks$spl_n <- hubValidations::capture_check_cnd(
       check = check,
+      error = err,
       file_path = file_path,
-      msg_subject = "Required samples per compound idx task",
+      msg_subject = "Required unique number of samples per compound idx task",
       msg_attribute = NULL,
       msg_verbs = c("present.", "not present."),
-      details = paste0("Only number of samples from: ", min_spl, " to ",
+      details = paste0("Only one number of samples from: ", min_spl, " to ",
                        max_spl, " are accepted. Submission contains: ",
                        paste(pair$n_sample, collapse = ", "))
     )

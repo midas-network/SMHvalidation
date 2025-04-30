@@ -21,7 +21,7 @@ location_fips_format <- function(df) {
     }
     df$location <- as.character(df$location)
   }
-  df
+  as.data.frame(df)
 }
 
 # File path selection
@@ -382,7 +382,7 @@ filter_df <- function(df, task_id, exclusion = NULL, required = FALSE,
   }
   filter_var <- purrr::discard(filter_var, is.null)
   for (i in seq_along(filter_var)) {
-    if (grepl("date", names(filter_var)[i])) {
+    if (grepl("date", names(filter_var)[i], fixed = TRUE)) {
       df_test[[names(filter_var)[i]]] <-
         as.Date(df_test[[names(filter_var)[i]]])
       filter_var[[names(filter_var)[i]]] <-

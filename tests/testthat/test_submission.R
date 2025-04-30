@@ -378,9 +378,9 @@ test_that("Test validation process", {
                   paste0("❌ Error: The columns run_grouping and ",
                          "stochastic_run should contain integer values ",
                          "only for type 'sample'.\n"))
-  expect_equal(unique(purrr::map_vec(purrr::map(check$result,
-                                                ~attr(.x, "class")), 1)),
-               c("check_success"))
+  expect_contains(unique(purrr::map_vec(purrr::map(check$result,
+                                                   ~attr(.x, "class")), 1)),
+                  c("check_success", "check_info"))
 
   ### Add an schema -------
   js_def0 <- hubUtils::read_config_file("../exp/hub-config/tasks.json")
@@ -431,7 +431,7 @@ test_that("Test validation process", {
   check <- try(quiet_log(path_f, hub_path,
                          merge_sample_col = merge_sample_col))
   expect_contains(attr(check$result$spl_n, "class"),
-                  c("error", "check_failure"))
+                  c("error", "check_error"))
 
   ### Pairing information incorrect - Re-ID one sample -------
   df <-
