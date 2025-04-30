@@ -44,13 +44,15 @@ run_all_validation <- function(df, path, js_def0, js_def, round_id, hub_path,
       return(checks)
     }
     all <- merge_sample_id(df, req_colnames, merge_sample_col,  js_def0, js_def,
-                           checks, partition = partition, verbose = verbose,
+                           checks, partition = partition, verbose = TRUE,
                            verbose_col = verbose_col)
     df <- all$df
-    msg <- all$msg
-    if (!is.null(msg))
+    pair <- all$msg
+    if (!is.null(pair) && verbose)
       checks$pairing_info <- capture_check_info(file_path = file_path,
-                                                msg = msg)
+                                                msg = pair$message)
+  } else {
+    pair <- NULL
   }
 
   checks <- round_id_test(checks, df, file_path, hub_path, path)
@@ -101,7 +103,7 @@ run_all_validation <- function(df, path, js_def0, js_def, round_id, hub_path,
                                             derived_task_ids = NULL), path)
   # -- slow
   checks <- sample_test(checks, tbl_chr, round_id, file_path, hub_path,
-                        path)
+                        path, pair, js_def)
   checks <- value_test(df, checks, file_path, n_decimal = n_decimal, pop = pop,
                        obs = obs)
 

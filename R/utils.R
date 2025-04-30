@@ -252,7 +252,7 @@ verbose_pairing <- function(df_sample, m_task, checks, or_pair, n_sample,
       unique() |>
       purrr::map(c, or_pair)
   } else {
-    run_group <- "No run grouping"
+    run_group <- NULL
   }
   if (length(unique(df_sample$stochastic_run)) > 1) {
     sto_group <-
@@ -263,16 +263,28 @@ verbose_pairing <- function(df_sample, m_task, checks, or_pair, n_sample,
       unique() |>
       purrr::map(c, or_pair)
   } else {
-    sto_group <- "No stochasticity"
+    sto_group <- NULL
   }
 
-  p_rg <- paste0("Run grouping pairing: ",
-                 paste(gsub("^c\\(|\\)$", "", run_group), collapse = ","))
-  p_info <- paste0(p_rg, ";",
-                   paste0(" stochastic run pairing: ",
-                          paste(gsub("^c\\(|\\)", "", sto_group),
-                                collapse = ",")))
-  pair_inf <- paste0(p_info, ". Number of Samples: ", n_sample)
+  if (is.null(run_group)) {
+    p_rg <- "No run grouping pairing"
+  } else {
+    p_rg <- paste0("Run grouping pairing: ",
+                   paste(gsub("^c\\(|\\)$", "", run_group), collapse = ","))
+    run_group <- purrr::map(run_group, ~ gsub(" \\(.+", "", .x))
+  }
+  if (is.null(sto_group)) {
+    p_sg <- " No stochasticity"
+  } else {
+    p_sg <- paste0(" stochastic run pairing: ",
+                   paste(gsub("^c\\(|\\)$", "", sto_group), collapse = ","))
+    sto_group <- purrr::map(sto_group, ~ gsub(" \\(.+", "", .x))
+  }
+
+  pair_inf <- paste0(p_rg, ";", p_sg, ". Number of Samples: ",
+                     paste(n_sample, collapse = ", "))
+  pair_inf <- list(message = pair_inf, n_sample = n_sample,
+                   run_group = run_group, sto_group = sto_group)
   return(pair_inf)
 }
 
@@ -296,8 +308,10 @@ paired_info <- function(df, rm_col = NULL, tasks_list = NULL,
     paired_info <- lapply(seq_along(test_pair_list), function(x) {
       if (is.null(verbose_col)) {
         if (length(test_pair_list[[x]]) > 1) {
-          if (all(unlist((tasks_list[[names(test_pair_list[x])]])) %in%
-                    test_pair_list[[x]])) {
+          if (sum(unlist((tasks_list[[names(test_pair_list[x])]])) %in%
+                    test_pair_list[[x]]) > 1 |
+                (all(unlist((tasks_list[[names(test_pair_list[x])]])) %in%
+                       test_pair_list[[x]]))) {
             p_col <- names(test_pair_list[x])
           } else {
             t_list <- tasks_list[[names(test_pair_list[x])]]

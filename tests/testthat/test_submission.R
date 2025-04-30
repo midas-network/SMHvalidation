@@ -41,7 +41,7 @@ test_that("Test validation process", {
   expect_equal(test, c("check_info", "check_success"))
   expect_equal(check$pairing_info$message,
                paste0("Run grouping pairing: \"horizon\", \"age_group (0-130, ",
-                      "65-130)\"; stochastic run pairing: No stochasticity. ",
+                      "65-130)\"; No stochasticity. ",
                       "Number of Samples: 100"))
 
   ## only required value ---
@@ -76,8 +76,8 @@ test_that("Test validation process", {
   test <- unique(purrr::map_vec(purrr::map(check, ~attr(.x, "class")), 1))
   expect_equal(test, c("check_info", "check_success"))
   expect_equal(check$pairing_info$message,
-               paste0("Run grouping pairing: No run grouping; stochastic run ",
-                      "pairing: \"horizon\", \"age_group\". Number of ",
+               paste0("No run grouping pairing; stochastic run pairing: ",
+                      "\"horizon\", \"age_group\". Number of ",
                       "Samples: 100"))
 
   # Test errors --------
@@ -407,8 +407,8 @@ test_that("Test validation process", {
                          " sample output type groups, please verify.\n\n"))
   expect_contains(attr(check$result$rows_unique, "class"),
                   c("error", "check_failure"))
-  expect_contains(attr(check$result$spl_n, "class"),
-                  c("error", "check_failure"))
+  expect_contains(attr(check$result$spl_compound_tid, "class"),
+                  c("error", "check_error"))
 
   ### Pairing information incorrect - ID Set -------
   df <- dplyr::mutate(df0, run_grouping = dplyr::cur_group_id(),
@@ -449,6 +449,6 @@ test_that("Test validation process", {
   rm(df)
   check <- try(quiet_log(path_f, hub_path,
                          merge_sample_col = merge_sample_col))
-  expect_contains(attr(check$result$spl_non_compound_tid, "class"),
+  expect_contains(attr(check$result$spl_compound_tid, "class"),
                   c("error", "check_error"))
 })
