@@ -308,9 +308,10 @@ The function `validate_part_file()` required three parameters:
 
 -   `hub_path`: path to the repository containing the submission files and
     the `tasks.json` file, in the hubverse format.
--   `folder_path`: path to the folder containing the partitioned submission
-    files. The folder is expected to be situated in the `model-output` folder 
-    and the path here should be relative to the `hub_path`, model output folder.
+-   `folder_path`: path to the folder containing only one round specific 
+    partitioned submission files. The folder is expected to be situated in the 
+    `model-output` folder  and the path here should be relative to the
+    `hub_path`, model output folder.
 -   `partition`: character vector corresponding to the column names of each
     path segments.
 
@@ -320,8 +321,15 @@ For example:
 SMHvalidation::validate_part_file(hub_path, path_2, c("origin_date", "target"))
 ```
 
+or 
+
+```{r}
+SMHvalidation::validate_part_file(hub_path, "t3-mc/2023-11-12/", c("target"))
+```
+
 The wrapper can also be used on non partitioned files, the `partition` partition
-just need to be set to `NULL`
+just need to be set to `NULL`, only in the case the folder contains only one 
+round specific file. 
 
 ```{r}
 SMHvalidation::validate_part_file(hub_path, "team2-modelb/", NULL)
