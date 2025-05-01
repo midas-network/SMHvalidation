@@ -149,7 +149,11 @@ check_df_values_required <- function(test_df, model_task, file_path) {
       setNames(names(opt_targ))
     opt_df <- create_table(c(opt_targ, outtype_df), outtype_df)
     if (nrow(opt_df) > 0) {
-      df_res_opt <- dplyr::setdiff(opt_df, test)
+      df_res_opt <-
+        dplyr::setdiff(opt_df,
+                       dplyr::select(test, tidyr::all_of(c(names(opt_df),
+                                                           "output_type",
+                                                           "output_type_id"))))
       if (any(grepl("cdf|quantile|pmf", df_res_opt$output_type)) &
           nrow(df_res_opt) > 0) {
         opt_err <- purrr::map(as.list(df_res_opt), unique)
