@@ -49,15 +49,14 @@ summarise_invalid_values <- function(valid_tbl, config_tasks, round_id) {
 #' @importFrom hubValidations capture_check_cnd
 check_tbl_values <- function(tbl, round_id, file_path, hub_path) {
   config_tasks <- hubUtils::read_config(hub_path, "tasks")
-  valid_tbl <- split(tbl, f = tbl$output_type) |>
-    purrr::imap(~hubValidations:::check_values_by_output_type(tbl = .x,
-                                                              output_type = .y,
-                                                              config_tasks =
-                                                                config_tasks,
-                                                              round_id =
-                                                                round_id,
-                                                              derived_task_ids =
-                                                                NULL)) |>
+  valid_tbl <- split(data.table::setDT(tbl), f = tbl$output_type) |>
+    purrr::imap(
+      ~hubValidations:::check_values_by_output_type(tbl = data.frame(.x),
+                                                    output_type = .y,
+                                                    config_tasks = config_tasks,
+                                                    round_id = round_id,
+                                                    derived_task_ids = NULL)
+    ) |>
     purrr::list_rbind()
   check <- !any(is.na(valid_tbl$valid))
   if (check) {

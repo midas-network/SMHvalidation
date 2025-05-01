@@ -78,15 +78,20 @@ extract_output_type <- function(x) {
 
 
 create_table <- function(list_targ, outtype_df) {
-  req_df <- purrr::compact(list_targ) |>
-    expand.grid() |>
-    tidyr::pivot_longer(tidyr::all_of(names(outtype_df)),
-                        names_to = "output_type",
-                        values_to = "output_type_id")
-  if (!"horizon" %in% colnames(req_df)) req_df$horizon <- NA
-  if (!"target" %in% colnames(req_df)) req_df$target <- NA
-  req_df <- dplyr::mutate_all(req_df, as.character)
-  req_df
+  if (length(purrr::compact(list_targ[!names(list_targ) %in%
+                                      names(outtype_df)])) == 0) {
+    req_df <- data.frame()
+  } else {
+    req_df <- purrr::compact(list_targ) |>
+      expand.grid() |>
+      tidyr::pivot_longer(tidyr::all_of(names(outtype_df)),
+                          names_to = "output_type",
+                          values_to = "output_type_id")
+    if (!"horizon" %in% colnames(req_df)) req_df$horizon <- NA
+    if (!"target" %in% colnames(req_df)) req_df$target <- NA
+    req_df <- dplyr::mutate_all(req_df, as.character)
+    req_df
+  }
 }
 
 #' @importFrom hubValidations capture_check_cnd
@@ -108,9 +113,8 @@ check_df_values_required <- function(test_df, model_task, file_path) {
     if (is.null(x$task_ids$target$required)) {
       opt_targ <- purrr::map(x$task_ids, unlist)
       req_targ <- NULL
-      mask_targ <- purrr::map(x$task_ids, "required")
     } else {
-      req_targ <- mask_targ <- purrr::map(x$task_ids, "required")
+      req_targ <- purrr::map(x$task_ids, "required")
       opt_targ <- purrr::map(x$task_ids, "optional")
     }
     outtype_df <- extract_output_type(x)
@@ -127,21 +131,27 @@ check_df_values_required <- function(test_df, model_task, file_path) {
       }
     }
 
-    opt_df <- create_table(c(opt_targ, outtype_df), outtype_df)
-    test <- dplyr::select(test_df, tidyr::all_of(colnames(opt_df))) |>
-      dplyr::filter(.data[["target"]] %in% c(opt_targ$target, req_targ$target),
+    test <- dplyr::select(test_df,
+                          tidyr::all_of(c(names(opt_targ), "output_type",
+                                          "output_type_id"))) |>
+      dplyr::filter(.data[["target"]] %in% c(opt_targ$target),
                     .data[["output_type"]] %in% names(outtype_df),
                     .data[["output_type_id"]] %in% unlist(outtype_df)) |>
       distinct()
-    df_res_opt <- dplyr::setdiff(opt_df, test)
-    if (nrow(df_res_opt) != nrow(opt_df) & nrow(df_res_opt) > 0) {
-      mask <- expand.grid(purrr::compact(mask_targ)) |>
-        dplyr::mutate_all(as.character)
-      df_res_opt <- dplyr::inner_join(mask, df_res_opt, keep = FALSE,
-                                      by = dplyr::intersect(names(mask),
-                                                            names(df_res_opt)))
-
-      if (any(grepl("cdf|quantile|pmf", df_res_opt$output_type))) {
+    opt_targ <-
+      lapply(seq_along(opt_targ),
+             function(y) {
+               vect <- opt_targ[[y]][opt_targ[[y]] %in%
+                                       unique(test[,names(opt_targ[y])])]
+               if (length(vect) == 0) vect <- NULL
+               vect
+               }) |>
+      setNames(names(opt_targ))
+    opt_df <- create_table(c(opt_targ, outtype_df), outtype_df)
+    if (nrow(opt_df) > 0) {
+      df_res_opt <- dplyr::setdiff(opt_df, test)
+      if (any(grepl("cdf|quantile|pmf", df_res_opt$output_type)) &
+          nrow(df_res_opt) > 0) {
         opt_err <- purrr::map(as.list(df_res_opt), unique)
         opt_err <- paste(names(opt_err), purrr::map(opt_err, as.character),
                          sep = ": ", collapse = ";\n")
