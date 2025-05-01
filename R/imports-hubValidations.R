@@ -10,7 +10,9 @@ summarise_invalid_values <- function(valid_tbl, config_tasks, round_id) {
   invalid_vals <- purrr::map2(uniq_tbl, uniq_config, ~.x[!.x %in% .y]) |>
     purrr::compact()
   if (length(invalid_vals) != 0L) {
-    invalid_vals <- unique(invalid_vals[1:5])
+    invalid_vals <-
+      purrr::map(invalid_vals,
+                 ~ if (length(.x) > 25) unique(.x)[1:25] else unique(.x))
     invalid_vals_msg <-
       purrr::imap_chr(invalid_vals,
                       ~cli::format_inline("For example: ",
