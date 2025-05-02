@@ -8,6 +8,8 @@
 sample_test <- function(checks, tbl_chr, round_id, file_path, hub_path,
                         path, pair = NULL, js_def = NULL) {
   if (!is.null(pair)) {
+    if (!all(tbl_chr$output_type %in% "sample"))
+      tbl_chr <- dplyr::filter(tbl_chr, .data[["output_type"]] == "sample")
     out_task <- purrr::map(js_def, "output_type")
     out_spl <- out_task[purrr::map_vec(out_task, ~ any(names(.x) == "sample"))]
     out_spl <- purrr::map(out_spl, "sample")
@@ -16,20 +18,25 @@ sample_test <- function(checks, tbl_chr, round_id, file_path, hub_path,
                          ~ .x[["output_type_id_params"]]$compound_taskid_set)
     pair_set <- purrr::map(id_set,
                            ~ dplyr::setdiff(names(js_def[[1]]$task_ids), .x))
-    r_check <- s_check <- NULL
-    if (!is.null(pair$run_group))
-      r_check <- purrr::map(pair_set,
-                            ~ all(.x %in% purrr::flatten(pair$run_group)))
-    if (!is.null(pair$sto_group))
-      s_check <- purrr::map(pair_set,
-                            ~ all(.x %in% purrr::flatten(pair$sto_group)))
-    check <- all(all(unlist(r_check)), all(unlist(s_check)))
-    details <- NULL
-    if (!check)
-      details <- paste0("Expected configuration: ",
-                        paste(unlist(purrr::map(id_set,
-                                                ~ paste(.x, collapse = ", "))),
-                              collapse = " or; "))
+    pair_vect <- unique(unlist(c(pair$run_group, pair$sto_group)))
+    check <- all(purrr::map_vec(pair_set,  ~ all(.x %in% pair_vect)))
+    if (!check) {
+      missing <- unique(unlist(purrr::map(pair_set,  ~.x[!.x %in% pair_vect])))
+      miss <- missing[purrr::map_vec(missing,
+                                     ~ length(unique(tbl_chr[[.x]])) > 1)]
+      if (length(miss) > 0) {
+        details <- paste0("Missing column(s): ", paste(miss,  collapse = ", "))
+      } else {
+        check <- TRUE
+        add_p <- missing[purrr::map_vec(missing,
+                               ~ length(unique(tbl_chr[[.x]])) == 1)]
+        details <- paste("Pairing information: ", paste(c(pair_vect, add_p),
+                                                          collapse = ", "))
+      }
+    } else {
+      details <- paste("Pairing information: ",
+                       paste(pair_vect, collapse = ", "))
+    }
     checks$spl_compound_taskid_set <- hubValidations::capture_check_cnd(
       check = check,
       file_path = file_path,
