@@ -275,16 +275,16 @@ verbose_pairing <- function(df_sample, m_task, checks, or_pair, n_sample,
     p_rg <- "No run grouping pairing"
   } else {
     p_rg <- paste0("Run grouping pairing: ",
-                   paste(gsub("^c\\(|\\)$", "", unique(run_group)),
-                         collapse = ","))
+                   paste(gsub("^c\\(|\\))$", "", unique(unlist(run_group))),
+                         collapse = ", "))
     run_group <- purrr::map(run_group, ~ gsub(" \\(.+", "", .x))
   }
   if (is.null(sto_group)) {
     p_sg <- " No stochasticity"
   } else {
     p_sg <- paste0(" stochastic run pairing: ",
-                   paste(gsub("^c\\(|\\)$", "", unique(sto_group)),
-                         collapse = ","))
+                   paste(gsub("^c\\(|\\))$", "", unique(unlist(sto_group))),
+                         collapse = ", "))
     sto_group <- purrr::map(sto_group, ~ gsub(" \\(.+", "", .x))
   }
 

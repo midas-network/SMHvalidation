@@ -26,8 +26,8 @@ test_that("Test validation process", {
   test <- unique(purrr::map_vec(purrr::map(check, ~attr(.x, "class")), 1))
   expect_equal(test, c("check_info", "check_success"))
   expect_equal(check$pairing_info$message,
-               paste0("Run grouping pairing: \"horizon\", \"age_group\"; ",
-                      "stochastic run pairing: \"horizon\", \"age_group\". ",
+               paste0("Run grouping pairing: horizon, age_group; stochastic ",
+                      "run pairing: horizon, age_group. ",
                       "Number of Samples: 100"))
 
   ## Unique file -------
@@ -40,8 +40,8 @@ test_that("Test validation process", {
   test <- unique(purrr::map_vec(purrr::map(check, ~attr(.x, "class")), 1))
   expect_equal(test, c("check_info", "check_success"))
   expect_equal(check$pairing_info$message,
-               paste0("Run grouping pairing: \"horizon\", \"age_group (0-130, ",
-                      "65-130)\"; No stochasticity. ",
+               paste0("Run grouping pairing: horizon, age_group (0-130, ",
+                      "65-130); No stochasticity. ",
                       "Number of Samples: 100"))
 
   ## only required value ---
@@ -77,8 +77,7 @@ test_that("Test validation process", {
   expect_equal(test, c("check_info", "check_success"))
   expect_equal(check$pairing_info$message,
                paste0("No run grouping pairing; stochastic run pairing: ",
-                      "\"horizon\", \"age_group\". Number of ",
-                      "Samples: 100"))
+                      "horizon, age_group. Number of Samples: 100"))
 
   # Test errors --------
 
