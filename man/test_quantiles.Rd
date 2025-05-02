@@ -13,12 +13,13 @@ test_quantiles(df, model_task)
 and model output (type, format, etc.)}
 }
 \description{
+\strong{DEPRECATED} \if{html}{\out{<br>}}\if{html}{\out{<br>}}
 Validate Scenario Modeling Hub submissions: test if the
 \code{quantile} and \code{type} columns contain the expected information and value
 and the projection value increases with the quantiles.
 }
 \details{
-This function contains 5 tests:
+This function tests:
 \itemize{
 \item Type: The submission contains quantiles value when expected.
 \item Quantiles: The \code{quantile} column matches the expected quantiles.
@@ -33,6 +34,15 @@ the quantile increased. For example, if quantile 0.01 = 5 than quantile
 required quantiles for each group id (scenario/location/horizon/etc.).
 }
 
-Function called in the \code{validate_submission()} function, only if the
-submission contains \code{"quantile"} output type.
+\code{model_task} should match a specific round model tasks from the
+\code{tasks.json} associated with the hub. The json is expected to follow
+the \href{https://hubverse.io/en/latest/user-guide/hub-config.html}{hubverse}
+schema at least version 5.0
+
+As the function was \emph{deprecated}, it will not be updated anymore. It was
+updated a last time to match the 5.0 hubverse schema version. However, it
+might returns duplicated message output or false error as for example
+the 5.0 version of the \code{tasks.json} does not accept both required and
+optional quantile for the same task ids and past SMH rounds might contains
+required and optional quantiles for optional and/or required target.
 }

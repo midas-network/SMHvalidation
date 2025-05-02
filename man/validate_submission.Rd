@@ -6,14 +6,16 @@
 \usage{
 validate_submission(
   path,
-  js_def,
-  lst_gs = NULL,
+  hub_path,
+  js_def = NULL,
+  target_data = NULL,
   pop_path = NULL,
-  merge_sample_col = FALSE,
+  merge_sample_col = NULL,
   partition = NULL,
   n_decimal = NULL,
   round_id = NULL,
   verbose = TRUE,
+  verbose_col = NULL,
   r_schema = NULL
 )
 }
@@ -21,37 +23,44 @@ validate_submission(
 \item{path}{path to the submissions file (or folder for partitioned data)
 to test, or string of parquet files (in this case, the validation will be
 run on the aggregation of all the parquet files together, and each file
-individually should match the expected SMH standard).
-If partition is not set to \code{NULL}, path to the folder containing ONLY the
-partitioned data.}
+individually should match the expected SMH standard). The path should be
+relative to the \code{hub_path}, model output folder.
+If partition is not set to \code{NULL}, path to the folder containing the
+partitioned data.If the path contains multiple rounds information, please
+use the \code{round_id} parameter to indicate which round to test.}
 
-\item{js_def}{path to JSON file containing round definitions: names of
+\item{hub_path}{path to the repository contains the submissions files
+and \code{tasks.json} file.}
+
+\item{js_def}{path to a JSON file containing round definitions: names of
 columns, target names, ... following the \code{tasks.json}
-\href{https://hubdocs.readthedocs.io/en/latest/user-guide/hub-config.html}{Hubverse }
-format}
+\href{https://hubverse.io/en/latest/user-guide/hub-config.html}{Hubverse}
+format. If \code{NULL} (default), will use the default path
+"hub-config/tasks.json" in the hub using \code{hub_path} parameter.}
 
-\item{lst_gs}{named list of data frame containing the
-observed data. For COVID-19, we highly recommend to use the output of the
-\code{pull_gs_data()} function. The list should have the same format: each data
-frame should be named with the corresponding covidcast signal except
-\code{"hospitalization"} instead of \code{"confirmed_admissions_covid_1d"}.
-Set to \code{NULL} (default), to NOT run comparison with observed data.}
+\item{target_data}{path to the target data in the Hubverse time series target
+data standard format. Please find additional information on the
+\href{https://hubverse.io/en/latest/user-guide/target-data.html}{hubverse}
+website. Set to \code{NULL} (default), to NOT include comparison with observed
+data.}
 
 \item{pop_path}{path to a table containing the population size of each
 geographical entities by FIPS (in a column \code{"location"}).
 Use to compare that value is not higher than expected population size.
 Set to \code{NULL} (default), to NOT run comparison with population data.}
 
-\item{merge_sample_col}{boolean to indicate if the for the output type
-\code{"sample"}, the \code{output_type_id} column is set to \code{NA} and the information is
-contained into 2 columns: \code{"run_grouping"} and \verb{"stochastic_run}".
-By default, \code{FALSE}}
+\item{merge_sample_col}{vector to indicate if the for the output type
+"sample", the output_type_id column is set to NA and the information is
+contained into other columns. If so the parameter should be set to the sample
+ID columns names, for example: \verb{c("run_grouping" and "stochastic_run")}.
+By default, \code{NULL} (sample ID information in the output type id column).}
 
 \item{partition}{vector, for csv and parquet files, allow to validate files
 in a partition format, see \code{arrow} package for more information, and
-\code{arrow::write_dataset()}, \code{arrow::open_dataset()} functions.}
+\code{arrow::write_dataset()}, \code{arrow::open_dataset()} functions.  By default
+\code{NULL}, no partition.}
 
-\item{n_decimal}{integer,  number of decimal point accepted in the column
+\item{n_decimal}{integer, number of decimal points accepted in the column
 value (only for \code{"sample"} output type), if \code{NULL} (default) no limit
 expected.}
 
@@ -62,23 +71,27 @@ extracted from \code{path}.}
 information in output message. By default, \code{TRUE} (slows the validation
 validation for sample output type)}
 
+\item{verbose_col}{character vector, details of values included in the pairing
+of each group for specific mentioned columns. If \code{NULL} (default), no
+additional information in the pairing information. (require \code{verbose} set
+to \code{TRUE}).}
+
 \item{r_schema}{Schema arrow objects, to read partition files with a specific
 schema. If none provided (default, \code{NULL}), the schema will be created from
-the \code{js_def} JSON file. (only for partition files)}
+the \code{js_def} JSON file. (only for partition files).}
 }
 \description{
-Runs all the different validation checks functions (\code{test_column()},
-\code{test_scenario()}, \code{test_origindate()}, \code{test_quantiles()}, \code{test_val()},
-\code{test_target()}, \code{test_location()},\code{ test_sample()}, \code{test_agegroup()},
-\code{test_raceethnicity()}) on a Scenario Modeling Hub (SMH)
-submissions and prints information about the results of each tests on the
-submission: warning(s), error(s) or message if all the tests were successful.
+Runs multiple validation checks functions on SMH submission
+file(s) and prints information about the results of each test on the
+submission file(s): warning(s), error(s) and/or message in the hubverse
+format.
 }
 \details{
 For more information on all tests run on the submission, please refer
-to the documentation of each \verb{"test_*}" function. A vignette with all the
-information is available in the package and is called:
-vignette("validation-checks").
+to the documentation of the
+\href{https://hubverse-org.github.io/hubValidations/index.html}{hubValidations}
+package. A vignette with all the information is available in the package and
+is called: vignette("validation-checks").
 
 The function accepts submission in PARQUET, CSV, ZIP or GZ file formats. If
 the submission files is in a "partitioned" format, the \code{path} parameter
@@ -86,21 +99,38 @@ should be to a directory to a folder containing ONLY the "partitioned"
 files. If any other file is present in the directory, it will be included
 in the validation.
 
-The function runs some preliminary tests before calling the "test_*"
-functions:
+For partitioned files, if the \code{path} contains multiple rounds, please use
+the \code{round_id} parameter to signal which round to test.
+
+The function runs some preliminary tests before running all the checks:
 \itemize{
 \item Input submission file format: The file format of the submission
-file(s) correspond to the expected format (for example: \code{parquet}, or \code{csv},
-etc.). If multiple files inputted, only \code{parquet} is accepted.
+file(s) corresponds to the expected format (for example: \code{parquet}, or
+\code{csv}, etc.). If multiple files inputted, only \code{parquet} is accepted.
 \item Date information: The column \code{origin_date} in the submission file
 corresponds to a \code{model_tasks} round information in the JSON file
 (\code{js_def} parameter).
 \item Date format: All columns containing dates information should be in
 "YYY-MM-DD" format.
+\item Location name: The submission should contain projection by
+location, the \code{location} column contains the location FIPS number as
+available in the location table in the SMH GitHub Repository. If the FIPS
+number are missing a trailing zero, the submission will be accepted but a
+warning message will be returned.
+\item Column format: If the submission file(s) contain column in a factor column,
+the column will be forced to character, and a warning message will be
+returned
 }
 }
 \examples{
-\dontrun{
-validate_submission("PATH/TO/SUBMISSION", "PATH/TO/ROUND/tasks.json")
-}
+hub_path <- system.file("extdata/exp/", package = "SMHvalidation")
+sub_path <- "team2-modelb/2023-11-12-team2-modelb.parquet"
+validate_submission(sub_path, hub_path)
+
+# Partitioned Files
+path_2 <- "t3-mc/"
+validate_submission(path_2, hub_path, partition = c("origin_date", "target"),
+                    merge_sample_col = c("run_grouping", "stochastic_run"),
+                    round_id = "2023-11-12")
+
 }

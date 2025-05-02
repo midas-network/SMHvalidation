@@ -1,5 +1,7 @@
+# nocov start
 #' Runs Validation Checks on the Location column
 #'
+#' **DEPRECATED** <br><br>
 #' Validate Scenario Modeling Hub submissions: test if the  `location` column
 #' contains the expected  value.
 #'
@@ -7,40 +9,30 @@
 #'@param model_task list containing round information for each id columns
 #' and model output (type, format, etc.)
 #'
-#'@details  This function contains 2 tests:
-#' * Location name: The submission should contains projection by
-#'  location, the `location` column contains the location FIPS number as
-#'  available in the location table in the SMH GitHub Repository. If the FIPS
-#'  number are missing a trailing zero, the submission will be accepted but a
-#'  warning message will be returned.
+#'@details  This function tests:
 #' * Specific location: For the target(s) requiring only specific
 #'  location(s), no additional location is provided in the submission file
 #'
-#' Function called in the `validate_submission()` function.
+#' `model_task` should match a specific round model tasks from the
+#' `tasks.json` associated with the hub. The json is expected to follow
+#' the [hubverse](https://hubverse.io/en/latest/user-guide/hub-config.html)
+#' schema at least version 5.0
 #'
-#'@importFrom stats na.omit
-#'@importFrom purrr keep map discard
-#'@importFrom dplyr filter
+#' As the function was deprecated, it will not be updated anymore. It was
+#' updated a last time to match the 5.0 hubverse schema version. However, it
+#' might returns duplicated message output.
+#'
+#'@importFrom purrr map
+#'@importFrom dplyr filter .data
 #'@export
 test_location <- function(df, model_task) {
-  # - FIPS code of 2 character
-  vect <- vect0 <- df$location
-  if (any(nchar(vect) == 1)) {
-    vect0 <- vect
-    vect[which(nchar(vect) == 1)] <- paste0(0,  vect[which(nchar(vect) == 1)])
-    location_test <- paste0("\U0001f7e1 Warning 702: Some location value are",
-                            " missing a trailing 0. For example, ",
-                            vect0[which(nchar(vect0) == 1)], " instead of ",
-                            paste0(0,  vect0[which(nchar(vect0) == 1)]))
-  } else {
-    location_test <- NA
-  }
 
+  warning("Function deprecated")
   #- targets with specific location does not contains additional location
   targ_list <- purrr::map(model_task, list("task_ids", "target"))
   req_target <- unique(unlist(purrr::map(targ_list, "required")))
   opt_target <- unique(unlist(purrr::map(targ_list, "optional")))
-  loc_test <- lapply(c(req_target, opt_target), function(x) {
+  lapply(c(req_target, opt_target), function(x) {
     test_task <- model_task[unlist(purrr::map(targ_list,
                                               function(y) any(grepl(x, y))))]
     loc_list <- purrr::map(test_task, list("task_ids", "location"))
@@ -48,9 +40,9 @@ test_location <- function(df, model_task) {
     opt_loc <- unique(unlist(purrr::map(loc_list, "optional")))
     outpt_type <- unique(names(unlist(purrr::map(test_task, "output_type"),
                                       FALSE)))
-    df_test <- data.table::data.table(df)[(target %in% x) &
-                                            (output_type %in% outpt_type)]
-    df_test <- loc_zero(df_test)
+    df_test <- dplyr::filter(df, .data[["target"]] %in% x &
+                               .data[["output_type"]] %in% outpt_type)
+    df_test <- location_fips_format(df_test)
 
     if (dim(df_test)[1] > 0) {
       # If at least one location expected
@@ -61,26 +53,22 @@ test_location <- function(df, model_task) {
             loc_mess <-
               paste(unique(df_test$location)[!unique(df_test$location) %in%
                                                opt_loc], collapse = ", ")
-            loc_test <-
-              paste0("\U000274c Error 703: The submission should ",
-                     "only contain information for the location(s): ",
-                     paste(opt_loc, collapse = ", "), ", for the target: ",
-                     x, ". The data frame contains other locations (", loc_mess,
-                     "), please verify.")
-          } else {
-            loc_test <- NA
+            message("\U000274c Error: The submission should ",
+                    "only contain information for the location(s): ",
+                    paste(opt_loc, collapse = ", "), ", for the target: ",
+                    x, ". The data frame contains other locations (", loc_mess,
+                    "), please verify.")
           }
           # If not all location optional
         } else {
           # if all required location contains in the data frame
           if (isFALSE(all(req_loc %in% unique(df_test$location)))) {
-            loc_test <-
-              paste0("\U000274c Error 703: The submission should contain ",
-                     "information for the location(s): ",
-                     paste(req_loc, collapse = ", "), ", for the target: ",
-                     x, ". The data frame is missing: ",
-                     paste(req_loc[!req_loc %in% unique(df_test$location)],
-                           collapse = ", "), ", please verify.")
+            message("\U000274c Error: The submission should contain ",
+                    "information for the location(s): ",
+                    paste(req_loc, collapse = ", "), ", for the target: ", x,
+                    ". The data frame is missing: ",
+                    paste(req_loc[!req_loc %in% unique(df_test$location)],
+                          collapse = ", "), ", please verify.")
             # if all location in optional and required
           } else if (isFALSE(all(unique(df_test$location) %in%
                                    c(opt_loc, req_loc)))) {
@@ -94,35 +82,23 @@ test_location <- function(df, model_task) {
               paste(unique(df_test$location)[!unique(df_test$location) %in%
                                                c(opt_loc, req_loc)],
                     collapse = ", ")
-            loc_test <-
-              paste0("\U000274c Error 703: The submission should only contain ",
-                     "information for the location(s): ",
-                     paste(req_loc,  collapse = ", "), " (required)",
-                     opt_loc_text, ", for the target: ", x,
-                     ". The data frame contains other locations (", loc_mess,
-                     "), please verify.")
-          } else {
-            loc_test <- NA
+            message("\U000274c Error: The submission should only contain ",
+                    "information for the location(s): ",
+                    paste(req_loc,  collapse = ", "), " (required)",
+                    opt_loc_text, ", for the target: ", x,
+                    ". The data frame contains other locations (", loc_mess,
+                    "), please verify.")
           }
         }
       } else {
         if (!all(is.na(df_test$location))) {
-          loc_test <-
-            paste0("\U000274c Error 703: No location should be associated with",
-                   " the target: ", x, ". please verify.")
-        } else {
-          loc_test <- NA # nocov
+          message("\U000274c Error: No location should be associated with",
+                  " the target: ", x, ". please verify.")
         }
       }
-    } else {
-      loc_test <- NA
     }
-    return(loc_test)
+    invisible(NULL)
   })
-
-  test_loc <- unique(na.omit(c(location_test, unlist(loc_test))))
-  if (length(test_loc) == 0)
-    test_loc <- "No errors or warnings found on Location"
-
-  return(test_loc)
+  invisible(NULL)
 }
+# nocov end

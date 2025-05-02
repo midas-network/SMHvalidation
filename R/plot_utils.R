@@ -1,38 +1,3 @@
-#' Format Gold Standard Data for Plotting
-#'
-#' @param lst_gs list of dataframe
-#' @param projection_date date
-#'
-#' @noRd
-#'
-#' @importFrom dplyr bind_rows mutate select
-#' @importFrom tidyr separate
-format_gs_data <- function(lst_gs, projection_date) {
-
-  # Ground Truth Data
-  gs_data <- lapply(seq_along(lst_gs), function(x) {
-    lst_gs[[x]] %>%
-      dplyr::mutate(outcome = names(lst_gs)[[x]])
-  }) %>%
-    dplyr::bind_rows()
-
-  gs_data <- gs_data %>%
-    dplyr::mutate(outcome = tolower(outcome),
-                  outcome = gsub("_num", "", outcome),
-                  outcome = gsub("incidence", "inc", outcome),
-                  outcome = gsub("cumulative", "cum", outcome),
-                  outcome = gsub("hospitalization", "hospitalization_inc",
-                                 outcome)) %>%
-    dplyr::select(date = time_value, location = fips, value, outcome, value) %>%
-    tidyr::separate(outcome, into = c("outcome", "incid_cum"), sep = "_") %>%
-    dplyr::mutate(outcome = dplyr::recode(outcome, "confirmed" = "case",
-                                          "deaths" = "death",
-                                          "hospitalization" = "hosp")) %>%
-    dplyr::mutate(pre_gs_end = date < projection_date)
-
-  return(gs_data)
-}
-
 #' Format tables
 #'
 #' Internal function to format outlier tables for validation report
@@ -40,35 +5,45 @@ format_gs_data <- function(lst_gs, projection_date) {
 #' @param tab_data data frame
 #' @param metric character vector, metric
 #'
-#' @importFrom dplyr mutate across %>%
-#' @importFrom scales comma percent
-#' @importFrom tibble tibble
-#' @importFrom tidyselect all_of
+#' @importFrom dplyr mutate across
+#' @importFrom tidyr all_of
+#'
 #' @noRd
 format_tables <- function(tab_data, metric, sel_group) {
-  tab_data <- tab_data %>%
-    dplyr::mutate(`ground truth` = scales::comma(`ground truth`, accuracy = 1))
+  tab_data <-
+    dplyr::mutate(tab_data,
+                  `ground truth` = format(.data[["ground truth"]], digits = 1,
+                                          big.mark = ",", trim = TRUE))
 
-  if (grepl("prct|percent", metric)) {
-    tab_data <- tab_data %>%
-      dplyr::mutate(dplyr::across(tidyselect::all_of(sel_group),
-                                  ~ scales::percent(.x, accuracy = 1)))
-  } else if (grepl("ratio", metric)) {
-    tab_data <- tab_data %>%
-      dplyr::mutate(dplyr::across(tidyselect::all_of(sel_group),
-                                  ~ round(.x, 2)))
+  if (grepl("ratio", metric, fixed = TRUE)) {
+    tab_data <- tab_data |>
+      dplyr::mutate(dplyr::across(tidyr::all_of(sel_group), ~ round(.x, 2)))
   } else {
-    tab_data <- tab_data %>%
-      dplyr::mutate(dplyr::across(tidyselect::all_of(sel_group),
-                                  ~ scales::comma(.x, accuracy = 1)))
+    tab_data <- tab_data |>
+      dplyr::mutate(dplyr::across(tidyr::all_of(sel_group),
+                                  ~ format(.x, digits = 1, trim = TRUE)))
   }
 
   if (nrow(tab_data) == 0) {
     tab_data <-
-      tibble::tibble(value = paste0("There are no projections in this category",
-                                    " for this submission. Well done!"))
+      data.frame(value = paste0("                               ",
+                                "There are no projections in this category",
+                                " for this submission. Well done!",
+                                "                               "))
   }
-  return(tab_data)
+  tab_data
+}
+
+# Additional columns filtering (keep only overall population)
+#' @importFrom dplyr filter
+#' @noRd
+add_filter_col <- function(df) {
+  if (any("age_group" %in% colnames(df)))
+    df <- dplyr::filter(df, grepl("0-130", .data[["age_group"]], fixed = TRUE))
+  if (any("race_ethnicity" %in% colnames(df)))
+    df <- dplyr::filter(df, grepl("overall", .data[["race_ethnicity"]],
+                                  fixed = TRUE))
+  df
 }
 
 
@@ -78,7 +53,6 @@ format_tables <- function(tab_data, metric, sel_group) {
 #'
 #' @param tab_data data frame
 #'
-#' @importFrom tibble tibble
 #' @noRd
 na_cells <- function(tab_data, sel_group) {
   # Cells to highlight
@@ -88,11 +62,11 @@ na_cells <- function(tab_data, sel_group) {
                                            sel_group)), ]
   }
   if (nrow(nas) > 0 || is.null(nrow(nas))) {
-    nas <- tibble::tibble(row = nas[["row"]], col = nas[["col"]])
+    nas <- data.frame(row = nas[["row"]], col = nas[["col"]])
     nas[[1]] <- nas[[1]] + 1
 
   }
-  return(nas)
+  nas
 }
 
 #' Print outlier tables for validation report
@@ -104,30 +78,24 @@ na_cells <- function(tab_data, sel_group) {
 #' @param colors vector, colors
 #'
 #' @noRd
-#'
-#' @importFrom dplyr select filter mutate across
-#' @importFrom tidyr pivot_wider
-#' @importFrom scales comma percent
-#' @importFrom tibble tibble
+#' @importFrom dplyr filter select
+#' @importFrom tidyr all_of pivot_wider
 #' @importFrom gridExtra ttheme_default tableGrob
-#' @importFrom gtable gtable_add_grob gtable_add_rows
-#' @importFrom grid gpar rectGrob
-#' @importFrom tidyselect all_of
-print_table <- function(
-    data = proj_plot_data_calib_cum,
-    tab_title =
-        "Top Outliers: Percent difference from ground truth, Cumulative",
-    metric = "prctdiff_gt", #"median",
-    thresholds = c(-Inf, -.20, -.06, 0),
-    colors = c("red", "orange", "yellow", "orange")) {
+#' @importFrom grid rectGrob gpar textGrob unit grobHeight
+#' @importFrom gtable gtable_add_rows gtable_add_grob
+print_table <- function(data, tab_title, metric = "prctdiff_gt", #"median",
+                        thresholds = c(-Inf, -.20, -.06, 0),
+                        colors = c("red", "orange", "yellow", "orange")) {
 
-  data <- data %>% filter(!is.na(scenario_id))
+  data <-  dplyr::filter(data, !is.na(.data[["scenario_id"]]))
   sel_group <- unique(data$scenario_id)
   # Format the table
-  tab_data <- data %>%
-    dplyr::select(scenario_id, state, outcome, `ground truth`,
-                  value = tidyselect::all_of(metric)) %>%
-    tidyr::pivot_wider(names_from = scenario_id, values_from = value)
+  tab_data <- data |>
+    dplyr::select(tidyr::all_of(c("scenario_id", "state", "outcome",
+                                  "ground truth")),
+                  value = tidyr::all_of(metric)) |>
+    tidyr::pivot_wider(names_from = .data[["scenario_id"]],
+                       values_from = .data[["value"]])
 
   # Cells to highlight
   nas <- na_cells(tab_data, sel_group)
@@ -136,9 +104,9 @@ print_table <- function(
     tmp <- which(tab_data >= thresholds[x] &
                    tab_data < c(thresholds, Inf)[x + 1] & is.na(tab_data),
                  arr.ind = TRUE)
-    tmp <- tibble::as_tibble(tmp)
-
-    if (nrow(nas) > 0 & !is.null(nrow(nas))) {
+    if (nrow(tmp) == 0) {
+      tmp <- tmp
+    } else if (nrow(nas) > 0 & !is.null(nrow(nas))) {
       tmp <- tmp[which(tmp$col %in%  which(names(tab_data) %in% sel_group)), ]
       tmp$row <- tmp$row + 1
     } else {
@@ -179,7 +147,6 @@ print_table <- function(
   # Grey out NAs
   if (nrow(nas) > 0) {
     for (x in seq_along(nrow(nas))) {
-      print(x)
       ind_ <- find_cell(g, as.integer(nas[x, 1]), as.integer(nas[x, 2]),
                         "core-fg")
       g$grobs[ind_][[1]][["gp"]] <- grid::gpar(col = "lightgrey")
@@ -205,12 +172,11 @@ print_table <- function(
 #' @param y_sqrt boolean, FALSE by default
 #'
 #' @noRd
-#'
-#' @importFrom ggplot2 scale_y_sqrt scale_y_continuous aes ggplot geom_ribbon
-#' @importFrom ggplot2 geom_vline geom_point scale_x_date scale_color_viridis_d
-#' @importFrom ggplot2 scale_fill_viridis_d theme_bw theme guides guide_legend
-#' @importFrom ggplot2 coord_cartesian element_text facet_wrap xlab geom_line
-#' @importFrom lubridate as_date
+#' @importFrom ggplot2 scale_y_sqrt scale_y_continuous ggplot aes geom_ribbon
+#' @importFrom ggplot2 geom_line geom_vline geom_point scale_x_date
+#' @importFrom ggplot2 scale_x_date scale_color_viridis_d scale_fill_viridis_d
+#' @importFrom ggplot2 theme_bw theme element_text guide_legend guides xlab
+#' @importFrom ggplot2 coord_cartesian facet_wrap
 #' @importFrom dplyr filter
 #' @importFrom glue glue
 plot_projections <- function(data, st, projection_date, legend_rows = 1,
@@ -222,31 +188,38 @@ plot_projections <- function(data, st, projection_date, legend_rows = 1,
     scale_y_funct <- ggplot2::scale_y_continuous
   }
 
-  projection_date <- lubridate::as_date(projection_date)
+  projection_date <- as.Date(projection_date)
 
 
-  plot <- data %>%
-    dplyr::filter(scenario_id != "ground truth") %>%
-    ggplot2::ggplot(ggplot2::aes(x = date)) +
-    ggplot2::geom_ribbon(ggplot2::aes(ymin = low, ymax = high,
-                                      fill = scenario_id), alpha = 0.20) +
-    ggplot2::geom_line(ggplot2::aes(y = median, color = scenario_id),
+  plot <- dplyr::filter(data, .data[["scenario_id"]] != "ground truth") |>
+    ggplot2::ggplot(ggplot2::aes(x = .data[["date"]])) +
+    ggplot2::geom_ribbon(ggplot2::aes(ymin = .data[["low"]],
+                                      ymax = .data[["high"]],
+                                      fill = .data[["scenario_id"]]),
+                         alpha = 0.20) +
+    ggplot2::geom_line(ggplot2::aes(y = .data[["median"]],
+                                    color = .data[["scenario_id"]]),
                        linewidth = 1.5, linetype = 1) +
     ggplot2::geom_vline(ggplot2::aes(xintercept = projection_date),
                         color = "grey", linetype = 2, linewidth = 1.5)
 
-  if (any(grepl("point", colnames(data)))) {
+  if (any(grepl("point", colnames(data), fixed = TRUE))) {
     plot <- plot +
-      ggplot2::geom_line(ggplot2::aes(y = point, color = scenario_id),
+      ggplot2::geom_line(ggplot2::aes(y = .data[["point"]],
+                                      color = .data[["scenario_id"]]),
                          linetype = 2)
   }
 
-  if (any(grepl("value_gt", colnames(data)))) {
+  if (any(grepl("observation", colnames(data), fixed = TRUE))) {
     plot <- plot +
-      ggplot2::geom_point(data = data %>% dplyr::filter(pre_gs_end == TRUE),
-                          ggplot2::aes(y = value_gt), color = "black") +
-      ggplot2::geom_point(data = data %>% dplyr::filter(pre_gs_end == FALSE),
-                          ggplot2::aes(y = value_gt), color = "red")
+      ggplot2::geom_point(data =
+                            dplyr::filter(data, .data[["pre_gs_end"]] == TRUE),
+                          ggplot2::aes(y = .data[["observation"]]),
+                          color = "black") +
+      ggplot2::geom_point(data =
+                            dplyr::filter(data, .data[["pre_gs_end"]] == FALSE),
+                          ggplot2::aes(y = .data[["observation"]]),
+                          color = "red")
   }
 
   plot <- plot +
@@ -262,17 +235,23 @@ plot_projections <- function(data, st, projection_date, legend_rows = 1,
     ggplot2::guides(fill = ggplot2::guide_legend(nrow = 1, byrow = TRUE)) +
     ggplot2::xlab(NULL) +
     ggplot2::coord_cartesian(xlim = c(projection_date - 7 * 3,
-                                      lubridate::as_date(max(data$date)))) +
-    ggplot2::facet_wrap(~outcome, ncol = 1, scales = "free_y") +
-    scale_y_funct(glue::glue("Weekly {ifelse(data$incid_cum=='inc', ",
-                             "'Incident', 'Cumulative')} Outcomes, {st}"))
+                                      as.Date(max(data$date)))) +
+    ggplot2::facet_wrap(~outcome, ncol = 1, scales = "free_y")
 
+  if (unique(data$type) == "inc") {
+    plot <- plot +
+      scale_y_funct(paste0("Weekly Incident Outcomes, ", st))
+  } else {
+    plot <- plot +
+      scale_y_funct(paste0("Weekly Cumulative Outcomes, ", st))
+  }
+  return(plot)
 }
 
 #' Generate PDF of state plots
 #'
 #' @param proj_data dataframe
-#' @param gs_data list of dataframe, containing observed data
+#' @param target_data dataframe, containing observed data
 #' @param team_model_name character vector, name of the team and models,
 #'   following Scenario Modeling Hub standard
 #' @param projection_date date vector
@@ -283,60 +262,57 @@ plot_projections <- function(data, st, projection_date, legend_rows = 1,
 #' @param y_sqrt boolean, FALSE by default
 #'
 #' @noRd
-#'
-#' @importFrom dplyr filter mutate select rename arrange bind_rows left_join
+#' @importFrom dplyr filter rename bind_rows select mutate across arrange
 #' @importFrom dplyr full_join desc slice_head pull
-#' @importFrom tibble as_tibble
-#' @importFrom tidyr separate pivot_wider
-#' @importFrom lubridate as_date
+#' @importFrom tidyr separate matches all_of pivot_wider any_of
 #' @importFrom ggpubr get_legend
-#' @importFrom grDevices pdf dev.off
 #' @importFrom gridExtra grid.arrange
-#' @importFrom grid unit gpar textGrob
+#' @importFrom grid textGrob gpar unit
 #' @importFrom cowplot ggdraw draw_label plot_grid
-#' @importFrom glue glue
-#' @importFrom ggplot2 theme margin
+#' @importFrom ggplot2 margin theme
+#' @importFrom grDevices dev.off pdf
 #'
-make_state_plot_pdf <- function(proj_data, gs_data, team_model_name,
+make_state_plot_pdf <- function(proj_data, target_data, team_model_name,
                                 projection_date, save_path,
                                 plot_quantiles = c(0.025, 0.975),
                                 y_sqrt = FALSE) {
   # Projections - Clean up and merge
-  proj_data <- proj_data %>%
-    dplyr::mutate(location = stringr::str_pad(location, 2, "left", "0")) %>%
-    dplyr::filter(output_type_id %in% c(plot_quantiles[1], 0.5,
-                                        plot_quantiles[2])) %>%
-    tidyr::separate(target, into = c("incid_cum", "outcome"), sep = " ") %>%
-    dplyr::rename(date = target_end_date, quantile = output_type_id) %>%
-    tibble::as_tibble()
+  proj_data <- location_fips_format(proj_data) |>
+    dplyr::filter(.data[["output_type_id"]] %in%
+                    c(plot_quantiles[1], 0.5, plot_quantiles[2]),
+                  !is.na(.data[["output_type_id"]])) |>
+    tidyr::separate(tidyr::matches("^target$"),
+                    into = c("type", "outcome"), sep = " ") |>
+    dplyr::rename(tidyr::all_of(c(quantile = "output_type_id")))
 
-
-  if (!is.null(gs_data)) {
-    proj_data <- proj_data %>%
-      dplyr::bind_rows(gs_data %>%
-                         dplyr::rename(value_gt = value) %>%
-                         dplyr::mutate(date = lubridate::as_date(date),
-                                       scenario_id = "ground truth") %>%
-                         dplyr::filter(date <= max(proj_data$date,
-                                                   na.rm = TRUE))) %>%
-      dplyr::select(scenario_id, location, incid_cum, outcome, date, quantile,
-                    value, value_gt, pre_gs_end)
+  if (!is.null(target_data)) {
+    target_data$date <- as.Date(target_data$date)
+    target_data$scenario_id <- "ground truth"
+    target_data <-
+      dplyr::filter(target_data,
+                    .data[["date"]] <= max(proj_data$date, na.rm = TRUE),
+                    .data[["type"]] %in% c("inc", "cum"),
+                    .data[["outcome"]] %in% c("hosp", "case", "death"))
+    proj_data <- proj_data |>
+      dplyr::bind_rows(target_data)
+    col_sel <- c("scenario_id", "location", "type", "outcome", "date",
+                 "quantile", "value", "observation", "pre_gs_end")
   } else {
-    proj_data <- proj_data %>%
-      dplyr::select(scenario_id, location, incid_cum, outcome,  date, quantile,
-                    value)
+    col_sel <- c("scenario_id", "location", "type", "outcome", "date",
+                 "quantile", "value")
   }
 
-  proj_data <- proj_data  %>%
-    dplyr::mutate(state =  as.character(location)) %>%
-    dplyr::arrange(scenario_id, state, incid_cum, outcome, date)
+  proj_data <- dplyr::select(proj_data, tidyr::all_of(col_sel)) |>
+    dplyr::mutate(state =  as.character(.data[["location"]])) |>
+    dplyr::arrange(dplyr::across(tidyr::all_of(c("scenario_id", "state", "type",
+                                                 "outcome", "date"))))
 
-  proj_plot_data <- proj_data %>%
-    tidyr::pivot_wider(names_from = quantile, values_from = value)
+  proj_plot_data <-
+    tidyr::pivot_wider(proj_data, names_from = .data[["quantile"]],
+                       values_from = .data[["value"]])
 
   if ("NA" %in% colnames(proj_plot_data))
-    proj_plot_data <- dplyr::select(proj_plot_data, -`NA`)
-
+    proj_plot_data <- dplyr::select(proj_plot_data, -tidyr::matches("^NA$"))
 
   # Rename the quantiles
   colnames(proj_plot_data) <- gsub(plot_quantiles[1], "low",
@@ -346,56 +322,64 @@ make_state_plot_pdf <- function(proj_data, gs_data, team_model_name,
                                    colnames(proj_plot_data))
 
   # Add calibration stats
-  if (!is.null(gs_data)) {
-    proj_plot_data_calib <- proj_plot_data %>%
-      dplyr::filter(scenario_id != "ground truth" &
-                      date == (lubridate::as_date(projection_date) + 6)) %>%
-      dplyr::select(-value_gt) %>%
-      dplyr::full_join(proj_plot_data %>%
-                         dplyr::filter(scenario_id == "ground truth",
-                                       !is.na(value_gt), pre_gs_end) %>%
-                         dplyr::filter(date == max(date)) %>%
-                         dplyr::select(location, state, incid_cum, outcome,
-                                       value_gt)) %>%
-      dplyr::mutate(diff_gt = round(median - value_gt),
-                    prctdiff_gt = round(diff_gt / value_gt, 2),
-                    ratio_gt = round(median / value_gt, 4),
-                    logratio_gt = log(ratio_gt))
+  if (!is.null(target_data)) {
+    proj_plot_data_calib <- proj_plot_data |>
+      dplyr::filter(.data[["scenario_id"]] != "ground truth" &
+                      .data[["date"]] == (as.Date(projection_date) + 6)) |>
+      dplyr::select(-tidyr::any_of(c("observation", "population"))) |>
+      dplyr::full_join(dplyr::filter(proj_plot_data,
+                                     .data[["scenario_id"]] == "ground truth",
+                                     !is.na(.data[["observation"]]),
+                                     .data[["pre_gs_end"]]) |>
+                         dplyr::filter(.data[["date"]] ==
+                                         max(.data[["date"]])) |>
+                         dplyr::select(dplyr::all_of(c("location", "state",
+                                                       "type", "outcome",
+                                                       "observation")))) |>
+      dplyr::mutate(diff_gt = round(.data[["median"]] - .data[["observation"]]),
+                    prctdiff_gt = round(.data[["diff_gt"]] /
+                                          .data[["observation"]], 2),
+                    ratio_gt = round(.data[["median"]] /
+                                       .data[["observation"]], 4),
+                    logratio_gt = log(.data[["ratio_gt"]]))
 
     # Max differences
     # Incident
-    proj_plot_data_calib_inc <- proj_plot_data_calib %>%
-      dplyr::filter(incid_cum == "inc") %>%
-      dplyr::filter(!((value_gt <= 20 & median <= 20))) %>%
-      dplyr::arrange(desc(abs(logratio_gt))) %>%
-      dplyr::slice_head(n = 30) %>%
-      dplyr::mutate(outcome = paste0("incid ", .$outcome),
-                    median = round(median)) %>%
-      dplyr::select(scenario_id, state, outcome, `ground truth` = value_gt,
-                    median, prctdiff_gt, ratio_gt, logratio_gt)
+    proj_plot_data_calib_inc <- proj_plot_data_calib |>
+      dplyr::filter(.data[["type"]] == "inc",
+                    !(.data[["observation"]] <= 20 &
+                        .data[["median"]] <= 20)) |>
+      dplyr::arrange(dplyr::desc(abs(.data[["logratio_gt"]]))) |>
+      dplyr::slice_head(n = 30) |>
+      dplyr::mutate(outcome = paste0("incid ", .data[["outcome"]]),
+                    median = round(.data[["median"]])) |>
+      dplyr::select(tidyr::all_of(c("scenario_id", "state", "outcome",
+                                    "ground truth" = "observation", "median",
+                                    "prctdiff_gt", "ratio_gt", "logratio_gt")))
 
     # cumulative - over estimated cum
-    proj_plot_data_calib_cum_pos <- proj_plot_data_calib %>%
-      dplyr::filter(prctdiff_gt >= 0) %>%
-      dplyr::filter(incid_cum == "cum") %>%
-      dplyr::filter(!((value_gt <= 20 & median <= 20))) %>%
-      dplyr::arrange(desc(abs(logratio_gt))) %>%
-      dplyr::slice_head(n = 20) %>%
-      dplyr::mutate(outcome = paste0("incid ", .$outcome),
-                    median = round(median)) %>%
-      dplyr::select(scenario_id, state, outcome, `ground truth` = value_gt,
-                    median, prctdiff_gt, ratio_gt, logratio_gt)
+    proj_plot_data_calib_cum_pos <- proj_plot_data_calib |>
+      dplyr::filter(.data[["type"]] == "cum", .data[["prctdiff_gt"]] >= 0,
+                    !(.data[["observation"]] <= 20 &
+                        .data[["median"]] <= 20)) |>
+      dplyr::arrange(dplyr::desc(abs(.data[["logratio_gt"]]))) |>
+      dplyr::slice_head(n = 20) |>
+      dplyr::mutate(outcome = paste0("incid ", .data[["outcome"]]),
+                    median = round(.data[["median"]])) |>
+      dplyr::select(tidyr::all_of(c("scenario_id", "state", "outcome",
+                                    "ground truth" = "observation", "median",
+                                    "prctdiff_gt", "ratio_gt", "logratio_gt")))
 
     # cumulative - underestimated cum
-    proj_plot_data_calib_cum_neg <- proj_plot_data_calib %>%
-      dplyr::filter(prctdiff_gt < 0) %>%
-      dplyr::filter(incid_cum == "cum") %>%
-      dplyr::arrange(desc(abs(logratio_gt))) %>%
-      dplyr::slice_head(n = 40) %>%
-      dplyr::mutate(outcome = paste0("incid ", .$outcome),
-                    median = round(median)) %>%
-      dplyr::select(scenario_id, state, outcome, `ground truth` = value_gt,
-                    median, prctdiff_gt, ratio_gt, logratio_gt)
+    proj_plot_data_calib_cum_neg <- proj_plot_data_calib |>
+      dplyr::filter(.data[["type"]] == "cum", .data[["prctdiff_gt"]] < 0) |>
+      dplyr::arrange(dplyr::desc(abs(.data[["logratio_gt"]]))) |>
+      dplyr::slice_head(n = 40) |>
+      dplyr::mutate(outcome = paste0("incid ", .data[["outcome"]]),
+                    median = round(.data[["median"]])) |>
+      dplyr::select(tidyr::all_of(c("scenario_id", "state", "outcome",
+                                    "ground truth" = "observation", "median",
+                                    "prctdiff_gt", "ratio_gt", "logratio_gt")))
 
     # TABLES
     ttl_w <- ": [Wk1 Projected] minus [Wk0 Reported]"
@@ -433,180 +417,84 @@ make_state_plot_pdf <- function(proj_data, gs_data, team_model_name,
 
   # Create PDF
 
-  states_ <- unique(proj_plot_data %>%
-                      dplyr::filter(scenario_id != "ground truth") %>%
-                      dplyr::pull(state))
+  states_ <- unique(dplyr::filter(proj_plot_data,
+                                  .data[["scenario_id"]] != "ground truth") |>
+                      dplyr::pull("state"))
   if ("US" %in% states_) {
     states_ <- c("US", states_[states_ != "US"])
   }
 
   # INCIDENT
-  p_inc <- proj_plot_data %>%
-    dplyr::filter(state == states_[1]) %>%
-    dplyr::filter(incid_cum == "inc") %>%
-    plot_projections(states_[1], projection_date, legend_rows = 1,
-                     y_sqrt = y_sqrt)
-  p_legend <- ggpubr::get_legend(p_inc)
+  p_inc <- proj_plot_data |>
+    dplyr::filter(.data[["state"]] == states_[1], .data[["type"]] == "inc")
 
-  pdf(save_path, width = 8.5, height = 11)
+  if (nrow(p_inc) > 0) {
+    p_inc <- plot_projections(p_inc, states_[1], projection_date,
+                              legend_rows = 1,  y_sqrt = y_sqrt)
+    p_legend <- ggpubr::get_legend(p_inc)
+  } else {
+    p_legend <- NULL
+  }
+
+  grDevices::pdf(save_path, width = 8.5, height = 11)
 
   # Tables
-  if (!is.null(gs_data)) {
+  if (!is.null(target_data)) {
     gridExtra::grid.arrange(grid::textGrob(paste0("MODEL PROJECTIONS:\n",
                                                   team_model_name, "  --  ",
                                                   projection_date),
                                            gp = grid::gpar(fontsize = 14,
                                                            fontface = "bold")),
                             tab_inc_ratios, tab_cum_ratios_pos,
-                            tab_cum_ratios_neg, padding = unit(1, "line"),
+                            tab_cum_ratios_neg, padding = grid::unit(1, "line"),
                             nrow = 4, heights = c(0.5, 3, 2, 2))
-
     gridExtra::grid.arrange(tab_inc_num, tab_cum_num_pos, tab_cum_num_neg,
-                            padding = unit(1, "line"), nrow = 3,
+                            padding = grid::unit(1, "line"), nrow = 3,
                             heights = c(3, 2, 2))
   }
 
   # Curves
   for (st in states_) {
-    p_state <- proj_plot_data %>%
-      dplyr::filter(state == st)
+    p_state <- dplyr::filter(proj_plot_data, .data[["state"]] == st)
     # INCIDENT
-    if (any("inc" %in% p_state$incid_cum)) {
-      p_inc <- p_state %>%
-        dplyr::filter(incid_cum == "inc") %>%
+    if (any("inc" %in% p_state$type)) {
+      p_inc <- dplyr::filter(p_state, .data[["type"]] == "inc") |>
         plot_projections(st, projection_date, legend_rows = 1, y_sqrt = y_sqrt)
     } else {
       p_inc <- NULL
     }
 
     # CUMULATIVE
-    if (any("cum" %in% p_state$incid_cum)) {
-      p_cum <- p_state %>%
-        dplyr::filter(incid_cum == "cum") %>%
+    if (any("cum" %in% p_state$type)) {
+      p_cum <- dplyr::filter(p_state, .data[["type"]] == "cum") |>
         plot_projections(st, projection_date, legend_rows = 1, y_sqrt = y_sqrt)
     } else {
       p_cum <- NULL
     }
 
     title <- cowplot::ggdraw() +
-      cowplot::draw_label(glue::glue("{st} -- {projection_date} - ",
-                                     "{team_model_name}"), fontface = "bold",
+      cowplot::draw_label(paste0(st, " -- ", projection_date, " - ",
+                                 team_model_name), fontface = "bold",
                           x = 0.5, hjust = .5) +
       ggplot2::theme(plot.margin = ggplot2::margin(0, 0, 0, 0))
 
     # Plot it all together
-    plot_grid <- cowplot::plot_grid(p_inc +
-                                      ggplot2::theme(legend.position = "none"),
-                                    p_cum +
-                                      ggplot2::theme(legend.position = "none"),
-                                    nrow = 1)
+    if (is.null(p_cum)) {
+      plot_grid <-
+        cowplot::plot_grid(p_inc + ggplot2::theme(legend.position = "none"),
+                           nrow = 1)
+    } else if (is.null(p_inc)) {
+      plot_grid <-
+        cowplot::plot_grid(p_cum + ggplot2::theme(legend.position = "none"),
+                           nrow = 1)
+    } else {
+      plot_grid <-
+        cowplot::plot_grid(p_inc + ggplot2::theme(legend.position = "none"),
+                           p_cum + ggplot2::theme(legend.position = "none"),
+                           nrow = 1)
+    }
     plot(cowplot::plot_grid(title, p_legend, plot_grid, ncol = 1,
                             rel_heights = c(.05, .1, 1)))
   }
-  dev.off()
-}
-
-
-
-#' Generate Validation Plots
-#'
-#' @param path_proj dataframe, format as the Scenario Modeling Hub standard
-#' @param lst_gs, list of dataframe, observed data (advice to use the output
-#'    of the function `pull_gs_data()`). If NULL, no comparison to observed
-#'    data will be done.
-#' @param save_path character vector, path to the saving folder for the PDF
-#'    output
-#' @param y_sqrt boolean, by default FALSE
-#' @param plot_quantiles numeric vector, quantiles to use for plotting (should
-#'    correspond to the quantiles from the `proj_data` parameter)
-#' @param partition vector, for csv and parquet files, allow to validate files
-#' in a partition format, see `arrow` package for more information, and
-#' `arrow::write_dataset()`, `arrow::open_dataset()` functions.
-#'
-#' @export
-#'
-#' @importFrom lubridate as_date
-#' @importFrom dplyr mutate_if mutate
-generate_validation_plots <- function(path_proj, lst_gs,
-                                      save_path = dirname(path_proj),
-                                      y_sqrt = FALSE,
-                                      plot_quantiles = c(0.025, 0.975),
-                                      partition = NULL) {
-
-  # SETUP
-  date_pttrn <- "[[:digit:]]{4}-[[:digit:]]{2}-[[:digit:]]{2}"
-  file_extension <- ".csv|.zip|.gz|.pq|.parquet"
-  if (is.null(partition)) {
-    file_ <- basename(path_proj)
-    team_model_name <- gsub(paste0(date_pttrn, "(_|-)|", file_extension),
-                            "",  file_)
-  } else {
-    file_ <- dir(path_proj, recursive = TRUE)
-    team_model_name <- gsub(paste0("(.+?)?", date_pttrn, "(\\/.*|-)|",
-                                   file_extension),  "", basename(file_))
-  }
-
-  projection_date <- lubridate::as_date(stringr::str_extract(file_, date_pttrn))
-  projection_date <- unique(projection_date)
-  save_path <- file.path(unique(save_path), paste0(projection_date, "_",
-                                                   unique(team_model_name),
-                                                   "_plots.pdf"))
-
-  # Ground Truth Data
-  if (is.null(lst_gs)) {
-    gs_data <- NULL
-  } else {
-    gs_data <- suppressWarnings(format_gs_data(lst_gs, projection_date))
-  }
-
-  # Projections
-  if (is.null(partition)) {
-    proj_data <- suppressMessages(read_files(path_proj))
-  } else {
-    if (all(grepl("parquet$|.pqt$", dir(path_proj, recursive = TRUE)))) {
-      filef <- "parquet"
-    } else if (all(grepl(".csv$", dir(path_proj, recursive = TRUE)))) {
-      filef <- "csv"
-    } else {
-      err005 <-
-        paste0("\U000274c Error 005: The file format of the submission was not",
-               " recognized, please use one unique file or multiple parquet ",
-               "files. For more information, please look at the documentation ",
-               "of the hub. \n")
-      cat(err005)
-      stop(" The submission contains an issue, the validation was not run, ",
-           "please see information above.")
-    }
-    proj_data <-
-      arrow::open_dataset(path_proj, format = filef, partitioning = partition,
-                          hive_style = FALSE,
-                          factory_options =
-                          list(exclude_invalid_files = TRUE)) %>%
-      dplyr::collect()
-  }
-  proj_data <- dplyr::mutate_if(proj_data, is.factor, as.character) %>%
-    dplyr::mutate(target_end_date = lubridate::as_date(origin_date) - 1 +
-                    (horizon * 7),
-                  origin_date = lubridate::as_date(origin_date)) %>%
-    dplyr::filter(grepl(paste0("inc case|inc death|inc hosp|inc inf",
-                               "cum case|cum death|cum hosp|inc inf"),
-                        target) & grepl("quantile", output_type))
-
-  if (any("age_group" %in% colnames(proj_data)))
-    proj_data <- dplyr::filter(proj_data, grepl("0-130", age_group))
-
-  if (any("race_ethnicity" %in% colnames(proj_data)))
-    proj_data <- dplyr::filter(proj_data, grepl("overall", race_ethnicity))
-
-  #remove artifact column
-  if ("X" %in% colnames(proj_data)) {
-    proj_data <- proj_data %>% dplyr::select(-X)
-  }
-
-  # Create PDF of State Plots
-  make_state_plot_pdf(proj_data = proj_data, gs_data = gs_data,
-                      team_model_name = team_model_name,
-                      projection_date = unique(proj_data$origin_date),
-                      save_path = save_path, plot_quantiles = plot_quantiles,
-                      y_sqrt = y_sqrt)
+  grDevices::dev.off()
 }

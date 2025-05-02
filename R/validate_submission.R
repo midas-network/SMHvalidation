@@ -1,340 +1,161 @@
-#' Merge and simple tests of Sample ID columns
-#'
-#' If the submission files contains the two `"run_grouping"` and
-#'  `"stochastic_run"` columns for sample ID, the function will be called to:
-#'  combines the two columns into one `output_type_id` column and tests if:
-#'  the columns names are correct, the two columns contains only integer values
-#'  and not an unique value.
-#'
-#' The function returns a named list with: the output data frame (without the
-#' two columns, `"df"`) and a list of error message, if any issue
-#' (`"add_message"`)
-#'
-#' @param df data frame to test
-#' @param req_colnames character vector of the expected column names
-#' @param add_meesage character vector, error message to append
-#'
-#' @noRd
-merge_sample_id <- function(df, req_colnames, add_message = NULL) {
-  if (!(all(c(req_colnames, "run_grouping", "stochastic_run") %in%
-              names(df)))) {
-    fail_col <- req_colnames[!req_colnames %in% names(df)]
-    colnames_test <-
-      paste0("\U000274c Error 101: At least one column name is misspelled or",
-             " does not correspond to the expected column names. The ",
-             "column(s) ", paste(fail_col, collapse = ", "),
-             " do(es) not correspond to the standard")
-    cat(colnames_test)
-    stop(" The submission contains an issue, the validation was not run, ",
-         "please see information above.")
-  }
-  if (isFALSE(all(is_wholenumber(na.omit(df$run_grouping)))) ||
-        isFALSE(all(is_wholenumber(na.omit(df$stochastic_run))))) {
-    err_message <-
-      paste0("\U000274c Error 903: The column 'run_grouping' and ",
-             "'stochastic_run' should contain integer values only for type ",
-             "'sample'. Please verify")
-    add_message <- paste(add_message, err_message, sep = "\n")
-  }
-
-  df <-
-    dplyr::mutate(df,
-                  output_type_id = ifelse(output_type == "sample",
-                                          as.factor(paste0(run_grouping, "-",
-                                                           stochastic_run)),
-                                          output_type_id))
-  df_sample_id <- dplyr::filter(df, output_type == "sample")
-  if (length(unique(df_sample_id$output_type_id)) <= 1) {
-    add_message <- paste0(add_message,
-                          "\n\U000274c Error 902: The submission should ",
-                          "contains multiple sample output type groups, ",
-                          "please verify.\n")
-  }
-  return(list("df" = df,
-              "add_message" = add_message))
-}
-
-#' Create the validation report
-#'
-#' Combine all the test output function into one report
-#'
-#' @param df data frame to test
-#' @param model_task list containing round definitions: names of columns,
-#' target names, ...
-#' @param col_message character vector, error message about the columns names
-#'  to append to the report
-#' @param out_req character vector, error message about the required values
-#'  to append to the report
-#' @param out_col character vector, error message about the columns
-#'  to append to the report
-#' @param out_scen character vector, error message about the `scenario_id`
-#'  column to append to the report
-#' @param out_ord character vector, error message about the `origin_date` column
-#'  to append to the report
-#' @param out_val character vector, error message about the `value` column
-#'  to append to the report
-#' @param out_target character vector, error message about the `target` column
-#'  to append to the report
-#' @param out_loc character vector, error message about the `location` column
-#'  to append to the report
-#' @param out_sample character vector, error message about `"sample"` output
-#' type to append to the report. Uses only if the submission is expected to
-#' contains `"sample"` values
-#' @param out_quant character vector, error message about `"quantile"` output
-#' type to append to the report. Uses only if the submission is expected to
-#' contains `"quantile"` values
-#' @param out_agegroup character vector, error message about `age_group`
-#' column to append to the report. Uses only if the submission is expected to
-#' contains a `age_group` column
-#' @param out_race_ethnicity character vector, error message about
-#' `race_ethnicity` column to append to the report. Uses only if the submission
-#' is expected to contains a `race_ethnicity` column
-#' @param add_message character vector, error message to append to the report
-#'
-#' @noRd
-create_report <- function(df, model_task, col_message, out_req, out_col,
-                          out_scen, out_ord, out_val, out_target, out_loc,
-                          out_sample, out_quant, out_agegroup,
-                          out_raceethnicity, add_message = NULL) {
-  test_report <-
-    paste("\n ## Required values: \n", paste(out_req, col_message,
-                                             collapse = "\n"),
-          "\n\n ## Columns: \n", paste(out_col, col_message, collapse = "\n"),
-          "\n\n## Scenarios: \n", paste(out_scen, collapse = "\n"),
-          "\n\n## Origin Date Column:  \n", paste(out_ord, collapse = "\n"),
-          "\n\n## Value and Type Columns: \n", paste(out_val, collapse = "\n"),
-          "\n\n## Target Columns: \n", paste(out_target, collapse = "\n"),
-          "\n\n## Locations: \n", paste(out_loc, collapse = "\n"))
-  if (any(grepl("sample", unlist(distinct(df[, "output_type", FALSE])))) ||
-        any("sample" %in% names(unlist(purrr::map(model_task, "output_type"),
-                                       FALSE))))  {
-    if (!is.null(add_message)) { # nocov start
-      if (any(grepl("No errors or warnings", out_sample))) {
-        test_report <- paste(test_report, "\n\n## Sample: \n",
-                             paste(add_message, collapse = "\n"))
-      } else {
-        test_report <- paste(test_report, "\n\n## Sample: \n",
-                             paste(add_message, out_sample, collapse = "\n"))
-      } # nocov end
-    } else {
-      test_report <- paste(test_report, "\n\n## Sample: \n",
-                           paste(out_sample, collapse = "\n"))
-    }
-  }
-  if (any(grepl("quantile", unlist(distinct(df[, "output_type", FALSE])))) ||
-        any("quantile" %in% names(unlist(purrr::map(model_task, "output_type"),
-                                         FALSE))))  {
-    test_report <- paste(test_report, "\n\n## Quantiles: \n",
-                         paste(out_quant, collapse = "\n"))
-  }
-  if (any(grepl("age_group", names(df)))) {
-    test_report <- paste(test_report, "\n\n## Age Group: \n",
-                         paste(out_agegroup, collapse = "\n"))
-  }
-  if (any(grepl("race_ethnicity", names(df)))) {
-    test_report <- paste(test_report, "\n\n## Race Ethnicity: \n",
-                         paste(out_raceethnicity, collapse = "\n"))
-  }
-
-  test_report <- paste0(test_report, "\n\n")
-  return(test_report)
-}
-
 #' Run all validation checks and output a report
 #'
-#' Runs all the different validation checks functions (test_column,
-#' test_scenario, test_modelprojdate, test_quantiles, test_val, test_target,
-#' test_location, etc.) on a data frame and print information about the results
-#' of each tests on the submission: warning(s), error(s) or if all the tests
-#' were successful.
-#'
-#'@param df data frame to test
-#'@param path character vector path of the file being tested
-#'@param pop data frame containing the population size of each geographical
-#'  entities by fips (in a column "location"), can be `NULL` (not comparison to
-#'  population size)
-#'@param last_lst_gs list of data frame, named with the corresponding target and
-#'  containing the last avaible week of observed data  before start of the
-#'  projection, can be `NULL` (not comparison to observed data)
-#'@param js_def list containing round definitions: names of columns,
-#' target names, ...
-#'@param merge_sample_col boolean to indicate if the for the output type
-#' "sample", the output_type_id column is set to NA and the information is
-#' contained into 2 columns: "run_grouping" and "stochastic_run". By default,
-#' `FALSE`
-#'@param pairing_col column names indicating the sample pairing information. By
-#' default: "horizon".
-#'@param n_decimal integer,  number of decimal point accepted in the column
-#'  value (only for "sample" output type), if NULL (default) no limit expected.
-#'@param verbose Boolean, if TRUE add information about the sample pairing
-#'  information in output message
-#'
-#'@details Internal function called in the `validation_submission()` function.
+#' Runs all the different validation checks functions on a data frame and print
+#' information about the results of each tests on the submission: warning(s),
+#' error(s) or if all the tests were successful.
+#' Internal function called in the `validation_submission()` function.
 #' For more information on all tests run on the submission, please refer to the
 #' documentation of each "test_*" function. A vignette with all the information
 #' might be created later on too.
 #'
+#' @importFrom hubValidations new_hub_validations parse_file_name try_check
+#' check_tbl_colnames check_tbl_col_types check_tbl_value_col_ascending
+#' @importFrom dplyr mutate_all
+#'
 #' @noRd
-run_all_validation <- function(df, path, js_def, pop, last_lst_gs,
-                               merge_sample_col = FALSE,
-                               pairing_col = "horizon", n_decimal = NULL,
-                               verbose = TRUE) {
+run_all_validation <- function(df, path, js_def0, js_def, round_id, hub_path,
+                               pop = NULL, obs = NULL, merge_sample_col = NULL,
+                               partition = NULL, n_decimal = NULL,
+                               verbose = TRUE, verbose_col =  NULL) {
   ### Prerequisite
-  model_task <- js_def$model_tasks
-  task_ids <- purrr::map(model_task, "task_ids")
-  req_colnames <-  c(unique(names(unlist(task_ids, FALSE))),
-                     "output_type", "output_type_id", "value")
-
-  # Test if any factor columns
-  if (any(sapply(colnames(df), function(x) is.factor(df[[x]])))) {
-    col_message <- paste0("\n\U000274c Error 104: At least one column is in a ",
-                          "format: 'factor', please verify")
+  req_colnames <-  c(get_tasksids_colnames(js_def), "output_type",
+                     "output_type_id", "value")
+  checks <- new_hub_validations()
+  if (!is.null(partition)) {
+    file_path <- unique(basename(dir(path, recursive = TRUE)))
   } else {
-    col_message <- NULL
+    file_path <- path
   }
-  df <- dplyr::mutate_if(df, is.factor, as.character)
 
   # Merge sample ID column
-  if (isTRUE(merge_sample_col)) {
-    sample_update <- merge_sample_id(df, req_colnames, add_message = NULL)
-    df_all <- sample_update[["df"]]
-    df <- dplyr::select(df_all, -run_grouping, -stochastic_run)
-    add_message <- sample_update[["add_message"]]
-  } else {
-    df_all <- df
-    add_message <- NULL
-  }
-
-  ### Tests:
-  # Test on column information (name and number)
-  out_col <- test_column(df, req_colnames)
-
-  # select only required column for the other tests
-  df <- df[, req_colnames]
-
-  # Test missing required value
-  out_req <- test_req_value(df, model_task)
-
-  # Test on Scenario information
-  out_scen <- test_scenario(df, model_task)
-
-  # Test origin date information
-  date_id <- unique(unlist(purrr::map(purrr::map(model_task, "task_ids"),
-                                      "origin_date")))
-  out_ord <- test_origindate(df, path, id = date_id)
-  gc()
-
-  # Test by type
-  if (any(grepl("quantile", unlist(distinct(df[, "output_type", FALSE])))) ||
-        any("quantile" %in% names(unlist(purrr::map(model_task, "output_type"),
-                                         FALSE)))) {
-    out_quant <- test_quantiles(df, model_task)
-    gc()
-  }
-  if (any(grepl("sample", unlist(distinct(df[, "output_type", FALSE])))) ||
-        any("sample" %in% names(unlist(purrr::map(model_task, "output_type"),
-                                       FALSE)))) {
-    verbose_col <- NULL
-    if (any("verbose" %in% names(js_def))) {
-      verbose_col <- js_def$verbose$sample
+  if (!is.null(merge_sample_col)) {
+    # Validation
+    if (!(all(c(req_colnames, merge_sample_col) %in% names(df)))) {
+      fail_col <- req_colnames[!req_colnames %in% names(df)]
+      details_mess <- paste0("'", paste(fail_col, collapse = "', '"),
+                             "' should be present in the file.")
+      mgs_attr <- paste0("consistent with expected round task IDs and std ",
+                         "column names.")
+      checks$col_names <-
+        try_check(capture_check_cnd(!length(fail_col) > 0, file_path,
+                                    msg_subject = "Column names",
+                                    msg_attribute = mgs_attr,
+                                    details = details_mess, error = TRUE))
+      return(checks)
     }
-    out_sample <- test_sample(df_all, model_task, pairing_col = pairing_col,
-                              verbose = verbose, verbose_col = verbose_col)
-    gc()
+    all <- merge_sample_id(df, req_colnames, merge_sample_col,  js_def0, js_def,
+                           checks, partition = partition, verbose = TRUE,
+                           verbose_col = verbose_col)
+    df <- all$df
+    pair <- all$msg
+    if (!is.null(pair) && verbose)
+      checks$pairing_info <- capture_check_info(file_path = file_path,
+                                                msg = pair$message)
   } else {
-    out_sample <- NULL
+    pair <- NULL
   }
 
-  # Test on value
-  out_val <- test_val(df, pop, last_lst_gs, model_task, n_decimal = n_decimal)
-  gc()
-
-  # Test on targets information
-  out_target <- test_target(df, model_task)
-  gc()
-
-  # Test on location information
-  out_loc <- test_location(df, model_task)
-  gc()
-
-  # Test for additional column
-  if (any(grepl("age_group", names(df)))) {
-    out_agegroup <- test_agegroup(df, model_task)
-    gc()
+  checks <- round_id_test(checks, df, file_path, hub_path, path)
+  if (is_any_error(checks$match_round_id) ||
+        is_any_error(checks$unique_round_id)) {
+    return(checks)
   }
 
-  # Test for additional column
-  if (any(grepl("race_ethnicity", names(df)))) {
-    out_raceethnicity <- test_raceethnicity(df, model_task)
-    gc()
+  checks$colnames <-
+    try_check(check_tbl_colnames(df, round_id = round_id,
+                                 file_path = file_path,
+                                 hub_path = hub_path), path)
+  if (is_any_error(checks$colnames)) {
+    return(checks)
   }
 
-  # Report:
-  test_report <- create_report(df, model_task, col_message, out_req, out_col,
-                               out_scen, out_ord, out_val, out_target, out_loc,
-                               out_sample, out_quant, out_agegroup,
-                               out_raceethnicity, add_message = add_message)
+  checks$col_types <-
+    try_check(check_tbl_col_types(df, file_path = file_path,
+                                  hub_path = hub_path,
+                                  output_type_id_datatype = "from_config"),
+              path)
+  if ((!"check_success" %in% class(checks$col_types)))
+    df <-
+      hubValidations::coerce_to_hub_schema(df,
+                                           config_tasks = read_config(hub_path,
+                                                                      "tasks"),
+                                           output_type_id_datatype =
+                                           "from_config")
+  tbl_chr <- dplyr::mutate_all(df, as.character)
 
-  # Output:
-  if (any(grepl("\\\U000274c Error|\\\U0001f7e1 Warning", test_report))) {
-    if (any(grepl("\U000274c Error", test_report))) {
-      cat(test_report)
-      stop(" The submission contains one or multiple issues, please see ",
-           "information above")
-    } else {
-      cat(test_report)
-      warning(" The submission is accepted but contains some warnings, please ",
-              "verify the information above")
-    }
-  } else {
-    test_report <-
-      "End of validation check: all the validation checks were successful\n"
-    if (verbose && !is.null(out_sample))
-      test_report <- paste(test_report, "## Sample Information: \n",
-                           out_sample, sep = "\n")
-    cat(test_report)
-  }
+  checks$valid_vals <-
+    try_check(check_tbl_values(tbl_chr, round_id = round_id,
+                               file_path = file_path, hub_path = hub_path),
+              path)
+
+  checks$rows_unique <-
+    try_check(check_tbl_rows_unique(tbl_chr, file_path = file_path,
+                                    hub_path = hub_path), path)
+
+  checks$req_vals <-
+    try_check(check_df_values_required(df, js_def, file_path = file_path), path)
+  # -- slow
+  checks$value_col_valid <-
+    try_check(check_tbl_value_col(df, round_id = round_id,
+                                  file_path = file_path, hub_path = hub_path),
+              path)
+
+  checks$value_col_non_desc <-
+    try_check(check_tbl_value_col_ascending(tbl_chr, file_path = file_path,
+                                            hub_path = hub_path,
+                                            round_id = round_id,
+                                            derived_task_ids = NULL), path)
+  # -- slow
+  checks <- sample_test(checks, tbl_chr, round_id, file_path, hub_path,
+                        path, pair, js_def)
+  checks <- value_test(df, checks, file_path, n_decimal = n_decimal, pop = pop,
+                       obs = obs)
+
+  return(checks)
 }
 
 
 #' Validate SMH (Scenario Modeling Hub) Submissions
 #'
-#' Runs all the different validation checks functions (`test_column()`,
-#' `test_scenario()`, `test_origindate()`, `test_quantiles()`, `test_val()`,
-#' `test_target()`, `test_location()`,` test_sample()`, `test_agegroup()`,
-#' `test_raceethnicity()`) on a Scenario Modeling Hub (SMH)
-#' submissions and prints information about the results of each tests on the
-#' submission: warning(s), error(s) or message if all the tests were successful.
+#' Runs multiple validation checks functions on SMH submission
+#' file(s) and prints information about the results of each test on the
+#' submission file(s): warning(s), error(s) and/or message in the hubverse
+#' format.
 #'
 #'@param path path to the submissions file (or folder for partitioned data)
 #' to test, or string of parquet files (in this case, the validation will be
 #' run on the aggregation of all the parquet files together, and each file
-#' individually should match the expected SMH standard).
-#' If partition is not set to `NULL`, path to the folder containing ONLY the
-#' partitioned data.
-#'@param js_def path to JSON file containing round definitions: names of
+#' individually should match the expected SMH standard). The path should be
+#' relative to the `hub_path`, model output folder.
+#' If partition is not set to `NULL`, path to the folder containing the
+#' partitioned data.If the path contains multiple rounds information, please
+#' use the `round_id` parameter to indicate which round to test.
+#' @param hub_path path to the repository contains the submissions files
+#' and `tasks.json` file.
+#' @param js_def path to a JSON file containing round definitions: names of
 #' columns, target names, ... following the `tasks.json`
-#' [Hubverse
-#' ](https://hubdocs.readthedocs.io/en/latest/user-guide/hub-config.html)
-#' format
-#'@param lst_gs named list of data frame containing the
-#' observed data. For COVID-19, we highly recommend to use the output of the
-#' `pull_gs_data()` function. The list should have the same format: each data
-#' frame should be named with the corresponding covidcast signal except
-#' `"hospitalization"` instead of `"confirmed_admissions_covid_1d"`.
-#' Set to `NULL` (default), to NOT run comparison with observed data.
+#' [Hubverse](https://hubverse.io/en/latest/user-guide/hub-config.html)
+#' format. If `NULL` (default), will use the default path
+#' "hub-config/tasks.json" in the hub using `hub_path` parameter.
+#'@param target_data path to the target data in the Hubverse time series target
+#' data standard format. Please find additional information on the
+#' [hubverse](https://hubverse.io/en/latest/user-guide/target-data.html)
+#' website. Set to `NULL` (default), to NOT include comparison with observed
+#' data.
 #'@param pop_path path to a table containing the population size of each
 #' geographical entities by FIPS (in a column `"location"`).
 #' Use to compare that value is not higher than expected population size.
 #' Set to `NULL` (default), to NOT run comparison with population data.
-#'@param merge_sample_col boolean to indicate if the for the output type
-#' `"sample"`, the `output_type_id` column is set to `NA` and the information is
-#' contained into 2 columns: `"run_grouping"` and `"stochastic_run`".
-#' By default, `FALSE`
+#'@param merge_sample_col vector to indicate if the for the output type
+#' "sample", the output_type_id column is set to NA and the information is
+#' contained into other columns. If so the parameter should be set to the sample
+#' ID columns names, for example: `c("run_grouping" and "stochastic_run")`.
+#' By default, `NULL` (sample ID information in the output type id column).
 #'@param partition vector, for csv and parquet files, allow to validate files
 #' in a partition format, see `arrow` package for more information, and
-#' `arrow::write_dataset()`, `arrow::open_dataset()` functions.
-#'@param n_decimal integer,  number of decimal point accepted in the column
+#' `arrow::write_dataset()`, `arrow::open_dataset()` functions.  By default
+#' `NULL`, no partition.
+#'@param n_decimal integer, number of decimal points accepted in the column
 #' value (only for `"sample"` output type), if `NULL` (default) no limit
 #' expected.
 #'@param round_id character string, round identifier. If `NULL` (default),
@@ -342,14 +163,19 @@ run_all_validation <- function(df, path, js_def, pop, last_lst_gs,
 #'@param verbose Boolean, if TRUE add information about the sample pairing
 #'  information in output message. By default, `TRUE` (slows the validation
 #'  validation for sample output type)
+#'@param verbose_col character vector, details of values included in the pairing
+#' of each group for specific mentioned columns. If `NULL` (default), no
+#' additional information in the pairing information. (require `verbose` set
+#' to `TRUE`).
 #'@param r_schema Schema arrow objects, to read partition files with a specific
 #' schema. If none provided (default, `NULL`), the schema will be created from
-#' the `js_def` JSON file. (only for partition files)
+#' the `js_def` JSON file. (only for partition files).
 #'
 #'@details For more information on all tests run on the submission, please refer
-#' to the documentation of each `"test_*`" function. A vignette with all the
-#' information is available in the package and is called:
-#' vignette("validation-checks").
+#' to the documentation of the
+#' [hubValidations](https://hubverse-org.github.io/hubValidations/index.html)
+#' package. A vignette with all the information is available in the package and
+#' is called: vignette("validation-checks").
 #'
 #' The function accepts submission in PARQUET, CSV, ZIP or GZ file formats. If
 #' the submission files is in a "partitioned" format, the `path` parameter
@@ -357,153 +183,148 @@ run_all_validation <- function(df, path, js_def, pop, last_lst_gs,
 #' files. If any other file is present in the directory, it will be included
 #' in the validation.
 #'
-#' The function runs some preliminary tests before calling the "test_*"
-#' functions:
+#' For partitioned files, if the `path` contains multiple rounds, please use
+#' the `round_id` parameter to signal which round to test.
+#'
+#' The function runs some preliminary tests before running all the checks:
 #' * Input submission file format: The file format of the submission
-#'  file(s) correspond to the expected format (for example: `parquet`, or `csv`,
-#'   etc.). If multiple files inputted, only `parquet` is accepted.
+#'  file(s) corresponds to the expected format (for example: `parquet`, or
+#'  `csv`, etc.). If multiple files inputted, only `parquet` is accepted.
 #'  * Date information: The column `origin_date` in the submission file
 #'   corresponds to a `model_tasks` round information in the JSON file
 #'   (`js_def` parameter).
 #'  * Date format: All columns containing dates information should be in
 #'   "YYY-MM-DD" format.
+#' * Location name: The submission should contain projection by
+#'  location, the `location` column contains the location FIPS number as
+#'  available in the location table in the SMH GitHub Repository. If the FIPS
+#'  number are missing a trailing zero, the submission will be accepted but a
+#'  warning message will be returned.
+#' * Column format: If the submission file(s) contain column in a factor column,
+#' the column will be forced to character, and a warning message will be
+#' returned
 #'
-#' @importFrom dplyr mutate select %>% mutate_all distinct collect
-#' @importFrom stats setNames
-#' @importFrom jsonlite fromJSON
-#' @importFrom arrow open_dataset Field int64 schema
-#' @importFrom purrr list_simplify
-#' @importFrom hubData create_hub_schema
-#' @importFrom hubUtils get_round_ids
+#' @importFrom hubUtils get_round_ids read_config_file get_round_model_tasks
+#' @importFrom arrow open_dataset
+#' @importFrom dplyr collect mutate_if mutate_all distinct across
+#' @importFrom tidyr all_of
 #'
 #'@examples
-#' \dontrun{
-#' validate_submission("PATH/TO/SUBMISSION", "PATH/TO/ROUND/tasks.json")
-#' }
+#' hub_path <- system.file("extdata/exp/", package = "SMHvalidation")
+#' sub_path <- "team2-modelb/2023-11-12-team2-modelb.parquet"
+#' validate_submission(sub_path, hub_path)
+#'
+#' # Partitioned Files
+#' path_2 <- "t3-mc/"
+#' validate_submission(path_2, hub_path, partition = c("origin_date", "target"),
+#'                     merge_sample_col = c("run_grouping", "stochastic_run"),
+#'                     round_id = "2023-11-12")
+#'
 #'@export
-validate_submission <- function(path, js_def, lst_gs = NULL, pop_path = NULL,
-                                merge_sample_col = FALSE, partition = NULL,
+validate_submission <- function(path, hub_path, js_def = NULL,
+                                target_data = NULL, pop_path = NULL,
+                                merge_sample_col = NULL, partition = NULL,
                                 n_decimal = NULL, round_id = NULL,
-                                verbose = TRUE, r_schema = NULL) {
+                                verbose = TRUE, verbose_col = NULL,
+                                r_schema = NULL) {
 
   # Prerequisite --------
-  # Load gold standard data
-  lst_gs <- lapply(seq_along(lst_gs), function(x) {
-    df_gs <- dplyr::mutate(lst_gs[[x]],
-                           target_name = names(lst_gs[x])) %>%
-      dplyr::select(time_value, value, location = fips, target_name)
-    return(df_gs)
-  }) %>%
-    setNames(names(lst_gs))
-
-  # Pull population data and prepare location hash vector
+  m_fold <- hubUtils::read_config(hub_path, "admin")$model_output_dir
+  path <- paste0(m_fold, "/", path)
+  # Pull target data
+  if (!is.null(target_data)) obs <- read_files(target_data) else obs <- NULL
+  # Pull population data
   if (!is.null(pop_path)) pop <- read_files(pop_path) else pop <- NULL
-
-  # Read JSON file
-  js_def0 <- jsonlite::fromJSON(js_def, simplifyDataFrame = FALSE)
-  js_date <- unique(as.Date(hubUtils::get_round_ids(js_def0)))
   # Select the associated round (add error message if no match)
-  if (is.null(round_id)) {
-    if (!is.null(partition)) {
-      team_round <- as.Date(stringr::str_extract(dir(path, recursive = TRUE),
-                                                 "\\d{4}-\\d{2}-\\d{2}"))
-    } else {
-      team_round <- as.Date(stringr::str_extract(path, "\\d{4}-\\d{2}-\\d{2}"))
-    }
-    round_id <- unique(team_round)
-  }
-  if (as.Date(round_id) %in% js_date) {
-    js_def <- js_def0$rounds[js_date %in% as.Date(round_id)]
-    js_def <- js_def[[1]]
-  } else {
-    err004 <-
-      paste0("\U000274c Error 004: The round id (date in the submission file) ",
-             "is not associated with any task_ids round. Please verify the ",
-             "date information in 'path' or in the 'round_id' parameter.\n")
-    cat(err004)
-    stop(" The submission contains an issue, the validation was not run, ",
-         "please see information above.")
-  }
+  if (is.null(round_id))
+    round_id <- team_round_id(paste0(hub_path, "/", path),
+                              partition = partition)
+
+  check <- new_hub_validations()
 
   # Select validation file(s) and print message --------
-  if (!is.null(partition)) {
-    file_path <- grep(round_id, dir(path, recursive = TRUE), value = TRUE)
-  } else {
-    file_path <- basename(path)
-  }
-  if (length(file_path) > 10) { # nocov start
-    cat(paste0("Run validation on files: ",
-               paste(unique(file_path)[1:5], collapse = ", "),
-               ", etc.\n"))
-  } else { # nocov end
-    cat(paste0("Run validation on files: ", paste(unique(file_path),
-                                                  collapse = ", "), "\n"))
-  }
+  file_path <- file_path_info(path, hub_path, partition = partition,
+                              round_id = round_id, verbose = verbose)
 
+  # Read hub config JSON file ------
+  if (is.null(js_def)) js_def <- paste0(hub_path, "/hub-config/tasks.json")
+  js_def0 <- hubUtils::read_config_file(js_def)
+  check_round_id <- round_id %in% hubUtils::get_round_ids(js_def0)
+  details_mess <-
+    paste0("The round id (date in the submission file or parameters) is not ",
+           "associated with any task_ids round. Please verify the date ",
+           "information in 'path' or in the 'round_id' parameter.\nPossible ",
+           "round ids are: ", paste(unique(hubUtils::get_round_ids(js_def0)),
+                                    collapse = ", "))
+  check$round_id <-
+    try_check(capture_check_cnd(check_round_id, file_path,
+                                msg_subject = "{.var round_id}",
+                                msg_attribute = "valid.",
+                                etails = details_mess, error = TRUE))
+  if (is_any_error(check$round_id)) {
+    return(check)
+  } else {
+    js_def <- hubUtils::get_round_model_tasks(js_def0, as.character(round_id))
+  }
 
   # Process file to test and associated information --------
-  # Read file
-  if (length(path) == 1 &&
-        all(grepl(".csv$|.zip$|.gz$|.pqt$|.parquet$", path))) {
-    df <- read_files(path)
-  } else if (all(grepl("parquet$", path))) {
-    ds <- arrow::open_dataset(path, format = "parquet")
-    df <- dplyr::collect(ds) %>%
-      dplyr::mutate_if(is.factor, as.character)
-  } else if (!is.null(partition)) {
-    df <- load_partition_arrow(path, js_def = js_def0, js_def_round = js_def,
-                               partition = partition, round_id = round_id,
-                               merge_sample_col = merge_sample_col,
-                               r_schema = r_schema)
+  sub_file_ext <- unique(sub(".*\\.", "", file_path))
+  config_ext <- hubValidations::read_config(hub_path, "admin")$file_format
+  check_file_ext <- sub_file_ext %in% config_ext
+  details_mess <- paste0("Extension(s) accepted: {.val ", config_ext, "}")
+  check$file_extension <-
+    try_check(capture_check_cnd(check_file_ext, file_path,
+                                msg_subject = "File(s) format extension",
+                                msg_attribute = "valid.",
+                                details = details_mess, error = TRUE))
+  if (is_any_error(check$file_extension)) {
+    return(check)
   } else {
-    err005 <-
-      paste0("\U000274c Error 005: The file format of the submission was not ",
-             "recognized, please use one unique files or multiple parquet file",
-             ". For more information, please look at the documentation of the ",
-             "hub. \n")
-    cat(err005)
-    stop(" The submission contains an issue, the validation was not run, ",
-         "please see information above.")
+    # Read file
+    if (length(file_path) == 1) {
+      df <- read_files(paste0(hub_path, "/", path))
+    } else if (!is.null(partition)) {
+      schema <- make_schema(js_def0, js_def, round_id,
+                            path = paste0(hub_path, "/", path),
+                            merge_sample_col = merge_sample_col,
+                            r_schema = r_schema, partition = partition)
+      df <- load_partition_arrow(paste0(hub_path, "/", path),
+                                 partition = partition,
+                                 schema = schema)
+    }
   }
 
   # test date format
-  df <- as.data.frame(df)
-  test_date <- df[, grepl("date", names(df)), FALSE]
+  test_date <- df[, grepl("date", names(df), fixed = TRUE), FALSE]
   test_date <- unlist(dplyr::mutate_all(dplyr::distinct(test_date),
                                         as.character))
-  if (any(is.na(as.Date(na.omit(test_date), "%Y-%m-%d")))) {
-    err003 <-
-      paste0("\U000274c Error 003: The columns containing date information ",
-             "should be in a date format `YYYY-MM-DD`. Please verify \n")
-    cat(err003)
-    stop(" The submission contains an issue, the validation was not run, ",
-         "please see information above.")
+  check_test_format <- !any(is.na(as.Date(na.omit(test_date), "%Y-%m-%d")))
+  details_mess <- "The column should be in a ISO date format {.val YYYY-MM-DD}"
+  message <- "The column(s) containing date information"
+  check$date_format <-
+    try_check(capture_check_cnd(check_test_format, file_path,
+                                msg_subject = message,
+                                msg_attribute = "in a valid format.",
+                                details = details_mess, error = TRUE))
+  if (is_any_error(check$date_format)) {
+    return(check)
+  } else {
+    col_date <- grep("date", names(df), value = TRUE, fixed = TRUE)
+    df <- dplyr::mutate(df, dplyr::across(tidyr::all_of(col_date), as.Date))
   }
 
-  sample_js <- unique(purrr::map(purrr::map(js_def$model_tasks,
-                                            "output_type"), "sample"))
-  if (!all(is.null(sample_js))) {
-    sample_list <- purrr::map(sample_js, "output_type_id")
-    if (!all(is.null(unique(unlist(purrr::map(sample_list,
-                                              "samples_joint_across")))))) {
-      pairing_col <- unique(unlist(purrr::map(sample_list,
-                                              "samples_joint_across")))
-    } else {
-      pairing_col <- "horizon"
-    }
-  }
   # Extract week 0 or week -1 of observed data
-  last_week_gs <-  lapply(lst_gs, function(x) {
-    lastw_df <- dplyr::filter(x, time_value < as.Date(js_def$round_id) + 6) %>%
-      dplyr::filter(time_value == max(time_value)) %>%
-      dplyr::select(last_value = value, location, target_name)
-    return(lastw_df)
-  })
+  or_date <- unique(unlist(purrr::map_depth(js_def, 2, "origin_date")))
+  if (!is.null(obs)) {
+    obs <- dplyr::filter(obs, date < as.Date(or_date) + 6) |>
+      dplyr::filter(date == max(date)) |>
+      dplyr::select(tidyr::all_of(c("observation", "location", "target",
+                                    "age_group")))
+  }
 
   # Run tests --------
-  run_all_validation(df, path = path, js_def = js_def, pop = pop,
-                     last_lst_gs = last_week_gs,
-                     merge_sample_col = merge_sample_col,
-                     pairing_col = pairing_col, n_decimal = n_decimal,
-                     verbose = verbose)
+  run_all_validation(df, paste0(hub_path, "/", path), js_def0, js_def, round_id,
+                     hub_path, pop = pop, obs = obs, verbose = verbose,
+                     merge_sample_col = merge_sample_col, n_decimal = n_decimal,
+                     partition = partition, verbose_col = verbose_col)
 }

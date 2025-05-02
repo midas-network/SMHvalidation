@@ -13,20 +13,23 @@ test_location(df, model_task)
 and model output (type, format, etc.)}
 }
 \description{
+\strong{DEPRECATED} \if{html}{\out{<br>}}\if{html}{\out{<br>}}
 Validate Scenario Modeling Hub submissions: test if the  \code{location} column
 contains the expected  value.
 }
 \details{
-This function contains 2 tests:
+This function tests:
 \itemize{
-\item Location name: The submission should contains projection by
-location, the \code{location} column contains the location FIPS number as
-available in the location table in the SMH GitHub Repository. If the FIPS
-number are missing a trailing zero, the submission will be accepted but a
-warning message will be returned.
 \item Specific location: For the target(s) requiring only specific
 location(s), no additional location is provided in the submission file
 }
 
-Function called in the \code{validate_submission()} function.
+\code{model_task} should match a specific round model tasks from the
+\code{tasks.json} associated with the hub. The json is expected to follow
+the \href{https://hubverse.io/en/latest/user-guide/hub-config.html}{hubverse}
+schema at least version 5.0
+
+As the function was deprecated, it will not be updated anymore. It was
+updated a last time to match the 5.0 hubverse schema version. However, it
+might returns duplicated message output.
 }

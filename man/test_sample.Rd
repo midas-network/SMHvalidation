@@ -28,11 +28,12 @@ information in output message}
 are paired on.}
 }
 \description{
+\strong{DEPRECATED} \if{html}{\out{<br>}}\if{html}{\out{<br>}}
 Validate Scenario Modeling Hub submissions: test if the  \code{sample} column
 contains the expected  value.
 }
 \details{
-This function contains 3 tests:
+This function tests:
 \itemize{
 \item sample number: The submission should contain the expected number of
 trajectory for each model tasks group (unique combination of \code{task_ids}
@@ -48,6 +49,12 @@ column with integer only, associated with \code{"sample"} output type.
 submission should contain \code{"sample"} type output for this target.
 }
 
-Function called in the \code{validate_submission()} function, only if the
-submission contains \code{"sample"} output type.
+\code{model_task} should match a specific round model tasks from the
+\code{tasks.json} associated with the hub. The json is expected to follow
+the \href{https://hubverse.io/en/latest/user-guide/hub-config.html}{hubverse}
+schema at least version 5.0
+
+As the function was deprecated, it will not be updated anymore. It was
+updated a last time to match the 5.0 hubverse schema version. However, it
+might returns duplicated message output.
 }

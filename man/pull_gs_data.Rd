@@ -4,7 +4,14 @@
 \alias{pull_gs_data}
 \title{Pull Truth data from COVIDCast}
 \usage{
-pull_gs_data()
+pull_gs_data(
+  signals = c("deaths_cumulative_num", "confirmed_cumulative_num",
+    "confirmed_incidence_num", "deaths_incidence_num", "confirmed_admissions_covid_1d")
+)
+}
+\arguments{
+\item{signals}{list of signals to download (should be one or multiple in
+the default list)}
 }
 \value{
 a list of dataframe, each dataframe named with the corresponding
@@ -12,6 +19,7 @@ covidcast signal except "hospitalization" instead of
 "confirmed_admissions_covid_1d"
 }
 \description{
+\strong{DEPRECATED} \if{html}{\out{<br>}}\if{html}{\out{<br>}}
 Download and returns data from COVIDcast package in a Scenario Modeling
 Hub format, with the incidence and cumulative data for each state and
 US national level by epiweek.
@@ -41,7 +49,7 @@ are added between all states to obtains the US level data.
 
 For case/death data, we use:
 \itemize{
-\item https://cmu-delphi.github.io/delphi-epidata/api/covidcast-signals/jhu-csse.html
+\item https://cmu-delphi.github.io/delphi-epidata/api/covidcast-signals/jhu-csse.html # nolint
 \item Signals: \code{"deaths_cumulative_num"}, \code{"confirmed_cumulative_num"},
 \code{"confirmed_incidence_num"}, \code{"deaths_incidence_num"}
 }
@@ -58,4 +66,5 @@ For hospitalization data, we use:
  lst_df
  str(lst_df)
 }
+
 }

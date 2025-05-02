@@ -24,11 +24,12 @@ and model output (type, format, etc.)}
 value (only for "sample" output type), if NULL (default) no limit expected.}
 }
 \description{
+\strong{DEPRECATED} \if{html}{\out{<br>}}\if{html}{\out{<br>}}
 Validate Scenario Modeling Hub submissions: test if the
 \code{value} and \code{type} columns contain the expected information and value.
 }
 \details{
-This function contains 10 tests:
+This function tests:
 \itemize{
 \item Required type: All the required type output are present in the
 submission file.
@@ -64,5 +65,12 @@ tasks group associated with a cumulative target has projected values that
 increase or stay constant with time.
 }
 
-Function called in the \code{validate_submission()} function.
+\code{model_task} should match a specific round model tasks from the
+\code{tasks.json} associated with the hub. The json is expected to follow
+the \href{https://hubverse.io/en/latest/user-guide/hub-config.html}{hubverse}
+schema at least version 5.0
+
+As the function was deprecated, it will not be updated anymore. It was
+updated a last time to match the 5.0 hubverse schema version. However, it
+might returns duplicated message output.
 }
