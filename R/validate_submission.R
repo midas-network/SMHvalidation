@@ -74,15 +74,19 @@ run_all_validation <- function(df, path, js_def0, js_def, round_id, hub_path,
                                   hub_path = hub_path,
                                   output_type_id_datatype = "from_config"),
               path)
+  if ((!"check_success" %in% class(checks$col_types)))
+    df <-
+      hubValidations::coerce_to_hub_schema(df,
+                                           config_tasks = read_config(hub_path,
+                                                                      "tasks"),
+                                           output_type_id_datatype =
+                                           "from_config")
   tbl_chr <- dplyr::mutate_all(df, as.character)
 
   checks$valid_vals <-
     try_check(check_tbl_values(tbl_chr, round_id = round_id,
                                file_path = file_path, hub_path = hub_path),
               path)
-  if (is_any_error(checks$valid_vals)) {
-    return(checks)
-  }
 
   checks$rows_unique <-
     try_check(check_tbl_rows_unique(tbl_chr, file_path = file_path,
