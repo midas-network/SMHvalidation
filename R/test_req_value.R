@@ -79,7 +79,7 @@ extract_output_type <- function(x) {
 
 create_table <- function(list_targ, outtype_df) {
   if (length(purrr::compact(list_targ[!names(list_targ) %in%
-                                      names(outtype_df)])) == 0) {
+                                        names(outtype_df)])) == 0) {
     req_df <- data.frame()
   } else {
     req_df <- purrr::compact(list_targ) |>
@@ -142,10 +142,10 @@ check_df_values_required <- function(test_df, model_task, file_path) {
       lapply(seq_along(opt_targ),
              function(y) {
                vect <- opt_targ[[y]][opt_targ[[y]] %in%
-                                       unique(test[,names(opt_targ[y])])]
+                                       unique(test[, names(opt_targ[y])])]
                if (length(vect) == 0) vect <- NULL
                vect
-               }) |>
+             }) |>
       setNames(names(opt_targ))
     opt_df <- create_table(c(opt_targ, outtype_df), outtype_df)
     if (nrow(opt_df) > 0) {
@@ -155,7 +155,7 @@ check_df_values_required <- function(test_df, model_task, file_path) {
                                                            "output_type",
                                                            "output_type_id"))))
       if (any(grepl("cdf|quantile|pmf", df_res_opt$output_type)) &
-          nrow(df_res_opt) > 0) {
+            nrow(df_res_opt) > 0) {
         opt_err <- purrr::map(as.list(df_res_opt), unique)
         opt_err <- paste(names(opt_err), purrr::map(opt_err, as.character),
                          sep = ": ", collapse = ";\n")
