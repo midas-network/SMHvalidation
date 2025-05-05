@@ -134,3 +134,39 @@ check_tbl_value_col <- function(tbl, round_id, file_path, hub_path) {
     details = details
   )
 }
+
+#' @importFrom rlang arg_match inherits_any
+#' @importFrom purrr map_lgl
+is_check_class <- function(x,
+                           class = c(
+                             "check_success", "check_failure",
+                             "check_exec_warn", "check_error",
+                             "check_exec_error", "check_info"
+                           )) {
+  class <- rlang::arg_match(class)
+  purrr::map_lgl(x, ~ rlang::inherits_any(.x, class))
+}
+
+
+#' Store validation output in a simple object
+#'
+#' @param msg validation output
+#'
+#' @importFrom dplyr case_when
+#' @importFrom purrr map_chr
+#' @export
+store_msg_val <- function(msg) {
+  txt <- paste(
+    dplyr::case_when(is_check_class(msg, "check_success") ~ "\U002705",
+                     is_check_class(msg, "check_failure") ~ "\U002757",
+                     is_check_class(msg, "check_exec_warn") ~ "\U000021",
+                     is_check_class(msg, "check_error") ~ "\U001F6AB",
+                     is_check_class(msg, "check_exec_error") ~ "\U002588",
+                     is_check_class(msg, "check_info") ~ "\U002139",
+                     TRUE ~ "*"),
+    paste0("[", names(msg), "]"),
+    purrr::map_chr(msg, "message"),
+    sep = ": ", collapse = "\n"
+  )
+  txt
+}

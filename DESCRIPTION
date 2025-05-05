@@ -41,6 +41,7 @@ Imports: arrow,
          hubValidations,
          MMWRweek,
          purrr,
+         rlang,
          tibble,
          tidyr
 Remotes:
