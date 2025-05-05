@@ -29,6 +29,8 @@ test_that("Test validation process", {
                paste0("Run grouping pairing: horizon, age_group; stochastic ",
                       "run pairing: horizon, age_group. ",
                       "Number of Samples: 100"))
+  msg <- store_msg_val(check)
+  expect_true(grepl("\U002139.*\U002705", msg))
 
   ## Unique file -------
   check <- validate_submission(path = path, hub_path = hub_path,
@@ -88,6 +90,8 @@ test_that("Test validation process", {
   rm(df)
   check <- validate_submission(path_f, hub_path)
   expect_contains(attr(check$req_vals, "class"), c("error", "check_error"))
+  msg <- store_msg_val(check)
+  expect_true(grepl("\U001F6AB.*\U002705", msg))
 
   ## Additional data
   df <- rbind(df0,
@@ -99,6 +103,8 @@ test_that("Test validation process", {
   check <- validate_submission(path_f, hub_path,
                                merge_sample_col = merge_sample_col)
   expect_contains(attr(check$valid_vals, "class"), c("error", "check_error"))
+  msg <- store_msg_val(check)
+  expect_true(grepl("\U002757.*\U002705", msg))
 
   ## Test columns error -----
   ### File with additional column ----
