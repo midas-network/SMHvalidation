@@ -134,6 +134,17 @@ Example:
 validate_submission(path_1, hub_path)
 ```
 
+The output can be saved and store in a slightly different format in an object to
+be used as GitHub message for example.
+
+Example:
+```{r test1_out}
+check <- validate_submission(path_1, hub_path)
+check_message <- store_msg_val(check)
+cat(check_message)
+```
+
+
     
 #### Submission File Tests
 

@@ -1,3 +1,8 @@
+# SMHvalidation 1.1.0 (in development)
+
+-   add `store_msg_val` function to store `validate_submission()` function
+    output in a character vector with a slightly different format (#39)
+
 # SMHvalidation 1.0.0
 
 -   *BREAKING CHANGE*: changes functions `validate_submission()` and

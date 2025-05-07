@@ -29,9 +29,9 @@ sample_test <- function(checks, tbl_chr, round_id, file_path, hub_path,
       } else {
         check <- TRUE
         add_p <- missing[purrr::map_vec(missing,
-                               ~ length(unique(tbl_chr[[.x]])) == 1)]
+                                        ~ length(unique(tbl_chr[[.x]])) == 1)]
         details <- paste("Pairing information: ", paste(c(pair_vect, add_p),
-                                                          collapse = ", "))
+                                                        collapse = ", "))
       }
     } else {
       details <- paste("Pairing information: ",
