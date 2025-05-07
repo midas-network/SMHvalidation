@@ -16,7 +16,8 @@
 run_all_validation <- function(df, path, js_def0, js_def, round_id, hub_path,
                                pop = NULL, obs = NULL, merge_sample_col = NULL,
                                partition = NULL, n_decimal = NULL,
-                               verbose = TRUE, verbose_col =  NULL) {
+                               verbose = TRUE, verbose_col =  NULL,
+                               ignore_val_err = FALSE) {
   ### Prerequisite
   req_colnames <-  c(get_tasksids_colnames(js_def), "output_type",
                      "output_type_id", "value")
@@ -87,6 +88,9 @@ run_all_validation <- function(df, path, js_def0, js_def, round_id, hub_path,
     try_check(check_tbl_values(tbl_chr, round_id = round_id,
                                file_path = file_path, hub_path = hub_path),
               path)
+  if (is_any_error(checks$valid_vals) && isFALSE(ignore_val_err)) {
+    return(checks)
+  }
 
   checks$rows_unique <-
     try_check(check_tbl_rows_unique(tbl_chr, file_path = file_path,
@@ -170,6 +174,9 @@ run_all_validation <- function(df, path, js_def0, js_def, round_id, hub_path,
 #'@param r_schema Schema arrow objects, to read partition files with a specific
 #' schema. If none provided (default, `NULL`), the schema will be created from
 #' the `js_def` JSON file. (only for partition files).
+#'@param ignore_val_err Boolean, if TRUE will not stop the validation if any
+#' error in the check `valid_vals` (valid values). By defailt, `FALSE` (does
+#' not ignore the error, will stop the validation if any issue in this check)
 #'
 #'@details For more information on all tests run on the submission, please refer
 #' to the documentation of the
@@ -226,7 +233,7 @@ validate_submission <- function(path, hub_path, js_def = NULL,
                                 merge_sample_col = NULL, partition = NULL,
                                 n_decimal = NULL, round_id = NULL,
                                 verbose = TRUE, verbose_col = NULL,
-                                r_schema = NULL) {
+                                r_schema = NULL, ignore_val_err = FALSE) {
 
   # Prerequisite --------
   m_fold <- hubUtils::read_config(hub_path, "admin")$model_output_dir
@@ -326,5 +333,6 @@ validate_submission <- function(path, hub_path, js_def = NULL,
   run_all_validation(df, paste0(hub_path, "/", path), js_def0, js_def, round_id,
                      hub_path, pop = pop, obs = obs, verbose = verbose,
                      merge_sample_col = merge_sample_col, n_decimal = n_decimal,
-                     partition = partition, verbose_col = verbose_col)
+                     partition = partition, verbose_col = verbose_col,
+                     ignore_val_err = ignore_val_err)
 }

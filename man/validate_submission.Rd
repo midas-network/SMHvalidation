@@ -16,7 +16,8 @@ validate_submission(
   round_id = NULL,
   verbose = TRUE,
   verbose_col = NULL,
-  r_schema = NULL
+  r_schema = NULL,
+  ignore_val_err = FALSE
 )
 }
 \arguments{
@@ -79,6 +80,10 @@ to \code{TRUE}).}
 \item{r_schema}{Schema arrow objects, to read partition files with a specific
 schema. If none provided (default, \code{NULL}), the schema will be created from
 the \code{js_def} JSON file. (only for partition files).}
+
+\item{ignore_val_err}{Boolean, if TRUE will not stop the validation if any
+error in the check \code{valid_vals} (valid values). By defailt, \code{FALSE} (does
+not ignore the error, will stop the validation if any issue in this check)}
 }
 \description{
 Runs multiple validation checks functions on SMH submission
