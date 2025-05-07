@@ -1,8 +1,18 @@
 test_that("Test validation process", {
 
-  obs <- "../exp/target-data/time-series.csv"
-  hub_path <- "../exp/"
-  pop_path <- "../exp/auxiliary-data/location_census/locations.csv"
+  hub_path0 <- tempdir()
+  hub_path <- paste0(hub_path0, "/exp/")
+  all_dir <- c(hub_path,
+               grep("\\.", paste0(hub_path, dir("../exp", recursive = TRUE,
+                                                include.dirs = TRUE)),
+                    value = TRUE, invert = TRUE))
+  purrr::map(all_dir, dir.create, showWarnings = FALSE)
+  file.copy(dir("../exp", full.names = TRUE, recursive = TRUE),
+            gsub("^../exp", hub_path, dir("../exp", full.names = TRUE,
+                                          recursive = TRUE)))
+
+  obs <- paste0(hub_path, "target-data/time-series.csv")
+  pop_path <- paste0(hub_path, "auxiliary-data/location_census/locations.csv")
   merge_sample_col <- c("run_grouping", "stochastic_run")
   partition <- round_id <- r_schema <- NULL
   n_decimal <- 1
@@ -463,4 +473,7 @@ test_that("Test validation process", {
                          merge_sample_col = merge_sample_col))
   expect_contains(attr(check$result$spl_compound_tid, "class"),
                   c("error", "check_error"))
+
+  unlink(hub_path0, recursive = TRUE)
+
 })
