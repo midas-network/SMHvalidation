@@ -47,6 +47,7 @@ run_all_validation <- function(df, path, js_def0, js_def, round_id, hub_path,
     all <- merge_sample_id(df, req_colnames, merge_sample_col,  js_def0, js_def,
                            checks, partition = partition, verbose = TRUE,
                            verbose_col = verbose_col)
+    gc()
     df <- all$df
     pair <- all$msg
     if (!is.null(pair) && verbose)
@@ -82,8 +83,10 @@ run_all_validation <- function(df, path, js_def0, js_def, round_id, hub_path,
                                                                       "tasks"),
                                            output_type_id_datatype =
                                            "from_config")
+  gc()
   tbl_chr <- dplyr::mutate_all(df, as.character)
 
+  gc()
   checks$valid_vals <-
     try_check(check_tbl_values(tbl_chr, round_id = round_id,
                                file_path = file_path, hub_path = hub_path),
@@ -92,26 +95,31 @@ run_all_validation <- function(df, path, js_def0, js_def, round_id, hub_path,
     return(checks)
   }
 
+  gc()
   checks$rows_unique <-
     try_check(check_tbl_rows_unique(tbl_chr, file_path = file_path,
                                     hub_path = hub_path), path)
 
+  gc()
   checks$req_vals <-
     try_check(check_df_values_required(df, js_def, file_path = file_path), path)
   # -- slow
+  gc()
   checks$value_col_valid <-
     try_check(check_tbl_value_col(df, round_id = round_id,
                                   file_path = file_path, hub_path = hub_path),
               path)
-
+  gc()
   checks$value_col_non_desc <-
     try_check(check_tbl_value_col_ascending(tbl_chr, file_path = file_path,
                                             hub_path = hub_path,
                                             round_id = round_id,
                                             derived_task_ids = NULL), path)
   # -- slow
+  gc()
   checks <- sample_test(checks, tbl_chr, round_id, file_path, hub_path,
                         path, pair, js_def)
+  gc()
   checks <- value_test(df, checks, file_path, n_decimal = n_decimal, pop = pop,
                        obs = obs)
 

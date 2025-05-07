@@ -108,8 +108,8 @@ check_tbl_rows_unique <- function(tbl, file_path, hub_path) {
 #' @importFrom purrr imap
 check_tbl_value_col <- function(tbl, round_id, file_path, hub_path) {
   config_tasks <- read_config(hub_path, "tasks")
-  tbl <- dplyr::mutate(tbl, dplyr::across(-dplyr::contains("value"),
-                                          as.character))
+  tbl <- dplyr::mutate(tbl,
+                       dplyr::across(-dplyr::contains("value"), as.character))
   details <- split(tbl, f = tbl$output_type) |>
     purrr::imap(
       \(.x, .y) {
