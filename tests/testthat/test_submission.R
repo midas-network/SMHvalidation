@@ -104,7 +104,14 @@ test_that("Test validation process", {
                                merge_sample_col = merge_sample_col)
   expect_contains(attr(check$valid_vals, "class"), c("error", "check_error"))
   msg <- store_msg_val(check)
-  expect_true(grepl("\U002757.*\U002705", msg))
+  expect_true(grepl("\U002757", msg))
+  expect_equal(length(check), 7)
+  check <- validate_submission(path_f, hub_path,
+                               merge_sample_col = merge_sample_col,
+                               ignore_val_err = TRUE)
+  msg <- store_msg_val(check)
+  expect_true(grepl("\U002757*\U002705", msg))
+  expect_gt(length(check), 7)
 
   ## Test columns error -----
   ### File with additional column ----

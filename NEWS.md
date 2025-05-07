@@ -1,7 +1,9 @@
 # SMHvalidation 1.1.0 (in development)
 
--   add `store_msg_val` function to store `validate_submission()` function
+-   add `store_msg_val()` function to store `validate_submission()` function
     output in a character vector with a slightly different format (#39)
+-   add `ignore_val_err` parameter in the `validate_submission()` function to 
+    ignore stopping the validation if any `[valid_vals]` error (#40)
 
 # SMHvalidation 1.0.0
 
