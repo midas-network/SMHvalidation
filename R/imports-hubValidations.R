@@ -38,12 +38,32 @@ summarise_invalid_values <- function(valid_tbl, config_tasks, round_id) {
                          "row{?s}\n      {.val {invalid_combs_idx}} ",
                          "{cli::qty(length(invalid_combs_idx))}\n      ",
                          "{?contains/contain} invalid combinations of valid ",
-                         "values.\n      See {.var error_tbl} for examples.")
+                         "values.\n ")
   }
   list(msg = paste(invalid_vals_msg, invalid_combs_msg, sep = "\n"),
        invalid_combs_idx = invalid_combs_idx)
 }
 
+#' @importFrom hubValidations expand_model_out_grid
+#' @importFrom hubUtils is_v3_config
+#' @importFrom dplyr left_join
+check_values_by_output_type <- function(tbl, output_type, config_tasks,
+                                        round_id) {
+
+  accepted_vals <-
+    hubValidations::expand_model_out_grid(config_tasks = config_tasks,
+                                          round_id = round_id,
+                                          all_character = TRUE,
+                                          output_types = output_type,
+                                          derived_task_ids = NULL)
+  accepted_vals$valid <- TRUE
+  if (hubUtils::is_v3_config(config_tasks) && output_type ==
+        "sample") {
+    tbl[tbl$output_type == "sample", "output_type_id"] <- NA
+  }
+  dplyr::left_join(tbl, accepted_vals, by = setdiff(names(tbl),
+                                                    c("value", "rowid")))
+}
 
 #' @importFrom hubUtils read_config
 #' @importFrom tibble rowid_to_column
@@ -52,33 +72,26 @@ summarise_invalid_values <- function(valid_tbl, config_tasks, round_id) {
 check_tbl_values <- function(tbl, round_id, file_path, hub_path) {
   config_tasks <- hubUtils::read_config(hub_path, "tasks")
   valid_tbl <- split(data.table::setDT(tbl), f = tbl$output_type) |>
-    purrr::imap(
-      ~hubValidations:::check_values_by_output_type(tbl = data.frame(.x),
-                                                    output_type = .y,
-                                                    config_tasks = config_tasks,
-                                                    round_id = round_id,
-                                                    derived_task_ids = NULL)
-    ) |>
+    purrr::imap(\(.x, .y) {
+      check_values_by_output_type(tbl = data.frame(.x), output_type = .y,
+                                  config_tasks = config_tasks,
+                                  round_id = round_id)
+    }) |>
     purrr::list_rbind()
   check <- !any(is.na(valid_tbl$valid))
   if (check) {
-    details <- error_tbl <- NULL
+    details <- NULL
   } else {
     valid_tbl <- tibble::rowid_to_column(valid_tbl)
     error_summary <- summarise_invalid_values(valid_tbl, config_tasks, round_id)
     details <- error_summary$msg
-    if (length(error_summary$invalid_combs_idx) == 0L) {
-      error_tbl <- NULL # nocovr
-    } else {
-      error_tbl <- tbl[error_summary$invalid_combs_idx, names(tbl) != "value"]
-    }
   }
   capture_check_cnd(check = check, file_path = file_path,
                     msg_subject = "{.var tbl}", msg_attribute = "",
                     msg_verbs = c("contains valid values/value combinations.",
                                   paste0("contains invalid values/value ",
-                                         "combinations.")),
-                    error_tbl = error_tbl, error = TRUE, details = details)
+                                         "combinations.")), error = TRUE,
+                    details = details)
 }
 
 #' @importFrom hubValidations capture_check_cnd
@@ -103,6 +116,87 @@ check_tbl_rows_unique <- function(tbl, file_path, hub_path) {
                     details = details)
 }
 
+compare_values_to_config <- function(tbl, output_type, output_type_config) {
+  if (any(is.null(tbl), is.null(output_type_config))) {
+    return(NULL)
+  }
+  details <- NULL
+  values0 <- unique(tbl$value)
+  rm(tbl)
+  config <- output_type_config[[output_type]][["value"]]
+  values_type <- config$type
+  values <- hubValidations:::coerce_values(values0, values_type)
+  if (any(is.na(values))) {
+    invalid_vals <- values0[is.na(values)]
+    details <-
+      c(details,
+        cli::format_inline("{cli::qty(length(invalid_vals))} Value{?s} ",
+                           "{.val {invalid_vals}}\n        cannot be coerced ",
+                           "to expected data type {.val {values_type}}\n      ",
+                           "  for output type {.val {output_type}}."))
+    if (length(invalid_vals) > 0) values <- stats::na.omit(values)
+    if (length(values) == 0L) return(details)
+  }
+  invalid_int <-
+    hubValidations:::detect_invalid_int(original_values = values0,
+                                        coerced_values = values)
+  if (invalid_int$check) {
+    details <-
+      c(details,
+        cli::format_inline("{cli::qty(length(invalid_int$vals))} Value{?s} ",
+                           "{.val {invalid_int$vals}}\n        cannot be ",
+                           "coerced to expected data type\n        ",
+                           "{.val {values_type}} for output type ",
+                           "{.val {output_type}}."))
+  }
+  if (any(names(config) == "maximum")) {
+    value_max <- config[["maximum"]]
+    is_invalid <- values > value_max
+    if (any(is_invalid)) {
+      details <-
+        c(details,
+          cli::format_inline("{cli::qty(sum(is_invalid))} Value{?s} ",
+                             "{.val {unique(values[is_invalid])}}\n           ",
+                             "     {cli::qty(sum(is_invalid))}{?is/are}\n     ",
+                             "           greater than allowed maximum value ",
+                             "{.val {value_max}} for output type\n         ",
+                             " {.val {output_type}}."))
+    }
+  }
+  if (any(names(config) == "minimum")) {
+    value_min <- config[["minimum"]]
+    is_invalid <- values < value_min
+    if (any(is_invalid)) {
+      details <-
+        c(details,
+          cli::format_inline("{cli::qty(sum(is_invalid))} Value{?s} ",
+                             "{.val {unique(values[is_invalid])}}\n           ",
+                             "     {cli::qty(sum(is_invalid))}{?is/are}\n     ",
+                             "           smaller than allowed minimum value ",
+                             "{.val {value_min}} for output type\n          ",
+                             "{.val {output_type}}."))
+    }
+  }
+  details
+}
+
+check_value_col_by_output_type <- function(tbl, output_type, config_tasks,
+                                           round_id) {
+  purrr::map2(.x =
+                hubValidations:::match_tbl_to_model_task(tbl, config_tasks,
+                                                         round_id,
+                                                         output_type,
+                                                         derived_task_ids =
+                                                         NULL),
+              .y = hubValidations:::get_round_output_types(config_tasks,
+                                                           round_id),
+              function(.x, .y) {
+                compare_values_to_config(tbl = .x, output_type_config = .y,
+                                         output_type = output_type)
+              }) |> unlist(use.names = TRUE)
+}
+
+
 #' @importFrom hubValidations capture_check_cnd
 #' @importFrom dplyr across
 #' @importFrom purrr imap
@@ -113,12 +207,9 @@ check_tbl_value_col <- function(tbl, round_id, file_path, hub_path) {
   details <- split(tbl, f = tbl$output_type) |>
     purrr::imap(
       \(.x, .y) {
-        hubValidations:::check_value_col_by_output_type(
-          tbl = .x, output_type = .y,
-          config_tasks = config_tasks,
-          round_id = round_id,
-          derived_task_ids = NULL
-        )
+        check_value_col_by_output_type(tbl = .x, output_type = .y,
+                                       config_tasks = config_tasks,
+                                       round_id = round_id)
       }
     ) |>
     unlist(use.names = TRUE)
