@@ -242,11 +242,13 @@ is_check_class <- function(x,
 #' Store validation output in a simple object
 #'
 #' @param msg validation output
+#' @param rm_valid_check Boolean, remove valid check and `spl_non_compound`
+#' output, by default FALSE.
 #'
 #' @importFrom dplyr case_when
 #' @importFrom purrr map_chr
 #' @export
-store_msg_val <- function(msg) {
+store_msg_val <- function(msg, rm_valid_check = FALSE) {
   txt <- paste(
     dplyr::case_when(is_check_class(msg, "check_success") ~ "\U002705",
                      is_check_class(msg, "check_failure") ~ "\U002757",
@@ -257,7 +259,14 @@ store_msg_val <- function(msg) {
                      TRUE ~ "*"),
     paste0("[", names(msg), "]"),
     purrr::map_chr(msg, "message"),
-    sep = ": ", collapse = "\n"
+    sep = ": "
   )
+  if (rm_valid_check)
+    txt <- purrr::discard(txt, ~grepl("\U002705|spl_non_compound", .x))
+  if (length(txt) > 0 ) {
+    txt <- paste(txt, collapse = "\n")
+  } else {
+    txt <- "No issue reported"
+  }
   txt
 }
