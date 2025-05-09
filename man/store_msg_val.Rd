@@ -4,10 +4,13 @@
 \alias{store_msg_val}
 \title{Store validation output in a simple object}
 \usage{
-store_msg_val(msg)
+store_msg_val(msg, rm_valid_check = FALSE)
 }
 \arguments{
 \item{msg}{validation output}
+
+\item{rm_valid_check}{Boolean, remove valid check and \code{spl_non_compound}
+output, by default FALSE.}
 }
 \description{
 Store validation output in a simple object
