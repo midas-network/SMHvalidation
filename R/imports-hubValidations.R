@@ -263,7 +263,7 @@ store_msg_val <- function(msg, rm_valid_check = FALSE) {
   )
   if (rm_valid_check)
     txt <- purrr::discard(txt, ~grepl("\U002705|spl_non_compound", .x))
-  if (length(txt) > 0 ) {
+  if (length(txt) > 0) {
     txt <- paste(txt, collapse = "\n")
   } else {
     txt <- "No issue reported"
