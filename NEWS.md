@@ -4,6 +4,8 @@
     output in a character vector with a slightly different format (#39)
 -   add `ignore_val_err` parameter in the `validate_submission()` function to 
     ignore stopping the validation if any `[valid_vals]` error (#40)
+-   add parameter `store_msg_val()` function to remove valid check (and non 
+    compound id check) on output of the function (#44)
 
 # SMHvalidation 1.0.0
 
