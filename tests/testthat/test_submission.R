@@ -101,7 +101,7 @@ test_that("Test validation process", {
   check <- validate_submission(path_f, hub_path)
   expect_contains(attr(check$req_vals, "class"), c("error", "check_error"))
   msg <- store_msg_val(check)
-  expect_true(grepl("\U001F6AB.*\U002705", msg))
+  expect_true(grepl("\U00274C.*\U002705", msg))
   msg2 <- store_msg_val(check, rm_valid_check = TRUE)
   expect_true(nchar(msg) > nchar(msg2))
   expect_false(grepl("\U002705", msg2))
