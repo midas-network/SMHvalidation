@@ -131,9 +131,9 @@ compare_values_to_config <- function(tbl, output_type, output_type_config) {
     details <-
       c(details,
         cli::format_inline("{cli::qty(length(invalid_vals))} Value{?s} ",
-                           "{.val {invalid_vals}}\n        cannot be coerced ",
-                           "to expected data type {.val {values_type}}\n      ",
-                           "  for output type {.val {output_type}}."))
+                           "{.val {invalid_vals}} cannot be coerced ",
+                           "to expected data type {.val {values_type}} ",
+                           "for output type {.val {output_type}}."))
     if (length(invalid_vals) > 0) values <- stats::na.omit(values)
     if (length(values) == 0L) return(details)
   }
@@ -144,8 +144,8 @@ compare_values_to_config <- function(tbl, output_type, output_type_config) {
     details <-
       c(details,
         cli::format_inline("{cli::qty(length(invalid_int$vals))} Value{?s} ",
-                           "{.val {invalid_int$vals}}\n        cannot be ",
-                           "coerced to expected data type\n        ",
+                           "{.val {invalid_int$vals}}cannot be ",
+                           "coerced to expected data type ",
                            "{.val {values_type}} for output type ",
                            "{.val {output_type}}."))
   }
@@ -156,11 +156,11 @@ compare_values_to_config <- function(tbl, output_type, output_type_config) {
       details <-
         c(details,
           cli::format_inline("{cli::qty(sum(is_invalid))} Value{?s} ",
-                             "{.val {unique(values[is_invalid])}}\n           ",
-                             "     {cli::qty(sum(is_invalid))}{?is/are}\n     ",
-                             "           greater than allowed maximum value ",
-                             "{.val {value_max}} for output type\n         ",
-                             " {.val {output_type}}."))
+                             "{.val {unique(values[is_invalid])}} ",
+                             "{cli::qty(sum(is_invalid))}{?is/are} ",
+                             "greater than allowed maximum value ",
+                             "{.val {value_max}} for output type ",
+                             "{.val {output_type}}."))
     }
   }
   if (any(names(config) == "minimum")) {
@@ -170,10 +170,10 @@ compare_values_to_config <- function(tbl, output_type, output_type_config) {
       details <-
         c(details,
           cli::format_inline("{cli::qty(sum(is_invalid))} Value{?s} ",
-                             "{.val {unique(values[is_invalid])}}\n           ",
-                             "     {cli::qty(sum(is_invalid))}{?is/are}\n     ",
-                             "           smaller than allowed minimum value ",
-                             "{.val {value_min}} for output type\n          ",
+                             "{.val {unique(values[is_invalid])}} ",
+                             "{cli::qty(sum(is_invalid))}{?is/are} ",
+                             "smaller than allowed minimum value ",
+                             "{.val {value_min}} for output type ",
                              "{.val {output_type}}."))
     }
   }
@@ -222,7 +222,8 @@ check_tbl_value_col <- function(tbl, round_id, file_path, hub_path) {
     msg_subject = "Values in column {.var value}",
     msg_verbs = c("all", "are not all"),
     msg_attribute = "valid with respect to modeling task config.",
-    details = details
+    details = details,
+    error = TRUE
   )
 }
 
