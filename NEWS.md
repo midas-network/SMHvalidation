@@ -6,6 +6,8 @@
     ignore stopping the validation if any `[valid_vals]` error (#40)
 -   add parameter `store_msg_val()` function to remove valid check (and non 
     compound id check) on output of the function (#44)
+-   fix message output style by removing unnecessary new line and output an 
+    error if a value is incorrect instead of failure (#46)
 
 # SMHvalidation 1.0.0
 

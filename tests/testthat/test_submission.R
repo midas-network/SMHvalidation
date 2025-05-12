@@ -288,7 +288,7 @@ test_that("Test validation process", {
   check <- validate_submission(path_f, hub_path,
                                merge_sample_col = merge_sample_col)
   expect_contains(attr(check$value_col_valid, "class"),
-                  c("error", "check_failure"))
+                  c("error", "check_error"))
   expect_contains(attr(check$na_value, "class"), c("error", "check_error"))
 
   ### Negative value -----------
@@ -306,7 +306,7 @@ test_that("Test validation process", {
   check <- validate_submission(path_f, hub_path,
                                merge_sample_col = merge_sample_col)
   expect_contains(attr(check$value_col_valid, "class"),
-                  c("error", "check_failure"))
+                  c("error", "check_error"))
 
   ### Greater than population size -----------
   df <-
