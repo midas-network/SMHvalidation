@@ -254,7 +254,7 @@ store_msg_val <- function(msg, rm_valid_check = FALSE) {
     dplyr::case_when(is_check_class(msg, "check_success") ~ "\U002705",
                      is_check_class(msg, "check_failure") ~ "\U002757",
                      is_check_class(msg, "check_exec_warn") ~ "\U000021",
-                     is_check_class(msg, "check_error") ~ "\U001F6AB",
+                     is_check_class(msg, "check_error") ~ "\U00274C",
                      is_check_class(msg, "check_exec_error") ~ "\U002588",
                      is_check_class(msg, "check_info") ~ "\U002139",
                      TRUE ~ "*"),
