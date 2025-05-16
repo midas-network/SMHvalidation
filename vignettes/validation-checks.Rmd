@@ -92,8 +92,16 @@ please consult the
 
 For option (2), the optional parameter `merge_sample_col` cam be used to
 indicate the additional columns used to set the the sample ID information, for 
-example: `⁠c("run_grouping" and "stochastic_run")⁠`
-        
+example: `⁠c("run_grouping" and "stochastic_run")⁠`.
+
+The validation will concetenate the `merge_sample_col` column by:
+
+- Uniting all `merge_sample_col` column into one column, with the value 
+separated  by a `"_"`.
+- Transforming the output as a factor to categorize each value of the output
+- Transforming the output as a numeric to comply with the expected format
+
+
 ##### Partitioned files:
 
 If the submission files is in a "partitioned" format,  the `path` parameter 
