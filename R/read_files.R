@@ -43,7 +43,7 @@ read_files <- function(path, na_string = c("", "NA", "NaN"), sep = ",") {
   if (grepl(".pqt$|.parquet$", basename(path))) {
     df <- arrow::read_parquet(path, as_data_frame = TRUE)
   }
-  df <- location_fips_format(df)
   df <- factor_columns(df)
+  df <- location_fips_format(df)
   return(df)
 }
