@@ -1,3 +1,5 @@
+# SMHvalidation (development version)
+
 # SMHvalidation 1.1.0
 
 -   add `store_msg_val()` function to store `validate_submission()` function
