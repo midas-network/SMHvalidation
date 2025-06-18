@@ -160,7 +160,7 @@ check_df_values_required <- function(test_df, model_task, file_path) {
                                                        "output_type",
                                                        "output_type_id"))))
         if (any(grepl("cdf|quantile|pmf", df_res_opt$output_type)) &
-            nrow(df_res_opt) > 0) {
+              nrow(df_res_opt) > 0) {
           opt_err <- purrr::map(as.list(df_res_opt), unique)
           opt_err <- paste(names(opt_err), purrr::map(opt_err, as.character),
                            sep = ": ", collapse = ";\n")
