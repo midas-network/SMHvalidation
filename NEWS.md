@@ -1,4 +1,4 @@
-# SMHvalidation 1.1.0 (in development)
+# SMHvalidation 1.1.0
 
 -   add `store_msg_val()` function to store `validate_submission()` function
     output in a character vector with a slightly different format (#39)
@@ -8,6 +8,7 @@
     compound id check) on output of the function (#44)
 -   fix message output style by removing unnecessary new line and output an 
     error if a value is incorrect instead of failure (#46)
+-   fix required value test (#48)
 
 # SMHvalidation 1.0.0
 
