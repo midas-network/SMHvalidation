@@ -1,5 +1,8 @@
 # SMHvalidation (development version)
 
+-   fix bug in `check_df_values_required()` dealing with model task containing
+    multiple output types.
+
 # SMHvalidation 1.1.0
 
 -   add `store_msg_val()` function to store `validate_submission()` function

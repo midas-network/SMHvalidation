@@ -76,7 +76,6 @@ extract_output_type <- function(x) {
   outtype_df
 }
 
-
 create_table <- function(list_targ, outtype_df) {
   if (length(purrr::compact(list_targ[!names(list_targ) %in%
                                         names(outtype_df)])) == 0) {
@@ -84,6 +83,7 @@ create_table <- function(list_targ, outtype_df) {
   } else {
     req_df <- purrr::compact(list_targ) |>
       expand.grid() |>
+      dplyr::mutate_all(as.character) |>
       tidyr::pivot_longer(tidyr::all_of(names(outtype_df)),
                           names_to = "output_type",
                           values_to = "output_type_id")
