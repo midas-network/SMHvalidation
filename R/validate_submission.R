@@ -296,7 +296,7 @@ validate_submission <- function(path, hub_path, js_def = NULL,
     return(check)
   } else {
     # Read file
-    if (length(file_path) == 1) {
+    if (length(file_path) == 1 && is.null(partition)) {
       df <- read_files(paste0(hub_path, "/", path))
     } else if (!is.null(partition)) {
       schema <- make_schema(js_def0, js_def, round_id,
