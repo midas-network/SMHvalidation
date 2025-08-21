@@ -26,6 +26,8 @@ test_that("Test visualization", {
                                                           "target")))
 
   df <- dplyr::filter(df0, .data[["output_type"]] == "sample")
+  if (!dir.exists(basename(path_f)))
+    dir.create(basename(path_f), recursive = TRUE)
   arrow::write_parquet(df, path_f)
   rm(df)
 
