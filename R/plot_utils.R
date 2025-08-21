@@ -94,8 +94,8 @@ print_table <- function(data, tab_title, metric = "prctdiff_gt", #"median",
     dplyr::select(tidyr::all_of(c("scenario_id", "state", "outcome",
                                   "ground truth")),
                   value = tidyr::all_of(metric)) |>
-    tidyr::pivot_wider(names_from = .data[["scenario_id"]],
-                       values_from = .data[["value"]])
+    tidyr::pivot_wider(names_from = dplyr::matches("scenario_id"),
+                       values_from = dplyr::matches("value"))
 
   # Cells to highlight
   nas <- na_cells(tab_data, sel_group)

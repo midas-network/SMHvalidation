@@ -82,6 +82,7 @@ check_tbl_values <- function(tbl, round_id, file_path, hub_path) {
   if (check) {
     details <- NULL
   } else {
+    valid_tbl <- dplyr::filter(valid_tbl, is.na(.data[["valid"]]))
     valid_tbl <- tibble::rowid_to_column(valid_tbl)
     error_summary <- summarise_invalid_values(valid_tbl, config_tasks, round_id)
     details <- error_summary$msg

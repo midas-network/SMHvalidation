@@ -115,7 +115,7 @@ check_df_values_required <- function(test_df, model_task, file_path) {
       req_targ <- NULL
     } else {
       req_targ <- purrr::map(x$task_ids, "required")
-      opt_targ <- purrr::map(x$task_ids, "optional")
+      opt_targ <- purrr::map(x$task_ids, unlist)
     }
     outtype_df <- extract_output_type(x)
 
