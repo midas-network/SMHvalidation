@@ -2,6 +2,8 @@
 
 -   fix bug in `check_df_values_required()` dealing with model task containing
     multiple output types.
+-   minor fixes: read partition of one file, improve output error message 
+    of invalid or missing variables combination. 
 
 # SMHvalidation 1.1.0
 
