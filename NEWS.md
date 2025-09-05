@@ -3,7 +3,7 @@
 -   fix bug in `check_df_values_required()` dealing with model task containing
     multiple output types.
 -   minor fixes: read partition of one file, improve output error message 
-    of invalid or missing variables combination. 
+    of invalid or missing variables combination, fix `n_decimal` comparison
 
 # SMHvalidation 1.1.0
 
