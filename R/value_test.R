@@ -62,7 +62,7 @@ value_test <- function(df, checks, file_path, n_decimal = NULL, pop = NULL,
   if (any(grepl("sample", df$output_type, fixed = TRUE)) &&
         !is.null(n_decimal)) {
     unique_val_digit <- format(abs(unique_val) - floor(abs(unique_val)),
-                               scientific = F)
+                               scientific = FALSE)
     unique_val_digit <- gsub("0\\.|0+$", "", unique_val_digit, perl = TRUE)
     sel_digit_rep <- grepl("9{6,}|0{6,}", unique_val_digit)
     if (any(sel_digit_rep)) {
