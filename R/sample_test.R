@@ -15,7 +15,7 @@ sample_test <- function(checks, tbl_chr, round_id, file_path, hub_path,
                                                               "output_type"),
                                                    "sample"), ~ !is.null(.x))]
     tasks_list <- tasks_list[[1]]$task_ids
-    if (is.null(pair$sto_group) | is.null(pair$run_group)) {
+    if (is.null(pair$sto_group) || is.null(pair$run_group)) {
       pair_vect <- unique(unlist(c(pair$run_group, pair$sto_group)))
     } else if (identical(sort(unique(unlist(pair$sto_group))),
                          sort(unique(unlist(pair$run_group))))) {
