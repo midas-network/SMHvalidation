@@ -1,7 +1,8 @@
 # SMHvalidation (development version)
 
 -   fix bug in `check_df_values_required()` dealing with model task containing
-    multiple output types.
+    multiple output types
+-   fix sample pairing information test
 -   minor fixes: read partition of one file, improve output error message 
     of invalid or missing variables combination, fix `n_decimal` comparison
 

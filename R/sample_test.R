@@ -10,22 +10,40 @@ sample_test <- function(checks, tbl_chr, round_id, file_path, hub_path,
   if (!is.null(pair)) {
     if (!all(tbl_chr$output_type %in% "sample"))
       tbl_chr <- dplyr::filter(tbl_chr, .data[["output_type"]] == "sample")
+    # Compound ID
+    tasks_list <- js_def[purrr::map_vec(purrr::map(purrr::map(js_def,
+                                                              "output_type"),
+                                                   "sample"), ~ !is.null(.x))]
+    tasks_list <- tasks_list[[1]]$task_ids
+    if (is.null(pair$sto_group) | is.null(pair$run_group)) {
+      pair_vect <- unique(unlist(c(pair$run_group, pair$sto_group)))
+    } else if (identical(sort(unique(unlist(pair$sto_group))),
+                         sort(unique(unlist(pair$run_group))))) {
+      pair_vect <- unique(unlist(c(pair$run_group, pair$sto_group)))
+    } else {
+      pair_vect <- purrr::map(dplyr::group_split(tbl_chr,
+                                                 .data[["output_type_id"]]),
+                              paired_info, c("output_type", "value"),
+                              tasks_list = tasks_list, verbose_col = NULL) |>
+        unlist() |>
+        unique()
+    }
     out_task <- purrr::map(js_def, "output_type")
     out_spl <- out_task[purrr::map_vec(out_task, ~ any(names(.x) == "sample"))]
     out_spl <- purrr::map(out_spl, "sample")
-    # Compound ID
     id_set <- purrr::map(out_spl,
                          ~ .x[["output_type_id_params"]]$compound_taskid_set)
     pair_set <- purrr::map(id_set,
                            ~ dplyr::setdiff(names(js_def[[1]]$task_ids), .x))
-    pair_vect <- unique(unlist(c(pair$run_group, pair$sto_group)))
+
     check <- all(purrr::map_vec(pair_set,  ~ all(.x %in% pair_vect)))
     if (!check) {
       missing <- unique(unlist(purrr::map(pair_set,  ~.x[!.x %in% pair_vect])))
       miss <- missing[purrr::map_vec(missing,
                                      ~ length(unique(tbl_chr[[.x]])) > 1)]
       if (length(miss) > 0) {
-        details <- paste0("Missing column(s): ", paste(miss,  collapse = ", "))
+        details <- paste0("Missing pairing column(s): ",
+                          paste(miss,  collapse = ", "))
       } else {
         check <- TRUE
         add_p <- missing[purrr::map_vec(missing,
