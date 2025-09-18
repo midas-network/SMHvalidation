@@ -17,9 +17,6 @@ sample_test <- function(checks, tbl_chr, round_id, file_path, hub_path,
     tasks_list <- tasks_list[[1]]$task_ids
     if (is.null(pair$sto_group) || is.null(pair$run_group)) {
       pair_vect <- unique(unlist(c(pair$run_group, pair$sto_group)))
-    } else if (identical(sort(unique(unlist(pair$sto_group))),
-                         sort(unique(unlist(pair$run_group))))) {
-      pair_vect <- unique(unlist(c(pair$run_group, pair$sto_group)))
     } else {
       pair_vect <- purrr::map(dplyr::group_split(tbl_chr,
                                                  .data[["output_type_id"]]),
