@@ -35,6 +35,8 @@ validate_part_file <- function(hub_path, folder_path, partition) {
   # Prerequisite
   checks <- new_hub_validations()
   full_path <- paste0(hub_path, "/model-output/", folder_path)
+  all_files <- dir(full_path, recursive = TRUE)
+  file_name <- unique(basename(all_files))
 
   # file exists
   test <- file.exists(dir(full_path, recursive = TRUE, full.names = TRUE))
@@ -50,10 +52,6 @@ validate_part_file <- function(hub_path, folder_path, partition) {
     return(checks)
   }
 
-  # Prerequisite
-  all_files <- dir(full_path, recursive = TRUE)
-  file_name <- gsub("0\\.", "\\.", unique(basename(all_files)))
-
   # Number of files
   checks$file_n <-
     capture_check_cnd(check = length(file_name) == 1,
@@ -66,13 +64,11 @@ validate_part_file <- function(hub_path, folder_path, partition) {
   }
 
   # Prerequisite
-  file_meta <- parse_file_name(file_name)
-  round_id <- file_meta$round_id
+  round_id <- parse_file_name(file_name)$round_id
   # Round id is correct
-  checks$round_id_valid <- try_check(check_valid_round_id(round_id = round_id,
-                                                          file_path = file_name,
-                                                          hub_path = hub_path),
-                                     folder_path)
+  checks$round_id_valid <-
+    try_check(check_valid_round_id(round_id = round_id, file_path = folder_path,
+                                   hub_path = hub_path), folder_path)
   if (is_any_error(checks$round_id_valid)) {
     return(checks)
   }
@@ -128,19 +124,26 @@ validate_part_file <- function(hub_path, folder_path, partition) {
   }
 
   # File name is correct
-  checks$file_name <- try_check(check_file_name(file_name), folder_path)
+  checks_file_name <- try_check(check_file_name(file_name), folder_path)
+  checks_file_name$where <- folder_path
+  checks$file_name <- checks_file_name
 
   # File format
-  checks$file_format <- try_check(check_file_format(file_path = file_name,
+  checks_file_format <- try_check(check_file_format(file_path = file_name,
                                                     hub_path = hub_path,
                                                     round_id = round_id),
                                   folder_path)
+  checks_file_format$where <- folder_path
+  checks$file_format <- checks_file_format
 
   # Associated metadata exists
-  checks$metadata_exists <-
+  file_name <- gsub("0\\.", "\\.", unique(basename(all_files)))
+  checks_metadata_exists <-
     try_check(check_submission_metadata_file_exists(hub_path = hub_path,
                                                     file_path = file_name),
               folder_path)
+  checks_metadata_exists$where <- folder_path
+  checks$metadata_exists <- checks_metadata_exists
 
   checks
 }
