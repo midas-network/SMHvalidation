@@ -123,7 +123,7 @@ run_all_validation <- function(df, path, js_def0, js_def, round_id, hub_path,
   checks <- value_test(df, checks, file_path, n_decimal = n_decimal, pop = pop,
                        obs = obs)
 
-  return(checks)
+  checks
 }
 
 

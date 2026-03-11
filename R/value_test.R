@@ -139,5 +139,5 @@ value_test <- function(df, checks, file_path, n_decimal = NULL, pop = NULL,
                         msg_attribute = "than the population size.")
   }
   checks <- cumul_value_test(df, checks, obs, file_path)
-  return(checks)
+  checks
 }

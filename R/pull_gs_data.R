@@ -123,6 +123,6 @@ pull_gs_data <- function(signals = c("deaths_cumulative_num",
   lst_df <- purrr::map(signals, std_covidcast_signal, limit_date,
                        vect_week_date) |>
     setNames(signals)
-  return(lst_df)
+  lst_df
 }
 # nocov end

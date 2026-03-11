@@ -45,5 +45,5 @@ read_files <- function(path, na_string = c("", "NA", "NaN"), sep = ",") {
   }
   df <- factor_columns(df)
   df <- location_fips_format(df)
-  return(df)
+  df
 }

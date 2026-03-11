@@ -130,7 +130,7 @@ make_schema <- function(js_def, js_def_round, round_id, path = NULL,
     }
   }
   schema <- schema[schema$names %in% exp_col]
-  return(schema)
+  schema
 }
 
 # Load partitioned files using Arrow
@@ -153,7 +153,7 @@ load_partition_arrow <- function(path, partition, schema = NULL) {
                               hive_style = FALSE) |> dplyr::collect()
   }
   df <- factor_columns(df) |> location_fips_format()
-  return(df)
+  df
 }
 
 # Function from ?is.integer() function documentation
@@ -162,7 +162,7 @@ is_wholenumber <- function(x, tol = .Machine$double.eps^0.5) {
   if (length(unique(na.omit(x))) > 0) {
     abs(x - round(x)) < tol
   } else {
-    return(FALSE)
+    FALSE
   }
 }
 
@@ -236,7 +236,7 @@ merge_sample_id <- function(df, req_colnames, merge_sample_col, js_def0, js_def,
   } else {
     df <- df_sample
   }
-  return(list(df = df, msg = pair_info))
+  list(df = df, msg = pair_info)
 }
 
 # Function for pairing information
@@ -292,7 +292,7 @@ verbose_pairing <- function(df_sample, m_task, checks, or_pair, n_sample,
                      paste(n_sample, collapse = ", "))
   pair_inf <- list(message = pair_inf, n_sample = n_sample,
                    run_group = run_group, sto_group = sto_group)
-  return(pair_inf)
+  pair_inf
 }
 
 # extract pairing information
@@ -354,7 +354,7 @@ paired_info <- function(df, rm_col = NULL, tasks_list = NULL,
       unlist() |>
       unique()
   }
-  return(paired_info)
+  paired_info
 }
 
 
@@ -408,6 +408,6 @@ filter_df <- function(df, task_id, exclusion = NULL, required = FALSE,
                       }
                     }))
   attr(df_test, "filter") <- text_var
-  return(df_test)
+  df_test
 }
 # nocov end
