@@ -91,7 +91,7 @@ generate_validation_plots <- function(path_proj, target_data = NULL,
     message("No output type quantiles for incident/cumulative case, death",
             "hospitalization or infection found in the file - no plot",
             "generated.")
-    return(NULL)
+    NULL
   }
 
 }

@@ -25,7 +25,7 @@ run_all_validation <- function(df, path, js_def0, js_def, round_id, hub_path,
   if (!is.null(partition)) {
     file_path <- unique(basename(dir(path, recursive = TRUE)))
   } else {
-    file_path <- path
+    file_path <- basename(path)
   }
 
   # Merge sample ID column
@@ -123,7 +123,7 @@ run_all_validation <- function(df, path, js_def0, js_def, round_id, hub_path,
   checks <- value_test(df, checks, file_path, n_decimal = n_decimal, pop = pop,
                        obs = obs)
 
-  return(checks)
+  checks
 }
 
 
@@ -260,6 +260,11 @@ validate_submission <- function(path, hub_path, js_def = NULL,
   # Select validation file(s) and print message --------
   file_path <- file_path_info(path, hub_path, partition = partition,
                               round_id = round_id, verbose = verbose)
+  if (!is.null(partition)) {
+    file_where <-  unique(basename(file_path))
+  } else {
+    file_where <- basename(file_path)
+  }
 
   # Read hub config JSON file ------
   if (is.null(js_def)) js_def <- paste0(hub_path, "/hub-config/tasks.json")
@@ -272,10 +277,10 @@ validate_submission <- function(path, hub_path, js_def = NULL,
            "round ids are: ", paste(unique(hubUtils::get_round_ids(js_def0)),
                                     collapse = ", "))
   check$round_id <-
-    try_check(capture_check_cnd(check_round_id, file_path,
+    try_check(capture_check_cnd(check_round_id, file_where,
                                 msg_subject = "{.var round_id}",
                                 msg_attribute = "valid.",
-                                etails = details_mess, error = TRUE))
+                                details = details_mess, error = TRUE))
   if (is_any_error(check$round_id)) {
     return(check)
   } else {
@@ -288,7 +293,7 @@ validate_submission <- function(path, hub_path, js_def = NULL,
   check_file_ext <- sub_file_ext %in% config_ext
   details_mess <- paste0("Extension(s) accepted: {.val ", config_ext, "}")
   check$file_extension <-
-    try_check(capture_check_cnd(check_file_ext, file_path,
+    try_check(capture_check_cnd(check_file_ext, file_where,
                                 msg_subject = "File(s) format extension",
                                 msg_attribute = "valid.",
                                 details = details_mess, error = TRUE))
@@ -317,7 +322,7 @@ validate_submission <- function(path, hub_path, js_def = NULL,
   details_mess <- "The column should be in a ISO date format {.val YYYY-MM-DD}"
   message <- "The column(s) containing date information"
   check$date_format <-
-    try_check(capture_check_cnd(check_test_format, file_path,
+    try_check(capture_check_cnd(check_test_format, file_where,
                                 msg_subject = message,
                                 msg_attribute = "in a valid format.",
                                 details = details_mess, error = TRUE))

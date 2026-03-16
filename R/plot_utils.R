@@ -245,7 +245,7 @@ plot_projections <- function(data, st, projection_date, legend_rows = 1,
     plot <- plot +
       scale_y_funct(paste0("Weekly Cumulative Outcomes, ", st))
   }
-  return(plot)
+  plot
 }
 
 #' Generate PDF of state plots
