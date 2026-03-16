@@ -25,7 +25,7 @@ run_all_validation <- function(df, path, js_def0, js_def, round_id, hub_path,
   if (!is.null(partition)) {
     file_path <- unique(basename(dir(path, recursive = TRUE)))
   } else {
-    file_path <- path
+    file_path <- basename(path)
   }
 
   # Merge sample ID column
@@ -263,7 +263,7 @@ validate_submission <- function(path, hub_path, js_def = NULL,
   if (!is.null(partition)) {
     file_where <-  unique(basename(file_path))
   } else {
-    file_where <- file_path
+    file_where <- basename(file_path)
   }
 
   # Read hub config JSON file ------
