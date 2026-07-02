@@ -30,9 +30,10 @@ run_all_validation <- function(df, path, js_def0, js_def, round_id, hub_path,
 
   # Merge sample ID column
   if (!is.null(merge_sample_col)) {
+    m_req_colnames <- c(req_colnames, merge_sample_col)
     # Validation
-    if (!(all(c(req_colnames, merge_sample_col) %in% names(df)))) {
-      fail_col <- req_colnames[!req_colnames %in% names(df)]
+    if (!(all(m_req_colnames %in% names(df)))) {
+      fail_col <- m_req_colnames[!m_req_colnames %in% names(df)]
       details_mess <- paste0("'", paste(fail_col, collapse = "', '"),
                              "' should be present in the file.")
       mgs_attr <- paste0("consistent with expected round task IDs and std ",
