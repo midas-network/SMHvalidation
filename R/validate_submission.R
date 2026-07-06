@@ -246,6 +246,7 @@ validate_submission <- function(path, hub_path, js_def = NULL,
 
   # Prerequisite --------
   m_fold <- hubUtils::read_config(hub_path, "admin")$model_output_dir
+  if (is.null(m_fold)) m_fold <- paste0(m_fold, "model-output")
   path <- paste0(m_fold, "/", path)
   # Pull target data
   if (!is.null(target_data)) obs <- read_files(target_data) else obs <- NULL
