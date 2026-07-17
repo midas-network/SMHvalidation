@@ -9,6 +9,8 @@
 #' files. The path should be relative to the `hub_path`, model output folder.
 #' @param partition character vector corresponding to the column names of each
 #' path segments
+#' @param round_id character string, round identifier. If `NULL` (default),
+#' extracted from `path`.
 #'
 #' @details
 #' See `hubValidations::validate_model_file()` on the tests performed in the
@@ -30,16 +32,20 @@
 #' SMHvalidation::validate_part_file(hub_path, path_2,
 #'                                   c("origin_date", "target"))
 #'
-validate_part_file <- function(hub_path, folder_path, partition) {
+validate_part_file <- function(hub_path, folder_path, partition,
+                               round_id = NULL) {
 
   # Prerequisite
   checks <- new_hub_validations()
   full_path <- paste0(hub_path, "/model-output/", folder_path)
   all_files <- dir(full_path, recursive = TRUE)
+  if (!is.null(round_id)) all_files <- grep(round_id, all_files, value = TRUE)
   file_name <- unique(basename(all_files))
 
   # file exists
-  test <- file.exists(dir(full_path, recursive = TRUE, full.names = TRUE))
+  test_path <- dir(full_path, recursive = TRUE, full.names = TRUE)
+  if (!is.null(round_id)) test_path <- grep(round_id, test_path, value = TRUE)
+  test <- file.exists(test_path)
   if (length(test) == 0) test <- FALSE
   checks$file_exists <-
     capture_check_cnd(check = all(test), file_path = folder_path,
@@ -64,7 +70,7 @@ validate_part_file <- function(hub_path, folder_path, partition) {
   }
 
   # Prerequisite
-  round_id <- parse_file_name(file_name)$round_id
+  if (is.null(round_id)) round_id <- parse_file_name(file_name)$round_id
   # Round id is correct
   checks$round_id_valid <-
     try_check(check_valid_round_id(round_id = round_id, file_path = folder_path,

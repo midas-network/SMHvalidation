@@ -23,7 +23,8 @@ run_all_validation <- function(df, path, js_def0, js_def, round_id, hub_path,
                      "output_type_id", "value")
   checks <- new_hub_validations()
   if (!is.null(partition)) {
-    file_path <- unique(basename(dir(path, recursive = TRUE)))
+    file_path <- grep(round_id, unique(basename(dir(path, recursive = TRUE))),
+                      value = TRUE)
   } else {
     file_path <- basename(path)
   }
@@ -313,6 +314,17 @@ validate_submission <- function(path, hub_path, js_def = NULL,
       df <- load_partition_arrow(paste0(hub_path, "/", path),
                                  partition = partition,
                                  schema = schema)
+      if (!any(round_id %in% df$origin_date)) {
+        message <- "Round ID not found in the origin_date column"
+        check$round_id <-
+          try_check(capture_check_cnd(FALSE, file_where,
+                                      msg_subject = "{.var round_id}",
+                                      msg_attribute = "valid.",
+                                      details = message, error = TRUE))
+        return(check)
+      } else {
+        df <- dplyr::filter(df, .data[["origin_date"]] %in% round_id)
+      }
     }
   }
 

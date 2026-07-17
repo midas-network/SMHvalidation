@@ -7,6 +7,7 @@
     expected)
 -   minor fixes: read partition of one file, improve output error message 
     of invalid or missing variables combination, fix `n_decimal` comparison
+-   fix partitioning file validation (possibility to filter to a specific round)
 
 # SMHvalidation 1.1.0
 

@@ -4,7 +4,7 @@
 \alias{validate_part_file}
 \title{Validate Partitioned files level properties}
 \usage{
-validate_part_file(hub_path, folder_path, partition)
+validate_part_file(hub_path, folder_path, partition, round_id = NULL)
 }
 \arguments{
 \item{hub_path}{path to the repository contains the submissions files
@@ -15,6 +15,9 @@ files. The path should be relative to the \code{hub_path}, model output folder.}
 
 \item{partition}{character vector corresponding to the column names of each
 path segments}
+
+\item{round_id}{character string, round identifier. If \code{NULL} (default),
+extracted from \code{path}.}
 }
 \description{
 Function based on \code{hubValidations::validate_model_file()}, adapted to work
