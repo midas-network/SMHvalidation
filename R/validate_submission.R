@@ -26,7 +26,7 @@ run_all_validation <- function(df, path, js_def0, js_def, round_id, hub_path,
     file_path <- grep(round_id, unique(basename(dir(path, recursive = TRUE))),
                       value = TRUE)
   } else {
-    file_path <- basename(path)
+    path <- file_path <- basename(path)
   }
 
   # Merge sample ID column
